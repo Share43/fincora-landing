@@ -453,8 +453,15 @@ body {
 </head>
 <body>
 
-<div class="demo-banner">
-  🎯 Demo interactiva de <span>Fincora</span> — Datos ficticios para ilustración · <span>fincora.app</span>
+<div class="demo-banner" id="demo-banner">
+  <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">
+    <span id="demo-step-text">👋 Paso 1 de 5 — <strong>Dashboard del despacho:</strong> visión global de comunidades, incidencias urgentes y próximas juntas</span>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button onclick="prevStep()" id="btn-prev" style="background:rgba(255,255,255,0.15);border:none;color:white;padding:3px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit">← Anterior</button>
+      <span id="demo-step-dots" style="display:flex;gap:4px;align-items:center"></span>
+      <button onclick="nextStep()" id="btn-next" style="background:#2563eb;border:none;color:white;padding:3px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">Siguiente →</button>
+    </div>
+  </div>
 </div>
 
 <div class="app">
@@ -1199,7 +1206,7 @@ body {
               <div style="font-size:20px">📄</div>
               <div>
                 <div style="font-size:13px;font-weight:600">Acta ordinaria Goya 47 — feb 2026</div>
-                <div style="font-size:11px;color:var(--muted)">Generada con IA · Firmada por presidente</div>
+                <div style="font-size:11px;color:var(--muted)">Borrador asistido por IA · Firmada por presidente</div>
               </div>
               <div class="badge badge-green" style="margin-left:auto">Firmada</div>
             </div>
@@ -1207,7 +1214,7 @@ body {
               <div style="font-size:20px">📄</div>
               <div>
                 <div style="font-size:13px;font-weight:600">Acta extraordinaria Pza. España — ene 2026</div>
-                <div style="font-size:11px;color:var(--muted)">Generada con IA · PDF descargado</div>
+                <div style="font-size:11px;color:var(--muted)">Borrador asistido por IA · PDF descargado</div>
               </div>
               <div class="badge badge-green" style="margin-left:auto">Firmada</div>
             </div>
@@ -1225,7 +1232,7 @@ body {
           </div>
         </div>
         <div style="padding:20px">
-          <div class="acta-ai-badge">✨ Borrador generado por IA · Revisa y ajusta antes de firmar</div>
+          <div class="acta-ai-badge">✨ Borrador asistido por IA · El administrador revisa y ajusta antes de firmar</div>
 
           <div class="acta-box">
             <h3>ACTA DE JUNTA ORDINARIA DE PROPIETARIOS<br>
@@ -1278,34 +1285,108 @@ body {
 </div>
 
 <script>
-  const screens = ['dashboard','comunidad','inc-detalle','documentos','juntas'];
+  const STEPS = [
+    {
+      screen: 'dashboard',
+      nav: 0,
+      text: '👋 Paso 1 de 5 — <strong>Dashboard del despacho:</strong> visión global de comunidades, incidencias urgentes y próximas juntas'
+    },
+    {
+      screen: 'comunidad',
+      nav: 1,
+      text: '🏢 Paso 2 de 5 — <strong>Ficha de comunidad:</strong> incidencias, documentos, juntas y datos de Goya 47 en un solo sitio'
+    },
+    {
+      screen: 'inc-detalle',
+      nav: 2,
+      text: '⚠️ Paso 3 de 5 — <strong>Incidencia en detalle:</strong> historial completo, proveedor asignado y visibilidad para el presidente sin llamadas'
+    },
+    {
+      screen: 'documentos',
+      nav: 3,
+      text: '📂 Paso 4 de 5 — <strong>Repositorio documental:</strong> actas, contratos y pólizas organizados por comunidad, con alertas de vencimiento'
+    },
+    {
+      screen: 'juntas',
+      nav: 4,
+      text: '📋 Paso 5 de 5 — <strong>Juntas y actas:</strong> convocatoria, acuerdos y borrador de acta asistido — lo que antes tardaba horas'
+    }
+  ];
+
+  let currentStep = 0;
   const navItems = document.querySelectorAll('.nav-item');
 
-  function go(screen) {
-    // Hide all screens
-    screens.forEach(s => {
-      const el = document.getElementById('screen-' + s);
+  function renderDots() {
+    const container = document.getElementById('demo-step-dots');
+    container.innerHTML = STEPS.map((_, i) =>
+      `<div style="width:6px;height:6px;border-radius:50%;background:${i === currentStep ? 'white' : 'rgba(255,255,255,0.3)'}"></div>`
+    ).join('');
+  }
+
+  function applyStep(idx) {
+    const step = STEPS[idx];
+
+    // Hide/show screens
+    STEPS.forEach(s => {
+      const el = document.getElementById('screen-' + s.screen);
       if (el) el.classList.remove('active');
     });
-
-    // Show target
-    const target = document.getElementById('screen-' + screen);
+    const target = document.getElementById('screen-' + step.screen);
     if (target) target.classList.add('active');
 
-    // Update nav active state
+    // Update nav
     navItems.forEach(item => item.classList.remove('active'));
-    const navMap = {
-      'dashboard': 0, 'comunidad': 1, 'inc-detalle': 2,
-      'documentos': 3, 'juntas': 4
-    };
-    if (navMap[screen] !== undefined) {
-      navItems[navMap[screen]].classList.add('active');
-    }
+    if (navItems[step.nav]) navItems[step.nav].classList.add('active');
 
-    // Scroll to top
-    document.querySelector('.main').scrollTo(0, 0);
+    // Update banner text
+    document.getElementById('demo-step-text').innerHTML = step.text;
+
+    // Update prev/next buttons
+    document.getElementById('btn-prev').style.opacity = idx === 0 ? '0.4' : '1';
+    document.getElementById('btn-next').textContent = idx === STEPS.length - 1 ? '🎯 Solicitar piloto' : 'Siguiente →';
+
+    renderDots();
     window.scrollTo(0, 0);
   }
+
+  function nextStep() {
+    if (currentStep < STEPS.length - 1) {
+      currentStep++;
+      applyStep(currentStep);
+    } else {
+      // Last step — open landing in new tab
+      window.open('https://fincora.app', '_blank');
+    }
+  }
+
+  function prevStep() {
+    if (currentStep > 0) {
+      currentStep--;
+      applyStep(currentStep);
+    }
+  }
+
+  // Allow free nav via sidebar too
+  function go(screen) {
+    const idx = STEPS.findIndex(s => s.screen === screen);
+    if (idx !== -1) {
+      currentStep = idx;
+      applyStep(idx);
+    } else {
+      // sub-screens like inc-detalle from dashboard click
+      STEPS.forEach(s => {
+        const el = document.getElementById('screen-' + s.screen);
+        if (el) el.classList.remove('active');
+      });
+      const target = document.getElementById('screen-' + screen);
+      if (target) target.classList.add('active');
+      navItems.forEach(item => item.classList.remove('active'));
+    }
+    window.scrollTo(0, 0);
+  }
+
+  // Init
+  applyStep(0);
 </script>
 </body>
 </html>
