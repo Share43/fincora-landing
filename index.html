@@ -310,7 +310,7 @@
     border: 1px solid rgba(255,255,255,0.15);
     background: rgba(255,255,255,0.08);
     color: white; font-size: 15px; font-family: inherit;
-    outline: none; width: 280px; transition: border 0.15s;
+    outline: none; width: 220px; transition: border 0.15s;
   }
   .pilot-form input::placeholder { color: rgba(255,255,255,0.3); }
   .pilot-form input:focus { border-color: var(--accent); }
@@ -522,7 +522,7 @@
       <div class="week-step">
         <div class="week-day">Día 2-3</div>
         <div class="week-title">Sin llamadas para preguntar</div>
-        <div class="week-text">Los presidentes ven el estado de cada incidencia solos. Las llamadas de "¿cómo va lo del ascensor?" desaparecen.</div>
+        <div class="week-text">Los presidentes ven el estado de cada incidencia solos. Se reducen muchas de las llamadas repetitivas.</div>
       </div>
       <div class="week-step">
         <div class="week-day">Día 4-5</div>
@@ -531,7 +531,7 @@
       </div>
       <div class="week-step">
         <div class="week-day">Primera junta</div>
-        <div class="week-title">Acta en 5 minutos</div>
+        <div class="week-title">Borrador de acta en minutos</div>
         <div class="week-text">La IA genera el borrador desde tus notas. Revisas, ajustas y exportas el PDF. Lo que antes tardaba horas.</div>
       </div>
     </div>
@@ -546,8 +546,9 @@
       <p>Buscamos 5 a 10 despachos que quieran usar Fincora antes del lanzamiento y darnos feedback real.</p>
       <div class="pilot-spots">🎯 Quedan plazas disponibles — acceso gratuito durante el piloto</div>
       <div class="pilot-form">
+        <input type="text" id="pilot-company" placeholder="Nombre del despacho" />
         <input type="email" id="pilot-email" placeholder="tu@despacho.es" />
-        <button class="btn-primary" onclick="handleSignup('pilot-email','pilot-success')">
+        <button class="btn-primary" onclick="handleSignup('pilot-email','pilot-success', this)">
           Solicitar plaza →
         </button>
       </div>
@@ -595,31 +596,56 @@
 </section>
 
 <footer>
-  <p>© 2026 Fincora · fincora.app · <a href="#">Política de privacidad</a> · Hecho en Madrid 🇪🇸</p>
+  <p>© 2026 Fincora · fincora.app · <a href="/privacy.html">Política de privacidad</a> · Hecho en Madrid 🇪🇸</p>
 </footer>
 
 <script>
-  function handleSignup(inputId, successId) {
-    const input = document.getElementById(inputId);
-    const email = input.value.trim();
+  const FORMSPREE_URL = 'https://formspree.io/f/mvzwkvwy';
+
+  async function handleSignup(emailId, successId, btn) {
+    const emailInput = document.getElementById(emailId);
+    const email = emailInput.value.trim();
+    const company = document.getElementById('pilot-company')?.value.trim() || '';
+
     if (!email || !email.includes('@') || !email.includes('.')) {
-      input.style.borderColor = '#ef4444';
-      input.placeholder = 'Introduce un email válido';
+      emailInput.style.borderColor = '#ef4444';
+      emailInput.placeholder = 'Introduce un email válido';
       setTimeout(() => {
-        input.style.borderColor = '';
-        input.placeholder = 'tu@despacho.es';
+        emailInput.style.borderColor = '';
+        emailInput.placeholder = 'tu@despacho.es';
       }, 2000);
       return;
     }
-    // Store lead
-    const leads = JSON.parse(localStorage.getItem('fincora_leads') || '[]');
-    leads.push({ email, ts: new Date().toISOString(), source: inputId });
-    localStorage.setItem('fincora_leads', JSON.stringify(leads));
-    console.log('✅ Lead:', email, '| Total leads:', leads.length);
-    input.value = '';
-    const s = document.getElementById(successId);
-    s.style.display = 'block';
-    setTimeout(() => s.style.display = 'none', 7000);
+
+    if (btn) {
+      btn.textContent = 'Enviando...';
+      btn.disabled = true;
+    }
+
+    try {
+      const res = await fetch(FORMSPREE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email, company, source: emailId, ts: new Date().toISOString() })
+      });
+
+      if (res.ok) {
+        emailInput.value = '';
+        if (document.getElementById('pilot-company')) document.getElementById('pilot-company').value = '';
+        const s = document.getElementById(successId);
+        s.style.display = 'block';
+        setTimeout(() => s.style.display = 'none', 7000);
+      } else {
+        throw new Error('Error en el envío');
+      }
+    } catch(e) {
+      alert('Ha ocurrido un error. Por favor escríbenos a hola@fincora.app');
+    } finally {
+      if (btn) {
+        btn.textContent = 'Solicitar plaza →';
+        btn.disabled = false;
+      }
+    }
   }
 </script>
 </body>
