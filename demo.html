@@ -3,280 +3,350 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fincora — Demo interactiva para administradores de fincas</title>
+<title>Fincora — Demo interactiva</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <style>
-:root {
+:root{
   --ink:#0f1117;--ink2:#3a3d4a;--muted:#8b8fa8;
-  --accent:#2563eb;--accent2:#1d4ed8;--accent-light:#eff6ff;
-  --green:#16a34a;--green-light:#f0fdf4;
-  --orange:#ea580c;--orange-light:#fff7ed;
-  --red:#dc2626;--red-light:#fef2f2;
-  --yellow:#ca8a04;--yellow-light:#fefce8;
-  --purple:#7c3aed;--purple-light:#f5f3ff;
-  --bg:#f4f5f7;--white:#ffffff;--border:#e2e4ea;
-  --sidebar-w:224px;--guide-h:52px;
+  --accent:#2563eb;--accent2:#1d4ed8;--al:#eff6ff;
+  --green:#16a34a;--gl:#f0fdf4;
+  --orange:#ea580c;--ol:#fff7ed;
+  --red:#dc2626;--rl:#fef2f2;
+  --yellow:#ca8a04;--yl:#fefce8;
+  --purple:#7c3aed;--pl:#f5f3ff;
+  --bg:#f4f5f7;--white:#fff;--border:#e2e4ea;
+  --sw:224px;--gh:52px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh;}
 
 /* SPLASH */
-#splash{position:fixed;inset:0;z-index:9999;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;transition:opacity 0.4s ease;}
-.splash-logo{font-family:'DM Serif Display',serif;font-size:40px;color:white;margin-bottom:6px;}
-.splash-logo span{color:#60a5fa;}
-.splash-tag{font-size:12px;color:#475569;margin-bottom:36px;letter-spacing:1.5px;text-transform:uppercase;}
-.splash-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:100px;padding:5px 16px;font-size:12px;color:#64748b;margin-bottom:36px;}
-.splash-badge span{color:#4ade80;font-weight:600;}
-.splash-title{font-family:'DM Serif Display',serif;font-size:clamp(26px,4vw,42px);color:white;line-height:1.1;letter-spacing:-1px;max-width:580px;margin-bottom:14px;}
-.splash-title em{font-style:italic;color:#60a5fa;}
-.splash-sub{font-size:15px;color:#64748b;max-width:460px;font-weight:300;margin-bottom:38px;line-height:1.7;}
-.splash-cta{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:white;border:none;border-radius:12px;padding:15px 30px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;box-shadow:0 6px 20px rgba(37,99,235,0.35);}
-.splash-cta:hover{background:var(--accent2);transform:translateY(-2px);}
-.splash-note{font-size:12px;color:#334155;margin-top:14px;cursor:pointer;}
-.splash-note:hover{color:#64748b;}
+#splash{position:fixed;inset:0;z-index:9999;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;transition:opacity .4s;}
+.slogo{font-family:'DM Serif Display',serif;font-size:40px;color:#fff;margin-bottom:6px;}
+.slogo span{color:#60a5fa;}
+.stag{font-size:12px;color:#475569;margin-bottom:32px;letter-spacing:1.5px;text-transform:uppercase;}
+.sbadge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:100px;padding:5px 16px;font-size:12px;color:#64748b;margin-bottom:32px;}
+.sbadge span{color:#4ade80;font-weight:600;}
+.stitle{font-family:'DM Serif Display',serif;font-size:clamp(24px,4vw,40px);color:#fff;line-height:1.1;letter-spacing:-1px;max-width:560px;margin-bottom:12px;}
+.stitle em{font-style:italic;color:#60a5fa;}
+.ssub{font-size:15px;color:#64748b;max-width:440px;font-weight:300;margin-bottom:36px;line-height:1.7;}
+.scta{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 28px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:0 6px 20px rgba(37,99,235,.35);}
+.scta:hover{background:var(--accent2);transform:translateY(-2px);}
+.snote{font-size:12px;color:#334155;margin-top:12px;cursor:pointer;}
+.snote:hover{color:#64748b;}
 
 /* GUIDE BAR */
-#guide-bar{position:fixed;top:0;left:0;right:0;z-index:500;height:var(--guide-h);background:var(--ink);display:none;align-items:center;padding:0 16px 0 22px;gap:12px;box-shadow:0 2px 12px rgba(0,0,0,0.3);}
-.guide-logo{font-family:'DM Serif Display',serif;font-size:16px;color:white;flex-shrink:0;}
-.guide-logo span{color:#60a5fa;}
-.guide-sep{width:1px;height:22px;background:rgba(255,255,255,0.1);flex-shrink:0;}
-.guide-pill{background:rgba(37,99,235,0.35);color:#93c5fd;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;flex-shrink:0;}
-.guide-content{flex:1;min-width:0;}
-.guide-title{font-size:13px;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.guide-sub{font-size:11px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.guide-dots{display:flex;gap:5px;align-items:center;flex-shrink:0;}
-.gdot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.2);cursor:pointer;transition:all 0.15s;}
-.gdot.active{background:white;transform:scale(1.3);}
-.gdot.done{background:#4ade80;}
-.guide-nav{display:flex;gap:6px;flex-shrink:0;}
-.gbtn{padding:6px 13px;border-radius:8px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all 0.12s;}
-.gbtn-prev{background:rgba(255,255,255,0.08);color:#94a3b8;}
-.gbtn-prev:hover{background:rgba(255,255,255,0.15);color:white;}
-.gbtn-next{background:var(--accent);color:white;}
-.gbtn-next:hover{background:var(--accent2);}
-.gbtn-exit{background:transparent;color:#475569;font-size:11px;padding:4px 8px;}
-.gbtn-exit:hover{color:#64748b;}
+#gbar{position:fixed;top:0;left:0;right:0;z-index:500;height:var(--gh);background:var(--ink);display:none;align-items:center;padding:0 14px 0 20px;gap:10px;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.gl{font-family:'DM Serif Display',serif;font-size:16px;color:#fff;flex-shrink:0;}
+.gl span{color:#60a5fa;}
+.gsep{width:1px;height:22px;background:rgba(255,255,255,.1);flex-shrink:0;}
+.gpill{background:rgba(37,99,235,.35);color:#93c5fd;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;flex-shrink:0;}
+.gc{flex:1;min-width:0;}
+.gt{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gs{font-size:11px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gdots{display:flex;gap:5px;align-items:center;flex-shrink:0;}
+.gd{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:all .15s;}
+.gd.active{background:#fff;transform:scale(1.3);}
+.gd.done{background:#4ade80;}
+.gnav{display:flex;gap:6px;flex-shrink:0;}
+.gbtn{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all .12s;}
+.gbp{background:rgba(255,255,255,.08);color:#94a3b8;}
+.gbp:hover{background:rgba(255,255,255,.15);color:#fff;}
+.gbn{background:var(--accent);color:#fff;}
+.gbn:hover{background:var(--accent2);}
+.gbx{background:transparent;color:#475569;font-size:11px;padding:4px 8px;}
+.gbx:hover{color:#64748b;}
 
 /* CALLOUT */
-.callout{display:inline-flex;align-items:center;gap:7px;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;margin-bottom:16px;}
-.callout.yellow{background:#fefce8;border:1px solid #fde047;color:#854d0e;}
-.callout.blue{background:var(--accent-light);border:1px solid #bfdbfe;color:#1e40af;}
-.callout.green{background:var(--green-light);border:1px solid #86efac;color:#14532d;}
-.callout.purple{background:var(--purple-light);border:1px solid #ddd6fe;color:#5b21b6;}
+.callout{display:inline-flex;align-items:center;gap:7px;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;margin-bottom:14px;}
+.cy{background:var(--yl);border:1px solid #fde047;color:#854d0e;}
+.cb{background:var(--al);border:1px solid #bfdbfe;color:#1e40af;}
+.cg{background:var(--gl);border:1px solid #86efac;color:#14532d;}
+.cp{background:var(--pl);border:1px solid #ddd6fe;color:#5b21b6;}
 
-/* APP SHELL */
-.app{display:flex;min-height:100vh;transition:padding-top 0.2s;}
-.app.guided{padding-top:var(--guide-h);}
-.sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);position:fixed;top:0;bottom:0;left:0;display:flex;flex-direction:column;z-index:100;transition:top 0.2s;}
-.app.guided .sidebar{top:var(--guide-h);}
-.sidebar-logo{padding:17px 20px;border-bottom:1px solid var(--border);font-family:'DM Serif Display',serif;font-size:20px;color:var(--ink);}
-.sidebar-logo span{color:var(--accent);}
-.sidebar-logo small{display:block;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);font-weight:400;margin-top:1px;}
-.sidebar-section{padding:14px 12px 6px;}
-.sidebar-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:0 8px;margin-bottom:4px;}
-.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--ink2);font-size:13px;font-weight:500;transition:all 0.12s;margin-bottom:1px;border:none;background:none;width:100%;text-align:left;}
-.nav-item:hover{background:var(--bg);color:var(--ink);}
-.nav-item.active{background:var(--accent-light);color:var(--accent);}
-.nav-icon{font-size:15px;width:20px;text-align:center;}
-.nav-badge{margin-left:auto;background:var(--red);color:white;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;}
-.nav-badge.g{background:var(--green);}
-.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid var(--border);}
-.user-chip{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--bg);}
-.uavatar{width:30px;height:30px;border-radius:50%;background:var(--ink);color:white;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:13px;flex-shrink:0;}
-.uname{font-size:12px;font-weight:600;}
-.urole{font-size:11px;color:var(--muted);}
+/* APP */
+.app{display:flex;min-height:100vh;}
+.app.guided{padding-top:var(--gh);}
+.sidebar{width:var(--sw);background:var(--white);border-right:1px solid var(--border);position:fixed;top:0;bottom:0;left:0;display:flex;flex-direction:column;z-index:100;transition:top .2s;}
+.app.guided .sidebar{top:var(--gh);}
+.sbar-logo{padding:16px 18px;border-bottom:1px solid var(--border);font-family:'DM Serif Display',serif;font-size:19px;color:var(--ink);}
+.sbar-logo span{color:var(--accent);}
+.sbar-logo small{display:block;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);font-weight:400;margin-top:1px;}
+.ssec{padding:12px 10px 4px;}
+.slbl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:0 8px;margin-bottom:4px;}
+.ni{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:8px;cursor:pointer;color:var(--ink2);font-size:13px;font-weight:500;transition:all .12s;margin-bottom:1px;border:none;background:none;width:100%;text-align:left;}
+.ni:hover{background:var(--bg);color:var(--ink);}
+.ni.active{background:var(--al);color:var(--accent);}
+.nic{font-size:14px;width:18px;text-align:center;}
+.nbadge{margin-left:auto;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;}
+.nbadge.g{background:var(--green);}
+.sbottom{margin-top:auto;padding:10px;border-top:1px solid var(--border);}
+.uchip{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:8px;background:var(--bg);}
+.uav{width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:12px;flex-shrink:0;}
+.unm{font-size:12px;font-weight:600;}
+.url{font-size:11px;color:var(--muted);}
 
-.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;}
-.topbar{height:54px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:50;transition:top 0.2s;}
-.app.guided .topbar{top:var(--guide-h);}
-.tb-title{font-size:15px;font-weight:700;}
-.tb-bc{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;}
-.tb-bc span{color:var(--ink2);}
-.tb-actions{margin-left:auto;display:flex;gap:8px;align-items:center;}
-.btn{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;border:none;transition:all 0.12s;}
-.btn-sec{background:var(--bg);color:var(--ink2);border:1px solid var(--border);}
-.btn-sec:hover{background:var(--border);}
-.btn-pri{background:var(--accent);color:white;}
-.btn-pri:hover{background:var(--accent2);}
-.btn-sm{padding:5px 10px;font-size:12px;}
-.content{padding:22px 24px;flex:1;}
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;}
+.topbar{height:54px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:10px;position:sticky;top:0;z-index:50;transition:top .2s;}
+.app.guided .topbar{top:var(--gh);}
+.tbt{font-size:15px;font-weight:700;}
+.tbc{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:5px;}
+.tbc .crumb{color:var(--ink2);cursor:pointer;}
+.tbc .crumb:hover{color:var(--accent);}
+.tbact{margin-left:auto;display:flex;gap:7px;align-items:center;}
+.btn{padding:6px 13px;border-radius:8px;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;border:none;transition:all .12s;}
+.bs{background:var(--bg);color:var(--ink2);border:1px solid var(--border);}
+.bs:hover{background:var(--border);}
+.bp{background:var(--accent);color:#fff;}
+.bp:hover{background:var(--accent2);}
+.content{padding:20px 22px;flex:1;}
 
-.screen{display:none;animation:fadeIn 0.2s ease;}
+.screen{display:none;animation:fi .2s ease;}
 .screen.active{display:block;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fi{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
 
-/* STATS */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
-.stat-card{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:17px 20px;}
-.stat-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px;}
-.stat-value{font-size:28px;font-weight:700;color:var(--ink);line-height:1;}
-.stat-sub{font-size:12px;color:var(--muted);margin-top:4px;}
-.stat-card.urg .stat-value{color:var(--red);}
-.stat-card.ok .stat-value{color:var(--green);}
+/* STATS ROW */
+.sr{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.sc{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:15px 18px;}
+.sc.urg .sv{color:var(--red);}
+.sc.ok .sv{color:var(--green);}
+.slb{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+.sv{font-size:26px;font-weight:700;color:var(--ink);line-height:1;}
+.ssb{font-size:11px;color:var(--muted);margin-top:3px;}
 
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.detail-grid{display:grid;grid-template-columns:1fr 300px;gap:16px;}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.detgrid{display:grid;grid-template-columns:1fr 296px;gap:14px;}
 
 .card{background:var(--white);border-radius:12px;border:1px solid var(--border);overflow:hidden;}
-.card-h{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.card-title{font-size:13px;font-weight:700;color:var(--ink);}
-.card-link{font-size:12px;color:var(--accent);cursor:pointer;}
-.card-link:hover{text-decoration:underline;}
+.ch{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.ct{font-size:13px;font-weight:700;color:var(--ink);}
+.clk{font-size:12px;color:var(--accent);cursor:pointer;border:none;background:none;font-family:inherit;font-size:12px;}
+.clk:hover{text-decoration:underline;}
 
-.inc-row{display:flex;align-items:flex-start;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;}
-.inc-row:last-child{border-bottom:none;}
-.inc-row:hover{background:var(--bg);}
-.idot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
-.dr{background:var(--red);}.do{background:var(--orange);}.dg{background:var(--green);}.dgr{background:#cbd5e1;}
-.inc-title{font-size:13px;font-weight:600;margin-bottom:2px;}
-.inc-meta{font-size:11px;color:var(--muted);}
-.inc-r{margin-left:auto;text-align:right;flex-shrink:0;}
+/* INC ROW */
+.ir{display:flex;align-items:flex-start;gap:11px;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.ir:last-child{border-bottom:none;}
+.ir:hover{background:var(--bg);}
+.idot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.dr{background:var(--red);}
+.do{background:var(--orange);}
+.dg{background:var(--green);}
+.dgr{background:#cbd5e1;}
+.itl{font-size:13px;font-weight:600;margin-bottom:1px;}
+.imt{font-size:11px;color:var(--muted);}
+.irr{margin-left:auto;flex-shrink:0;}
 
-.comm-row{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;}
-.comm-row:last-child{border-bottom:none;}
-.comm-row:hover{background:var(--bg);}
-.cavatar{width:34px;height:34px;border-radius:8px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
-.cname{font-size:13px;font-weight:600;}
-.csub{font-size:11px;color:var(--muted);}
-.cbadges{margin-left:auto;display:flex;gap:6px;}
+/* COMM ROW */
+.cr{display:flex;align-items:center;gap:11px;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.cr:last-child{border-bottom:none;}
+.cr:hover{background:var(--bg);}
+.cav{width:32px;height:32px;border-radius:8px;background:var(--al);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+.cn{font-size:13px;font-weight:600;}
+.csb{font-size:11px;color:var(--muted);}
+.cbdg{margin-left:auto;display:flex;gap:5px;}
 
-.jrow{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border);}
-.jrow:last-child{border:none;}
-.jdb{width:38px;height:38px;border-radius:8px;background:var(--accent-light);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
-.jday{font-size:16px;font-weight:700;color:var(--accent);line-height:1;}
-.jmon{font-size:9px;font-weight:700;color:var(--accent);text-transform:uppercase;}
+/* JUNTA ROW */
+.jr{display:flex;align-items:center;gap:11px;padding:11px 16px;border-bottom:1px solid var(--border);}
+.jr:last-child{border:none;}
+.jdb{width:36px;height:36px;border-radius:8px;background:var(--al);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.jday{font-size:15px;font-weight:700;color:var(--accent);line-height:1;}
+.jmon{font-size:8px;font-weight:700;color:var(--accent);text-transform:uppercase;}
 
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;}
-.br{background:var(--red-light);color:var(--red);}
-.bg{background:var(--green-light);color:var(--green);}
-.bo{background:var(--orange-light);color:var(--orange);}
-.by{background:var(--yellow-light);color:var(--yellow);}
-.bb{background:var(--accent-light);color:var(--accent);}
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:600;}
+.br{background:var(--rl);color:var(--red);}
+.bg{background:var(--gl);color:var(--green);}
+.bo{background:var(--ol);color:var(--orange);}
+.by{background:var(--yl);color:var(--yellow);}
+.bb{background:var(--al);color:var(--accent);}
 .bgr{background:var(--bg);color:var(--muted);}
-.bp{background:var(--purple-light);color:var(--purple);}
+.bpu{background:var(--pl);color:var(--purple);}
 
-.page-title{font-family:'DM Serif Display',serif;font-size:24px;letter-spacing:-0.5px;margin-bottom:4px;}
-.page-sub{font-size:13px;color:var(--muted);margin-bottom:16px;}
+/* PAGE HEADER */
+.ptitle{font-family:'DM Serif Display',serif;font-size:22px;letter-spacing:-.5px;margin-bottom:3px;}
+.psub{font-size:13px;color:var(--muted);margin-bottom:14px;}
 
-.mf{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 18px;border-bottom:1px solid var(--border);font-size:13px;}
+/* META FIELD */
+.mf{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 16px;border-bottom:1px solid var(--border);font-size:13px;}
 .mf:last-child{border:none;}
 .mk{color:var(--muted);font-size:12px;}
 .mv{font-weight:500;text-align:right;}
 
-.tli{display:flex;gap:12px;padding-bottom:18px;position:relative;}
-.tli::before{content:'';position:absolute;left:13px;top:26px;width:1px;bottom:0;background:var(--border);}
+/* TIMELINE */
+.tli{display:flex;gap:10px;padding-bottom:16px;position:relative;}
+.tli::before{content:'';position:absolute;left:12px;top:24px;width:1px;bottom:0;background:var(--border);}
 .tli:last-child::before{display:none;}
-.tld{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;z-index:1;border:2px solid var(--border);background:white;}
-.tl-t{font-size:13px;font-weight:600;margin-bottom:2px;}
-.tl-d{font-size:12px;color:var(--ink2);margin-bottom:2px;}
-.tl-ts{font-size:11px;color:var(--muted);}
+.tld{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;z-index:1;border:2px solid var(--border);background:#fff;}
+.tlt{font-size:13px;font-weight:600;margin-bottom:1px;}
+.tltx{font-size:12px;color:var(--ink2);margin-bottom:1px;}
+.tlts{font-size:11px;color:var(--muted);}
+.tli.internal .tld{background:var(--bg);border-color:var(--muted);}
+.tli.internal .tlt::after{content:' · Solo visible para el despacho';font-size:10px;color:var(--muted);font-weight:400;}
+.tli.visible .tld{background:var(--al);border-color:var(--accent);}
+.tli.visible .tlt::after{content:' · Visible para el presidente';font-size:10px;color:var(--accent);font-weight:400;}
 
+/* STEPPER */
 .stepper{display:flex;align-items:center;}
 .step{flex:1;text-align:center;position:relative;}
-.step::after{content:'';position:absolute;top:12px;left:50%;right:-50%;height:2px;background:var(--border);z-index:0;}
+.step::after{content:'';position:absolute;top:11px;left:50%;right:-50%;height:2px;background:var(--border);z-index:0;}
 .step:last-child::after{display:none;}
-.sdot{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);background:white;margin:0 auto 5px;display:flex;align-items:center;justify-content:center;font-size:10px;position:relative;z-index:1;font-weight:700;}
-.step.done .sdot{background:var(--green);border-color:var(--green);color:white;}
-.step.cur .sdot{background:var(--accent);border-color:var(--accent);color:white;}
+.sdot{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);background:#fff;margin:0 auto 5px;display:flex;align-items:center;justify-content:center;font-size:9px;position:relative;z-index:1;font-weight:700;}
+.step.done .sdot{background:var(--green);border-color:var(--green);color:#fff;}
+.step.cur .sdot{background:var(--accent);border-color:var(--accent);color:#fff;}
 .step.done::after{background:var(--green);}
-.slabel{font-size:10px;color:var(--muted);font-weight:600;}
-.step.done .slabel{color:var(--green);}
-.step.cur .slabel{color:var(--accent);}
+.slb2{font-size:10px;color:var(--muted);font-weight:600;}
+.step.done .slb2{color:var(--green);}
+.step.cur .slb2{color:var(--accent);}
 
-.back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;cursor:pointer;margin-bottom:14px;border:none;background:none;font-family:inherit;padding:0;}
-.back-btn:hover{color:var(--accent);}
+/* BACK BTN */
+.bkbtn{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:13px;cursor:pointer;margin-bottom:12px;border:none;background:none;font-family:inherit;padding:0;}
+.bkbtn:hover{color:var(--accent);}
 
-.cinput{display:flex;gap:8px;margin-top:12px;}
-.cinput input{flex:1;padding:9px 14px;border-radius:8px;border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;color:var(--ink);}
-.cinput input:focus{border-color:var(--accent);}
+/* TABS */
+.tabs{display:flex;gap:2px;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:14px;width:fit-content;}
+.tab{padding:5px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border:none;background:none;font-family:inherit;transition:all .12s;}
+.tab.active{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08);}
 
-.tabs{display:flex;gap:2px;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:16px;width:fit-content;}
-.tab{padding:6px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border:none;background:none;font-family:inherit;transition:all 0.12s;}
-.tab.active{background:white;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+/* SEARCH BAR */
+.searchbar{display:flex;align-items:center;gap:9px;background:var(--white);border:1px solid var(--border);border-radius:9px;padding:7px 13px;flex:1;}
+.searchbar input{border:none;outline:none;font-family:inherit;font-size:13px;color:var(--ink);flex:1;background:transparent;}
+.searchbar input::placeholder{color:var(--muted);}
 
-.sbar{display:flex;align-items:center;gap:10px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:8px 14px;margin-bottom:12px;}
-.sbar input{border:none;outline:none;font-family:inherit;font-size:13px;color:var(--ink);flex:1;background:transparent;}
-.sbar input::placeholder{color:var(--muted);}
+/* FILTER ROW */
+.filterrow{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+.filterbtn{padding:5px 11px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--white);color:var(--ink2);font-family:inherit;transition:all .12s;}
+.filterbtn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.filterbtn:hover:not(.active){background:var(--bg);}
 
-.doc-table{width:100%;border-collapse:collapse;}
-.doc-table th{text-align:left;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);padding:8px 18px;border-bottom:1px solid var(--border);background:var(--bg);}
-.doc-table td{padding:11px 18px;border-bottom:1px solid var(--border);font-size:13px;}
-.doc-table tr:last-child td{border:none;}
-.doc-table tr:hover td{background:#fafafa;cursor:pointer;}
+/* DOC TABLE */
+.dtable{width:100%;border-collapse:collapse;}
+.dtable th{text-align:left;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);padding:7px 16px;border-bottom:1px solid var(--border);background:var(--bg);}
+.dtable td{padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
+.dtable tr:last-child td{border:none;}
+.dtable tr.drow:hover td{background:#fafafa;cursor:pointer;}
 .dn{font-weight:500;}
 .ds{color:var(--muted);font-size:11px;display:block;margin-top:1px;}
 
-.vb{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:var(--yellow-light);color:var(--yellow);}
-.vb.urg{background:var(--red-light);color:var(--red);}
+/* VB */
+.vb{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:600;background:var(--yl);color:var(--yellow);}
+.vb.urg{background:var(--rl);color:var(--red);}
 
-.alert-strip{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;font-size:12px;margin-bottom:12px;}
-.alert-strip.yellow{background:var(--yellow-light);color:#713f12;border:1px solid #fde047;}
+/* ALERT STRIP */
+.astrip{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:9px;font-size:12px;margin-bottom:11px;}
+.astrip.y{background:var(--yl);color:#713f12;border:1px solid #fde047;}
+.astrip.r{background:var(--rl);color:#7f1d1d;border:1px solid #fca5a5;}
 
-.dstat{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:var(--bg);margin-bottom:7px;}
-.dsv{font-size:18px;font-weight:700;color:var(--ink);line-height:1;}
+/* DSTAT */
+.dstat{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:9px;background:var(--bg);margin-bottom:6px;}
+.dsv{font-size:17px;font-weight:700;color:var(--ink);line-height:1;}
 .dsl{font-size:11px;color:var(--muted);}
 
-.pview{background:var(--accent-light);border:1px solid #bfdbfe;border-radius:10px;padding:14px;}
-.pview-t{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:7px;}
-.pview-r{font-size:12px;color:var(--ink2);padding:2px 0;}
-.pview-n{margin-top:8px;font-size:11px;color:var(--muted);font-style:italic;}
+/* PVIEW */
+.pview{background:var(--al);border:1px solid #bfdbfe;border-radius:9px;padding:13px;}
+.pvt{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px;}
+.pvr{font-size:12px;color:var(--ink2);padding:2px 0;}
+.pvn{margin-top:7px;font-size:11px;color:var(--muted);font-style:italic;}
 
-.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
-.pt{aspect-ratio:1;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;}
+/* PHOTO GRID */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px;}
+.pt{aspect-ratio:1;border-radius:7px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;}
 
-.acta-ai{display:inline-flex;align-items:center;gap:6px;background:var(--purple-light);color:var(--purple);border:1px solid #ddd6fe;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;margin-bottom:14px;}
-.acta-box{background:#fffef7;border:1px solid #fde68a;border-radius:12px;padding:22px 26px;font-size:13px;line-height:1.8;color:var(--ink2);}
-.acta-box h3{font-family:'DM Serif Display',serif;font-size:17px;color:var(--ink);margin-bottom:12px;text-align:center;}
-.acta-box h4{font-size:13px;font-weight:700;margin:12px 0 4px;color:var(--ink);}
+/* ACTA */
+.acta-ai{display:inline-flex;align-items:center;gap:6px;background:var(--pl);color:var(--purple);border:1px solid #ddd6fe;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;margin-bottom:12px;}
+.acta-box{background:#fffef7;border:1px solid #fde68a;border-radius:12px;padding:20px 24px;font-size:13px;line-height:1.8;color:var(--ink2);}
+.acta-box h3{font-family:'DM Serif Display',serif;font-size:16px;color:var(--ink);margin-bottom:10px;text-align:center;}
+.acta-box h4{font-size:13px;font-weight:700;margin:10px 0 4px;color:var(--ink);}
+
+/* COMMENT INPUT */
+.cinput{display:flex;gap:7px;margin-top:10px;}
+.cinput input{flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;color:var(--ink);}
+.cinput input:focus{border-color:var(--accent);}
+.ctypebtn{display:flex;gap:4px;margin-bottom:6px;}
+.ctb{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--muted);font-family:inherit;}
+.ctb.active{background:var(--al);color:var(--accent);border-color:#bfdbfe;}
+.ctb.int.active{background:var(--bg);color:var(--muted);border-color:var(--muted);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;animation:fi .15s;}
+.modal{background:#fff;border-radius:14px;max-width:660px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.modal-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:15px;font-weight:700;}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);padding:2px 6px;}
+.modal-close:hover{color:var(--ink);}
+.modal-body{padding:20px;}
+
+/* PROVEEDOR / CONFIG placeholder */
+.placeholder-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:var(--muted);text-align:center;gap:12px;}
+.ph-icon{font-size:40px;}
+.ph-title{font-size:16px;font-weight:600;color:var(--ink2);}
+.ph-sub{font-size:13px;max-width:300px;}
+
+/* PRESIDENT VIEW SCREEN */
+#screen-presidente{background:#fff;}
 
 /* CLOSE SCREEN */
-#screen-close{display:none;min-height:calc(100vh - var(--guide-h));align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:60px 24px;background:var(--ink);}
-#screen-close.active{display:flex;animation:fadeIn 0.4s ease;}
-.cl-logo{font-family:'DM Serif Display',serif;font-size:26px;color:white;margin-bottom:28px;}
-.cl-logo span{color:#60a5fa;}
-.cl-title{font-family:'DM Serif Display',serif;font-size:clamp(24px,4vw,38px);color:white;letter-spacing:-1px;line-height:1.15;max-width:540px;margin-bottom:14px;}
-.cl-title em{font-style:italic;color:#60a5fa;}
-.cl-sub{font-size:15px;color:#64748b;max-width:440px;font-weight:300;line-height:1.7;margin-bottom:32px;}
-.cl-bullets{display:flex;flex-direction:column;gap:9px;margin-bottom:36px;text-align:left;}
-.cl-bullet{display:flex;align-items:center;gap:12px;font-size:14px;color:#94a3b8;}
-.cl-bullet span{color:#4ade80;font-size:15px;}
-.cl-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;}
-.cl-main{background:var(--accent);color:white;border:none;border-radius:12px;padding:14px 28px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(37,99,235,0.35);transition:all 0.15s;}
-.cl-main:hover{background:var(--accent2);transform:translateY(-1px);}
-.cl-sec{background:rgba(255,255,255,0.07);color:#94a3b8;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 28px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;transition:all 0.15s;}
-.cl-sec:hover{background:rgba(255,255,255,0.12);color:white;}
-.cl-restart{font-size:12px;color:#334155;cursor:pointer;border:none;background:none;font-family:inherit;margin-top:4px;}
-.cl-restart:hover{color:#64748b;}
+#screen-close{display:none;min-height:calc(100vh - var(--gh));align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:60px 24px;background:var(--ink);}
+#screen-close.active{display:flex;animation:fi .4s;}
+.clg{font-family:'DM Serif Display',serif;font-size:26px;color:#fff;margin-bottom:26px;}
+.clg span{color:#60a5fa;}
+.clt{font-family:'DM Serif Display',serif;font-size:clamp(22px,4vw,36px);color:#fff;letter-spacing:-1px;line-height:1.15;max-width:520px;margin-bottom:12px;}
+.clt em{font-style:italic;color:#60a5fa;}
+.cls{font-size:15px;color:#64748b;max-width:420px;font-weight:300;line-height:1.7;margin-bottom:28px;}
+.clbl{display:flex;flex-direction:column;gap:8px;margin-bottom:32px;text-align:left;}
+.clb{display:flex;align-items:center;gap:11px;font-size:14px;color:#94a3b8;}
+.clb span{color:#4ade80;}
+.clact{display:flex;gap:11px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;}
+.clm{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:13px 26px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(37,99,235,.35);transition:all .15s;}
+.clm:hover{background:var(--accent2);transform:translateY(-1px);}
+.clse{background:rgba(255,255,255,.07);color:#94a3b8;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:13px 26px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;}
+.clse:hover{background:rgba(255,255,255,.12);color:#fff;}
+.clr{font-size:12px;color:#334155;cursor:pointer;border:none;background:none;font-family:inherit;margin-top:3px;}
+.clr:hover{color:#64748b;}
+
+/* INC UPDATE AREA */
+.upd-area{padding:14px 16px;background:var(--bg);border-top:1px solid var(--border);}
 </style>
 </head>
 <body>
 
 <!-- SPLASH -->
 <div id="splash">
-  <div class="splash-logo">Fin<span>cora</span></div>
-  <div class="splash-tag">Demo interactiva · Administradores de fincas</div>
-  <div class="splash-badge"><span>●</span> Datos ficticios · Solo para demostración</div>
-  <h1 class="splash-title">Incidencias, documentos y juntas<br><em>sin cambiar tu software contable</em></h1>
-  <p class="splash-sub">Una demo de 5 minutos para ver cómo Fincora centraliza la operativa del despacho y reduce las llamadas repetitivas.</p>
-  <button class="splash-cta" onclick="startGuide()">▶ Ver demo guiada — 5 pantallas</button>
-  <p class="splash-note" onclick="skipSplash()">o navega libremente desde el menú →</p>
+  <div class="slogo">Fin<span>cora</span></div>
+  <div class="stag">Demo interactiva · Administradores de fincas</div>
+  <div class="sbadge"><span>●</span> Datos ficticios · Solo para demostración</div>
+  <h1 class="stitle">Incidencias, documentos y juntas<br><em>sin cambiar tu software contable</em></h1>
+  <p class="ssub">5 minutos para ver cómo Fincora centraliza la operativa y reduce las llamadas.</p>
+  <button class="scta" onclick="startGuide()">▶ Ver demo guiada — 5 pantallas</button>
+  <p class="snote" onclick="skipSplash()">o navega libremente desde el menú →</p>
 </div>
 
 <!-- GUIDE BAR -->
-<div id="guide-bar">
-  <div class="guide-logo">Fin<span>cora</span></div>
-  <div class="guide-sep"></div>
-  <div class="guide-pill" id="g-pill">1/5</div>
-  <div class="guide-content">
-    <div class="guide-title" id="g-title">Dashboard del despacho</div>
-    <div class="guide-sub" id="g-sub">Todo el despacho en un vistazo</div>
+<div id="gbar">
+  <div class="gl">Fin<span>cora</span></div>
+  <div class="gsep"></div>
+  <div class="gpill" id="g-pill">1/5</div>
+  <div class="gc">
+    <div class="gt" id="g-title">Dashboard</div>
+    <div class="gs" id="g-sub">Todo el despacho en un vistazo</div>
   </div>
-  <div class="guide-dots" id="g-dots"></div>
-  <div class="guide-nav">
-    <button class="gbtn gbtn-prev" id="btn-prev" onclick="prevStep()">← Anterior</button>
-    <button class="gbtn gbtn-next" id="btn-next" onclick="nextStep()">Siguiente →</button>
-    <button class="gbtn gbtn-exit" onclick="exitGuide()">✕ Salir</button>
+  <div class="gdots" id="g-dots"></div>
+  <div class="gnav">
+    <button class="gbtn gbp" id="btn-prev" onclick="prevStep()">← Anterior</button>
+    <button class="gbtn gbn" id="btn-next" onclick="nextStep()">Siguiente →</button>
+    <button class="gbtn gbx" onclick="exitGuide()">✕ Salir</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal-overlay" style="display:none" onclick="closeModal(event)">
+  <div class="modal" id="modal-box">
+    <div class="modal-h">
+      <div class="modal-title" id="modal-title"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
   </div>
 </div>
 
@@ -285,275 +355,342 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-logo">Fin<span>cora</span><small>Despacho García &amp; Asociados</small></div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Principal</div>
-      <button class="nav-item active" onclick="go('dashboard',true)"><span class="nav-icon">🏠</span>Dashboard</button>
-      <button class="nav-item" onclick="go('comunidad',true)"><span class="nav-icon">🏢</span>Comunidades<span class="nav-badge g">12</span></button>
-      <button class="nav-item" onclick="go('inc-detalle',true)"><span class="nav-icon">⚠️</span>Incidencias<span class="nav-badge">4</span></button>
-      <button class="nav-item" onclick="go('documentos',true)"><span class="nav-icon">📂</span>Documentos</button>
-      <button class="nav-item" onclick="go('juntas',true)"><span class="nav-icon">📋</span>Juntas y actas</button>
+    <div class="sbar-logo">Fin<span>cora</span><small>Despacho García &amp; Asociados</small></div>
+    <div class="ssec">
+      <div class="slbl">Principal</div>
+      <button class="ni active" onclick="goNav('dashboard')"><span class="nic">🏠</span>Dashboard</button>
+      <button class="ni" onclick="goNav('comunidades')"><span class="nic">🏢</span>Comunidades<span class="nbadge g">3</span></button>
+      <button class="ni" onclick="goNav('incidencias')"><span class="nic">⚠️</span>Incidencias<span class="nbadge">5</span></button>
+      <button class="ni" onclick="goNav('documentos')"><span class="nic">📂</span>Documentos</button>
+      <button class="ni" onclick="goNav('juntas')"><span class="nic">📋</span>Juntas y actas</button>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Despacho</div>
-      <button class="nav-item"><span class="nav-icon">🔧</span>Proveedores</button>
-      <button class="nav-item"><span class="nav-icon">⚙️</span>Configuración</button>
+    <div class="ssec">
+      <div class="slbl">Despacho</div>
+      <button class="ni" onclick="goNav('proveedores')"><span class="nic">🔧</span>Proveedores</button>
+      <button class="ni" onclick="goNav('configuracion')"><span class="nic">⚙️</span>Configuración</button>
     </div>
-    <div class="sidebar-bottom">
-      <div class="user-chip">
-        <div class="uavatar">MG</div>
-        <div><div class="uname">Miguel García</div><div class="urole">Administrador</div></div>
+    <div class="sbottom">
+      <div class="uchip">
+        <div class="uav">MG</div>
+        <div><div class="unm">Miguel García</div><div class="url">Administrador</div></div>
       </div>
     </div>
   </aside>
 
   <main class="main">
 
-  <!-- ═══ SCREEN 1 · DASHBOARD ═══ -->
+  <!-- ══════════════════════════════
+       DASHBOARD
+  ══════════════════════════════ -->
   <div id="screen-dashboard" class="screen active">
-    <div class="topbar">
-      <div class="tb-title">Buenos días, Miguel 👋</div>
-      <div class="tb-actions">
-        <span style="font-size:12px;color:var(--muted)">Mar 10 marzo 2026</span>
-        <button class="btn btn-pri btn-sm" onclick="go('inc-detalle')">+ Nueva incidencia</button>
-      </div>
-    </div>
+    <div class="topbar"><div class="tbt">Buenos días, Miguel 👋</div><div class="tbact"><span style="font-size:12px;color:var(--muted)">Mar 10 mar 2026</span><button class="btn bp" onclick="openNewIncModal()">+ Nueva incidencia</button></div></div>
     <div class="content">
-      <div class="callout blue">📌 Todo el despacho en un vistazo — comunidades, incidencias urgentes y próximas juntas, sin abrir Excel ni hacer llamadas.</div>
-      <div class="stats-row">
-        <div class="stat-card"><div class="stat-label">Comunidades</div><div class="stat-value">12</div><div class="stat-sub">Madrid y alrededores</div></div>
-        <div class="stat-card urg"><div class="stat-label">Incidencias abiertas</div><div class="stat-value">4</div><div class="stat-sub">2 urgentes hoy</div></div>
-        <div class="stat-card"><div class="stat-label">Juntas este mes</div><div class="stat-value">3</div><div class="stat-sub">Próxima: 15 marzo</div></div>
-        <div class="stat-card ok"><div class="stat-label">Docs por revisar</div><div class="stat-value">7</div><div class="stat-sub">2 vencen este mes</div></div>
+      <div class="callout cb">📌 Estado de las 3 comunidades en un vistazo — sin abrir Excel ni hacer llamadas.</div>
+      <div class="sr">
+        <div class="sc"><div class="slb">Comunidades</div><div class="sv">3</div><div class="ssb">Madrid</div></div>
+        <div class="sc urg"><div class="slb">Incidencias abiertas</div><div class="sv">5</div><div class="ssb">2 urgentes hoy</div></div>
+        <div class="sc"><div class="slb">Juntas este mes</div><div class="sv">3</div><div class="ssb">Próxima: 15 mar</div></div>
+        <div class="sc ok"><div class="slb">Docs por revisar</div><div class="sv">7</div><div class="ssb">2 vencen pronto</div></div>
       </div>
-      <div class="two-col">
+      <div class="twocol">
         <div class="card">
-          <div class="card-h"><div class="card-title">⚠️ Incidencias urgentes</div><div class="card-link" onclick="go('inc-detalle')">Ver todas →</div></div>
-          <div class="inc-row" onclick="go('inc-detalle')"><div class="idot dr"></div><div><div class="inc-title">Ascensor parado — C/ Goya 47</div><div class="inc-meta">Hace 2 días · Sin asignar · Vecina 4ºB sin movilidad</div></div><div class="inc-r"><div class="badge br">Urgente</div></div></div>
-          <div class="inc-row"><div class="idot do"></div><div><div class="inc-title">Fuga de agua en garaje — Pza. España 3</div><div class="inc-meta">Hace 5 días · Fontanería López asignado</div></div><div class="inc-r"><div class="badge bo">En curso</div></div></div>
-          <div class="inc-row"><div class="idot do"></div><div><div class="inc-title">Luminaria portal — Velázquez 12</div><div class="inc-meta">Hace 1 día · Electricidad Martín asignado</div></div><div class="inc-r"><div class="badge bo">En curso</div></div></div>
-          <div class="inc-row"><div class="idot dgr"></div><div><div class="inc-title">Pintura zonas comunes — Serrano 88</div><div class="inc-meta">Pendiente de presupuesto</div></div><div class="inc-r"><div class="badge bgr">Pendiente</div></div></div>
+          <div class="ch"><div class="ct">⚠️ Incidencias urgentes</div><button class="clk" onclick="goNav('incidencias')">Ver todas →</button></div>
+          <div class="ir" onclick="openInc('goya','inc1')"><div class="idot dr"></div><div><div class="itl">Ascensor parado — C/ Goya 47</div><div class="imt">Hace 2 días · Sin asignar · Vecina 4ºB sin movilidad</div></div><div class="irr"><div class="badge br">Urgente</div></div></div>
+          <div class="ir" onclick="openInc('espana','inc2')"><div class="idot do"></div><div><div class="itl">Fuga de agua en garaje — Pza. España 3</div><div class="imt">Hace 5 días · Fontanería López asignado</div></div><div class="irr"><div class="badge bo">En curso</div></div></div>
+          <div class="ir" onclick="openInc('velazquez','inc3')"><div class="idot do"></div><div><div class="itl">Luminaria portal — Velázquez 12</div><div class="imt">Hace 1 día · Electricidad Martín</div></div><div class="irr"><div class="badge bo">En curso</div></div></div>
+          <div class="ir"><div class="idot dgr"></div><div><div class="itl">Pintura zonas comunes — Serrano 88</div><div class="imt">Pendiente de presupuesto</div></div><div class="irr"><div class="badge bgr">Pendiente</div></div></div>
+          <div class="ir"><div class="idot dgr"></div><div><div class="itl">Tejado — revisión general — Goya 47</div><div class="imt">Pendiente · 2 presupuestos recibidos</div></div><div class="irr"><div class="badge bgr">Pendiente</div></div></div>
         </div>
-        <div>
-          <div class="card" style="margin-bottom:14px">
-            <div class="card-h"><div class="card-title">📅 Próximas juntas</div><div class="card-link" onclick="go('juntas')">Ver →</div></div>
-            <div class="jrow"><div class="jdb"><div class="jday">15</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Junta ordinaria — C/ Goya 47</div><div style="font-size:11px;color:var(--muted)">19:00h · Sala comunitaria</div></div><div class="badge bb" style="margin-left:auto">Convocada</div></div>
-            <div class="jrow"><div class="jdb"><div class="jday">22</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Junta extraordinaria — Pza. España 3</div><div style="font-size:11px;color:var(--muted)">18:30h · Videoconferencia</div></div><div class="badge by" style="margin-left:auto">Borrador</div></div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="ch"><div class="ct">📅 Próximas juntas</div><button class="clk" onclick="goNav('juntas')">Ver →</button></div>
+            <div class="jr"><div class="jdb"><div class="jday">15</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Ordinaria — C/ Goya 47</div><div style="font-size:11px;color:var(--muted)">19:00h · Sala comunitaria</div></div><div class="badge bb" style="margin-left:auto">Convocada</div></div>
+            <div class="jr"><div class="jdb"><div class="jday">22</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Extraordinaria — Pza. España 3</div><div style="font-size:11px;color:var(--muted)">18:30h · Videoconferencia</div></div><div class="badge by" style="margin-left:auto">Borrador</div></div>
           </div>
           <div class="card">
-            <div class="card-h"><div class="card-title">🕐 Actividad reciente</div></div>
-            <div style="padding:12px 18px;display:flex;flex-direction:column;gap:10px">
-              <div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:16px">📄</div><div><div style="font-size:13px;font-weight:500">Acta subida — Goya 47 (feb 2026)</div><div style="font-size:11px;color:var(--muted)">Hace 3 horas</div></div></div>
-              <div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:16px">✅</div><div><div style="font-size:13px;font-weight:500">Incidencia resuelta — Interfonos Serrano 88</div><div style="font-size:11px;color:var(--muted)">Ayer, 16:40h</div></div></div>
-              <div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:16px">👁️</div><div><div style="font-size:13px;font-weight:500">Presidente Goya 47 consultó estado ascensor</div><div style="font-size:11px;color:var(--muted)">Ayer, 10:15h — sin llamar al despacho</div></div></div>
+            <div class="ch"><div class="ct">🕐 Actividad reciente</div></div>
+            <div style="padding:10px 16px;display:flex;flex-direction:column;gap:9px">
+              <div style="display:flex;gap:9px"><span>📄</span><div><div style="font-size:13px;font-weight:500">Acta subida — Goya 47 (feb 2026)</div><div style="font-size:11px;color:var(--muted)">Hace 3 horas</div></div></div>
+              <div style="display:flex;gap:9px"><span>✅</span><div><div style="font-size:13px;font-weight:500">Incidencia resuelta — Interfonos Serrano 88</div><div style="font-size:11px;color:var(--muted)">Ayer, 16:40h</div></div></div>
+              <div style="display:flex;gap:9px"><span>👁️</span><div><div style="font-size:13px;font-weight:500">Presidente Goya 47 consultó estado ascensor</div><div style="font-size:11px;color:var(--muted)">Ayer, 10:15h — sin llamar al despacho</div></div></div>
             </div>
           </div>
         </div>
       </div>
       <div class="card" style="margin-top:14px">
-        <div class="card-h"><div class="card-title">🏢 Comunidades activas</div><div class="card-link" onclick="go('comunidad')">Ver todas →</div></div>
-        <div class="comm-row" onclick="go('comunidad')"><div class="cavatar">G</div><div><div class="cname">C/ Goya 47 — Comunidad Goya</div><div class="csub">32 vecinos · 4 plantas · Madrid centro</div></div><div class="cbadges"><div class="badge br">1 urgente</div><div class="badge bb">Junta 15 mar</div></div></div>
-        <div class="comm-row" onclick="go('comunidad')"><div class="cavatar" style="background:#fff7ed;color:#ea580c">P</div><div><div class="cname">Pza. España 3 — Comunidad Plaza España</div><div class="csub">58 vecinos · 8 plantas · Madrid centro</div></div><div class="cbadges"><div class="badge bo">1 en curso</div></div></div>
-        <div class="comm-row" onclick="go('comunidad')"><div class="cavatar" style="background:#f0fdf4;color:#16a34a">V</div><div><div class="cname">C/ Velázquez 12 — Comunidad Velázquez</div><div class="csub">24 vecinos · 3 plantas · Salamanca</div></div><div class="cbadges"><div class="badge bo">1 en curso</div></div></div>
+        <div class="ch"><div class="ct">🏢 Comunidades</div><button class="clk" onclick="goNav('comunidades')">Ver todas →</button></div>
+        <div class="cr" onclick="openComm('goya')"><div class="cav">G</div><div><div class="cn">C/ Goya 47 — Comunidad Goya</div><div class="csb">32 vecinos · 4 plantas · Madrid centro</div></div><div class="cbdg"><div class="badge br">2 abiertas</div><div class="badge bb">Junta 15 mar</div></div></div>
+        <div class="cr" onclick="openComm('espana')"><div class="cav" style="background:#fff7ed;color:#ea580c">P</div><div><div class="cn">Pza. España 3 — Comunidad Plaza España</div><div class="csb">58 vecinos · 8 plantas · Madrid centro</div></div><div class="cbdg"><div class="badge bo">1 en curso</div></div></div>
+        <div class="cr" onclick="openComm('velazquez')"><div class="cav" style="background:#f0fdf4;color:#16a34a">V</div><div><div class="cn">C/ Velázquez 12 — Comunidad Velázquez</div><div class="csb">24 vecinos · 3 plantas · Salamanca</div></div><div class="cbdg"><div class="badge bo">1 en curso</div></div></div>
       </div>
     </div>
   </div>
 
-  <!-- ═══ SCREEN 2 · COMUNIDAD ═══ -->
+  <!-- ══════════════════════════════
+       COMUNIDADES (lista)
+  ══════════════════════════════ -->
+  <div id="screen-comunidades" class="screen">
+    <div class="topbar"><div class="tbt">Comunidades</div><div class="tbact"><button class="btn bp">+ Nueva comunidad</button></div></div>
+    <div class="content">
+      <div class="ptitle">Tus 3 comunidades</div>
+      <div class="psub">Haz clic en cualquier comunidad para ver su ficha completa</div>
+      <div class="card">
+        <div class="cr" onclick="openComm('goya')" style="padding:14px 16px">
+          <div class="cav" style="width:40px;height:40px;font-size:15px">G</div>
+          <div style="flex:1"><div class="cn" style="font-size:14px">C/ Goya 47 — Comunidad Goya</div><div class="csb">32 vecinos · 4 plantas · Madrid 28001 · Presidente: Antonio Ruiz Moreno</div></div>
+          <div class="cbdg"><div class="badge br">2 incidencias</div><div class="badge bb">Junta 15 mar</div></div>
+        </div>
+        <div class="cr" onclick="openComm('espana')" style="padding:14px 16px">
+          <div class="cav" style="width:40px;height:40px;font-size:15px;background:#fff7ed;color:#ea580c">P</div>
+          <div style="flex:1"><div class="cn" style="font-size:14px">Pza. España 3 — Comunidad Plaza España</div><div class="csb">58 vecinos · 8 plantas · Madrid 28008 · Presidente: Carmen Vidal López</div></div>
+          <div class="cbdg"><div class="badge bo">1 incidencia</div></div>
+        </div>
+        <div class="cr" onclick="openComm('velazquez')" style="padding:14px 16px">
+          <div class="cav" style="width:40px;height:40px;font-size:15px;background:#f0fdf4;color:#16a34a">V</div>
+          <div style="flex:1"><div class="cn" style="font-size:14px">C/ Velázquez 12 — Comunidad Velázquez</div><div class="csb">24 vecinos · 3 plantas · Madrid 28001 · Presidente: Ramón Martínez Gil</div></div>
+          <div class="cbdg"><div class="badge bo">1 incidencia</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       FICHA COMUNIDAD (dinámica)
+  ══════════════════════════════ -->
   <div id="screen-comunidad" class="screen">
     <div class="topbar">
-      <div class="tb-bc"><span style="cursor:pointer;color:var(--muted)" onclick="go('dashboard')">Dashboard</span><span>›</span><span>C/ Goya 47</span></div>
-      <div class="tb-actions"><button class="btn btn-sec btn-sm">✉️ Circular vecinos</button><button class="btn btn-pri btn-sm" onclick="go('inc-detalle')">+ Incidencia</button></div>
+      <div class="tbc"><span class="crumb" onclick="goNav('comunidades')">Comunidades</span><span>›</span><span id="comm-bc" class="crumb" onclick="goNav('comunidades')">Goya 47</span></div>
+      <div class="tbact">
+        <button class="btn bs">✉️ Circular</button>
+        <button class="btn bp" onclick="openNewIncModal()">+ Incidencia</button>
+      </div>
     </div>
     <div class="content">
-      <button class="back-btn" onclick="go('dashboard')">← Volver</button>
-      <div class="callout yellow">🏢 Todo lo de esta comunidad en un sitio — incidencias, documentos, juntas y datos clave. Sin buscar en carpetas ni reenviar emails.</div>
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
-        <div style="width:46px;height:46px;border-radius:12px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:20px;flex-shrink:0">G</div>
-        <div><div style="font-family:'DM Serif Display',serif;font-size:21px;letter-spacing:-0.5px">Comunidad Goya — C/ Goya 47</div><div style="font-size:12px;color:var(--muted)">Madrid 28001 · 32 vecinos · 4 plantas · Admin: Miguel García</div></div>
-        <div style="margin-left:auto;display:flex;gap:8px"><div class="badge br">1 urgente</div><div class="badge bb">Junta 15 mar</div></div>
+      <button class="bkbtn" onclick="goNav('comunidades')">← Volver</button>
+      <div class="callout cy">🏢 Todo lo de esta comunidad en un sitio — incidencias, documentos y juntas.</div>
+      <div style="display:flex;align-items:center;gap:13px;margin-bottom:16px">
+        <div id="comm-av" class="cav" style="width:44px;height:44px;font-size:18px;flex-shrink:0">G</div>
+        <div><div style="font-family:'DM Serif Display',serif;font-size:20px;letter-spacing:-.5px" id="comm-name">Comunidad Goya — C/ Goya 47</div><div style="font-size:12px;color:var(--muted)" id="comm-sub">Madrid 28001 · 32 vecinos · 4 plantas</div></div>
+        <div style="margin-left:auto;display:flex;gap:7px" id="comm-badges"></div>
       </div>
-      <div class="tabs"><button class="tab active">Incidencias</button><button class="tab">Documentos</button><button class="tab">Juntas</button><button class="tab">Información</button></div>
-      <div class="two-col">
+      <div class="tabs">
+        <button class="tab active" onclick="showCommTab('incidencias',this)">Incidencias</button>
+        <button class="tab" onclick="showCommTab('documentos',this)">Documentos</button>
+        <button class="tab" onclick="showCommTab('juntas',this)">Juntas</button>
+        <button class="tab" onclick="showCommTab('info',this)">Información</button>
+      </div>
+      <div id="comm-tab-incidencias">
         <div class="card">
-          <div class="card-h"><div class="card-title">Incidencias activas</div><button class="btn btn-pri btn-sm" onclick="go('inc-detalle')">+ Nueva</button></div>
-          <div class="inc-row" onclick="go('inc-detalle')"><div class="idot dr"></div><div><div class="inc-title">Ascensor parado — planta 3</div><div class="inc-meta">Abierta hace 2 días · Sin asignar</div></div><div class="inc-r"><div class="badge br">Urgente</div></div></div>
-          <div class="inc-row"><div class="idot dg"></div><div><div class="inc-title">Interfonos — revisión general</div><div class="inc-meta">Resuelta hace 4 días · Electro Madrid</div></div><div class="inc-r"><div class="badge bg">Resuelta</div></div></div>
-          <div class="inc-row"><div class="idot dgr"></div><div><div class="inc-title">Tejado — presupuesto pendiente</div><div class="inc-meta">Abierta hace 12 días · 2 presupuestos</div></div><div class="inc-r"><div class="badge bgr">Pendiente</div></div></div>
+          <div class="ch"><div class="ct">Incidencias</div><button class="btn bp" style="font-size:11px;padding:4px 9px" onclick="openNewIncModal()">+ Nueva</button></div>
+          <div id="comm-incs"></div>
         </div>
-        <div>
-          <div class="card" style="margin-bottom:14px">
-            <div class="card-h"><div class="card-title">Documentos recientes</div><div class="card-link" onclick="go('documentos')">Ver todos →</div></div>
-            <div style="padding:2px 0">
-              <div style="display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border);cursor:pointer" onclick="go('documentos')"><span>📄</span><div><div style="font-size:13px;font-weight:500">Acta junta — feb 2026</div><div style="font-size:11px;color:var(--muted)">Hace 3 horas · 284 KB</div></div><div class="badge bg" style="margin-left:auto">Firmada</div></div>
-              <div style="display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border);cursor:pointer" onclick="go('documentos')"><span>🛡️</span><div><div style="font-size:13px;font-weight:500">Seguro comunidad 2025-2026</div><div style="font-size:11px;color:var(--muted)">Vence: 30 jun 2026</div></div><div class="vb" style="margin-left:auto">⚠ 112 días</div></div>
-              <div style="display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer" onclick="go('documentos')"><span>🔧</span><div><div style="font-size:13px;font-weight:500">Contrato mantenimiento ascensor</div><div style="font-size:11px;color:var(--muted)">Thyssenkrupp · Ligado a INC-047</div></div><div class="badge bb" style="margin-left:auto">Activo</div></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-h"><div class="card-title">Datos operativos</div></div>
-            <div class="mf"><span class="mk">Presidente</span><span class="mv">Antonio Ruiz Moreno</span></div>
-            <div class="mf"><span class="mk">Cuota mensual</span><span class="mv">68 € / vecino</span></div>
-            <div class="mf"><span class="mk">CIF</span><span class="mv">H-28047123</span></div>
-            <div class="mf"><span class="mk">Morosos</span><span class="mv" style="color:var(--red)">2 vecinos</span></div>
-          </div>
-        </div>
+      </div>
+      <div id="comm-tab-documentos" style="display:none">
+        <div class="card" id="comm-docs-list"></div>
+      </div>
+      <div id="comm-tab-juntas" style="display:none">
+        <div class="card" id="comm-juntas-list"></div>
+      </div>
+      <div id="comm-tab-info" style="display:none">
+        <div class="card" id="comm-info-fields"></div>
       </div>
     </div>
   </div>
 
-  <!-- ═══ SCREEN 3 · INCIDENCIA ═══ -->
+  <!-- ══════════════════════════════
+       LISTA INCIDENCIAS
+  ══════════════════════════════ -->
+  <div id="screen-incidencias" class="screen">
+    <div class="topbar"><div class="tbt">Incidencias</div><div class="tbact"><button class="btn bp" onclick="openNewIncModal()">+ Nueva incidencia</button></div></div>
+    <div class="content">
+      <div class="ptitle">Todas las incidencias</div>
+      <div class="filterrow">
+        <button class="filterbtn active" onclick="filterIncs('todas',this)">Todas (5)</button>
+        <button class="filterbtn" onclick="filterIncs('urgente',this)">Urgentes (2)</button>
+        <button class="filterbtn" onclick="filterIncs('en-curso',this)">En curso (2)</button>
+        <button class="filterbtn" onclick="filterIncs('pendiente',this)">Pendientes (1)</button>
+      </div>
+      <div class="card" id="all-incs-list"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       DETALLE INCIDENCIA
+  ══════════════════════════════ -->
   <div id="screen-inc-detalle" class="screen">
     <div class="topbar">
-      <div class="tb-bc"><span style="cursor:pointer;color:var(--muted)" onclick="go('dashboard')">Dashboard</span><span>›</span><span style="cursor:pointer;color:var(--muted)" onclick="go('comunidad')">Goya 47</span><span>›</span><span>Ascensor parado</span></div>
-      <div class="tb-actions"><button class="btn btn-sec btn-sm">📤 Notificar vecinos</button><button class="btn btn-pri btn-sm">✅ Marcar resuelta</button></div>
+      <div class="tbc"><span class="crumb" onclick="goBack()">← Volver</span><span>›</span><span id="inc-bc">Incidencia</span></div>
+      <div class="tbact">
+        <button class="btn bs" onclick="openPresidente()">👁️ Vista del presidente</button>
+        <button class="btn bp" id="inc-resolve-btn">✅ Marcar resuelta</button>
+      </div>
     </div>
     <div class="content">
-      <button class="back-btn" onclick="go('comunidad')">← Volver a Goya 47</button>
-      <div class="callout green">✅ El presidente ve este estado en tiempo real desde su móvil — sin llamar al despacho para preguntar.</div>
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px">
-        <div style="font-size:24px">⚠️</div>
+      <div class="callout cg">✅ El presidente ve este estado en tiempo real — sin llamar al despacho para preguntar.</div>
+      <div style="display:flex;align-items:flex-start;gap:11px;margin-bottom:14px">
+        <div style="font-size:22px" id="inc-icon">⚠️</div>
         <div>
-          <div style="font-family:'DM Serif Display',serif;font-size:21px;letter-spacing:-0.5px;margin-bottom:6px">Ascensor parado — planta 3</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap"><div class="badge br">🔴 Urgente</div><div class="badge bo">En curso</div><div class="badge bb">Ascensor</div><span style="font-size:12px;color:var(--muted);margin-left:4px">INC-2026-047 · Abierta hace 2 días</span></div>
+          <div style="font-family:'DM Serif Display',serif;font-size:20px;letter-spacing:-.5px;margin-bottom:5px" id="inc-title-h">—</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap" id="inc-badges"></div>
         </div>
       </div>
-      <div class="card" style="margin-bottom:14px;padding:15px 22px">
-        <div class="stepper">
-          <div class="step done"><div class="sdot">✓</div><div class="slabel">Recibida</div></div>
-          <div class="step done"><div class="sdot">✓</div><div class="slabel">Asignada</div></div>
-          <div class="step cur"><div class="sdot">3</div><div class="slabel">En curso</div></div>
-          <div class="step"><div class="sdot">4</div><div class="slabel">Verificada</div></div>
-          <div class="step"><div class="sdot">5</div><div class="slabel">Resuelta</div></div>
-        </div>
+      <div class="card" style="margin-bottom:12px;padding:13px 20px">
+        <div class="stepper" id="inc-stepper"></div>
       </div>
-      <div class="detail-grid">
+      <div class="detgrid">
         <div>
-          <div class="card" style="margin-bottom:14px">
-            <div class="card-h"><div class="card-title">Descripción</div></div>
-            <div style="padding:13px 18px;font-size:13px;color:var(--ink2);line-height:1.7">El ascensor lleva parado desde el lunes. Thyssenkrupp revisó ayer: motor de tracción averiado, pieza en pedido. Plazo: 3-5 días hábiles. La vecina del 4ºB (Sra. González) tiene movilidad reducida — situación prioritaria.</div>
-            <div class="photo-grid" style="padding:0 18px 13px"><div class="pt">🔧</div><div class="pt">📸</div><div class="pt">📋</div></div>
+          <div class="card" style="margin-bottom:12px">
+            <div class="ch"><div class="ct">Descripción</div></div>
+            <div style="padding:12px 16px;font-size:13px;color:var(--ink2);line-height:1.7" id="inc-desc">—</div>
+            <div class="pgrid" style="padding:0 16px 12px"><div class="pt">🔧</div><div class="pt">📸</div><div class="pt">📋</div></div>
           </div>
           <div class="card">
-            <div class="card-h"><div class="card-title">Historial de seguimiento</div></div>
-            <div style="padding:15px 18px">
-              <div class="tli"><div class="tld">⚠️</div><div><div class="tl-t">Incidencia abierta</div><div class="tl-d">Reportada por Antonio Ruiz (Presidente) vía portal vecinos</div><div class="tl-ts">Lun 8 mar · 09:14h</div></div></div>
-              <div class="tli"><div class="tld">👤</div><div><div class="tl-t">Asignada a Thyssenkrupp</div><div class="tl-d">Contrato de mantenimiento vigente. Técnico enviado.</div><div class="tl-ts">Lun 8 mar · 10:30h</div></div></div>
-              <div class="tli"><div class="tld">🔧</div><div><div class="tl-t">Primera visita técnica</div><div class="tl-d">Motor de tracción averiado. Necesita pieza de repuesto.</div><div class="tl-ts">Mar 9 mar · 11:00h</div></div></div>
-              <div class="tli"><div class="tld" style="background:var(--accent-light);border-color:var(--accent)">💬</div><div><div class="tl-t">Nota de Miguel García</div><div class="tl-d">Informado al presidente. Alerta vecina 4ºB. Solicitando piezas urgente.</div><div class="tl-ts">Mar 9 mar · 16:22h</div></div></div>
-            </div>
-            <div style="padding:0 18px 15px"><div class="cinput"><input type="text" placeholder="Añadir nota o actualización..."><button class="btn btn-pri btn-sm">Enviar</button></div></div>
-          </div>
-        </div>
-        <div>
-          <div class="card" style="margin-bottom:14px">
-            <div class="card-h"><div class="card-title">Detalles</div></div>
-            <div class="mf"><span class="mk">Comunidad</span><span class="mv" style="color:var(--accent);cursor:pointer" onclick="go('comunidad')">Goya 47</span></div>
-            <div class="mf"><span class="mk">Prioridad</span><span class="mv"><span class="badge br">Urgente</span></span></div>
-            <div class="mf"><span class="mk">Proveedor</span><span class="mv">Thyssenkrupp</span></div>
-            <div class="mf"><span class="mk">Reportado por</span><span class="mv">A. Ruiz (Presidente)</span></div>
-            <div class="mf"><span class="mk">Apertura</span><span class="mv">08/03/2026</span></div>
-            <div class="mf"><span class="mk">Est. resolución</span><span class="mv">13/03/2026</span></div>
-          </div>
-          <div class="card" style="margin-bottom:14px">
-            <div class="card-h"><div class="card-title">👁️ Vista del presidente</div></div>
-            <div style="padding:13px 18px">
-              <div class="pview">
-                <div class="pview-t">Lo que ve Antonio Ruiz ahora mismo</div>
-                <div class="pview-r">Estado: <strong>En curso</strong></div>
-                <div class="pview-r">Proveedor: <strong>Thyssenkrupp</strong></div>
-                <div class="pview-r">Última actualización: <strong>hoy</strong></div>
-                <div class="pview-n">Sin llamar al despacho para saber esto.</div>
+            <div class="ch"><div class="ct">Historial de seguimiento</div></div>
+            <div style="padding:14px 16px" id="inc-timeline"></div>
+            <div class="upd-area">
+              <div class="ctypebtn">
+                <button class="ctb int active" id="tb-int" onclick="setNoteType('interna')">🔒 Nota interna</button>
+                <button class="ctb" id="tb-vis" onclick="setNoteType('visible')">👁 Actualización visible</button>
+              </div>
+              <div class="cinput">
+                <input type="text" id="note-input" placeholder="Escribe una nota o actualización...">
+                <button class="btn bp" onclick="addNote()">Enviar</button>
               </div>
             </div>
           </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
           <div class="card">
-            <div class="card-h"><div class="card-title">Documentos adjuntos</div></div>
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;border-bottom:1px solid var(--border)"><span>📋</span><div style="font-size:12px"><div style="font-weight:500">Parte técnico Thyssenkrupp</div><div style="color:var(--muted)">PDF · 128 KB</div></div><div class="badge bb" style="margin-left:auto">Ver</div></div>
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer"><span>📸</span><div style="font-size:12px"><div style="font-weight:500">Fotos avería (3)</div><div style="color:var(--muted)">JPG · 2.4 MB</div></div><div class="badge bb" style="margin-left:auto">Ver</div></div>
+            <div class="ch"><div class="ct">Detalles</div></div>
+            <div id="inc-meta-fields"></div>
+          </div>
+          <div class="card">
+            <div class="ch"><div class="ct">👁️ Vista del presidente</div></div>
+            <div style="padding:12px 16px">
+              <div class="pview">
+                <div class="pvt">Lo que ve el presidente ahora mismo</div>
+                <div class="pvr">Estado: <strong id="pv-estado">—</strong></div>
+                <div class="pvr">Proveedor: <strong id="pv-prov">—</strong></div>
+                <div class="pvr">Actualización: <strong id="pv-upd">hoy</strong></div>
+                <div class="pvn">Sin llamar al despacho para saber esto.</div>
+              </div>
+              <button class="btn bp" style="margin-top:10px;width:100%;text-align:center" onclick="openPresidente()">Ver portal del presidente →</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><div class="ct">Documentos adjuntos</div></div>
+            <div id="inc-adjuntos"></div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ═══ SCREEN 4 · DOCUMENTOS ═══ -->
-  <div id="screen-documentos" class="screen">
+  <!-- ══════════════════════════════
+       VISTA PRESIDENTE
+  ══════════════════════════════ -->
+  <div id="screen-presidente" class="screen">
     <div class="topbar">
-      <div class="tb-bc"><span>Documentos</span></div>
-      <div class="tb-actions"><button class="btn btn-sec btn-sm">📥 Exportar</button><button class="btn btn-pri btn-sm">+ Subir documento</button></div>
+      <div class="tbc"><span class="crumb" onclick="closePresidente()">← Volver a la incidencia</span></div>
+      <div class="tbact"><span style="font-size:12px;color:var(--muted)">Simulando portal del presidente</span></div>
     </div>
     <div class="content">
-      <div class="page-title">Repositorio documental</div>
-      <div class="page-sub">Actas, contratos, pólizas y facturas — organizados por comunidad, con alertas de vencimiento</div>
-      <div class="callout blue">📂 Lo que hoy tienes en carpetas, USBs y emails. Buscas por nombre o comunidad y lo encuentras en segundos. Los contratos ligados a incidencias están enlazados.</div>
-      <div class="alert-strip yellow">⚠️ <strong>2 documentos vencen pronto:</strong> Seguro Goya 47 (30 jun 2026) · Contrato limpieza Velázquez (15 abr 2026)</div>
-      <div style="display:grid;grid-template-columns:1fr 230px;gap:16px">
-        <div>
-          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
-            <div class="sbar" style="flex:1;margin:0"><span>🔍</span><input type="text" placeholder="Buscar por nombre, comunidad, tipo..."></div>
-            <button class="btn btn-sec btn-sm">Comunidad ▾</button>
-            <button class="btn btn-sec btn-sm">Tipo ▾</button>
+      <div class="callout cp">👁️ Esto es lo que ve el presidente desde su móvil o ordenador — sin acceso a notas internas ni información del despacho.</div>
+      <div style="max-width:560px;margin:0 auto">
+        <div style="font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:4px" id="pres-title">—</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="pres-comm">—</div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="ch"><div class="ct">Estado actual</div></div>
+          <div style="padding:14px 16px;display:flex;align-items:center;gap:12px">
+            <div style="font-size:28px" id="pres-icon">⚠️</div>
+            <div>
+              <div id="pres-badge"></div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px" id="pres-since">—</div>
+            </div>
           </div>
-          <div class="tabs"><button class="tab active">Todos (24)</button><button class="tab">Actas (8)</button><button class="tab">Contratos (6)</button><button class="tab">Pólizas (4)</button><button class="tab">Facturas (6)</button></div>
+          <div class="ch" style="border-top:1px solid var(--border)"><div class="ct">Próxima acción</div></div>
+          <div style="padding:12px 16px;font-size:13px;color:var(--ink2)" id="pres-next">—</div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="ch"><div class="ct">Descripción</div></div>
+          <div style="padding:12px 16px;font-size:13px;color:var(--ink2);line-height:1.7" id="pres-desc">—</div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="ch"><div class="ct">Detalles</div></div>
+          <div id="pres-details"></div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="ch"><div class="ct">Actualizaciones del despacho</div></div>
+          <div style="padding:14px 16px" id="pres-timeline">—</div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ct">Documentos visibles</div></div>
+          <div id="pres-adjuntos"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       DOCUMENTOS
+  ══════════════════════════════ -->
+  <div id="screen-documentos" class="screen">
+    <div class="topbar"><div class="tbt">Documentos</div><div class="tbact"><button class="btn bs">📥 Exportar</button><button class="btn bp">+ Subir</button></div></div>
+    <div class="content">
+      <div class="ptitle">Repositorio documental</div>
+      <div class="psub">Actas, contratos, pólizas y facturas — filtrados por comunidad, con alertas de vencimiento</div>
+      <div class="callout cb">📂 Busca por nombre o comunidad y lo encuentras en segundos. Contratos ligados a incidencias están enlazados.</div>
+      <div class="astrip y">⚠️ <strong>2 documentos vencen pronto:</strong> Seguro Goya 47 (30 jun 2026) · Contrato limpieza Velázquez (15 abr 2026)</div>
+      <div style="display:grid;grid-template-columns:1fr 220px;gap:14px">
+        <div>
+          <div class="filterrow">
+            <div class="searchbar"><span>🔍</span><input type="text" id="doc-search" placeholder="Buscar documentos..." oninput="filterDocs()"></div>
+          </div>
+          <div class="filterrow">
+            <button class="filterbtn active" onclick="filterDocsType('todos',this)">Todos</button>
+            <button class="filterbtn" onclick="filterDocsType('acta',this)">Actas</button>
+            <button class="filterbtn" onclick="filterDocsType('contrato',this)">Contratos</button>
+            <button class="filterbtn" onclick="filterDocsType('poliza',this)">Pólizas</button>
+            <button class="filterbtn" onclick="filterDocsType('factura',this)">Facturas</button>
+            <button class="filterbtn" onclick="filterDocsType('presupuesto',this)">Presupuestos</button>
+          </div>
+          <div class="filterrow">
+            <span style="font-size:12px;color:var(--muted)">Comunidad:</span>
+            <button class="filterbtn active" onclick="filterDocsComm('todas',this)">Todas</button>
+            <button class="filterbtn" onclick="filterDocsComm('goya',this)">Goya 47</button>
+            <button class="filterbtn" onclick="filterDocsComm('espana',this)">Pza. España 3</button>
+            <button class="filterbtn" onclick="filterDocsComm('velazquez',this)">Velázquez 12</button>
+          </div>
           <div class="card">
-            <table class="doc-table">
+            <table class="dtable" id="docs-table">
               <thead><tr><th>Documento</th><th>Comunidad</th><th>Tipo</th><th>Fecha</th><th>Estado</th></tr></thead>
-              <tbody>
-                <tr onclick="go('juntas')">
-                  <td><span style="font-size:15px;margin-right:8px">📄</span><span class="dn">Acta junta ordinaria — feb 2026</span><span class="ds">PDF · 284 KB</span></td>
-                  <td>C/ Goya 47</td><td><span class="badge bb">Acta</span></td><td>10/03/2026</td><td><span class="badge bg">Firmada</span></td>
-                </tr>
-                <tr>
-                  <td><span style="font-size:15px;margin-right:8px">🔧</span><span class="dn">Contrato mantenimiento ascensor</span><span class="ds">PDF · 1.2 MB · Thyssenkrupp · <span style="color:var(--accent)">🔗 INC-047</span></span></td>
-                  <td>C/ Goya 47</td><td><span class="badge bgr">Contrato</span></td><td>01/01/2026</td><td><span class="badge bg">Vigente</span></td>
-                </tr>
-                <tr>
-                  <td><span style="font-size:15px;margin-right:8px">🛡️</span><span class="dn">Póliza seguro comunidad 2025-2026</span><span class="ds">PDF · 3.1 MB · Mapfre</span></td>
-                  <td>C/ Goya 47</td><td><span class="badge bo">Póliza</span></td><td>01/07/2025</td><td><span class="vb">⚠ Vence jun 26</span></td>
-                </tr>
-                <tr>
-                  <td><span style="font-size:15px;margin-right:8px">💧</span><span class="dn">Presupuesto fontanería — fuga garaje</span><span class="ds">PDF · 89 KB · Fontanería López · <span style="color:var(--accent)">🔗 INC-031</span></span></td>
-                  <td>Pza. España 3</td><td><span class="badge bgr">Presupuesto</span></td><td>05/03/2026</td><td><span class="badge by">Pendiente</span></td>
-                </tr>
-                <tr onclick="go('juntas')">
-                  <td><span style="font-size:15px;margin-right:8px">📄</span><span class="dn">Acta junta extraordinaria — ene 2026</span><span class="ds">PDF · 198 KB</span></td>
-                  <td>Pza. España 3</td><td><span class="badge bb">Acta</span></td><td>20/01/2026</td><td><span class="badge bg">Firmada</span></td>
-                </tr>
-                <tr>
-                  <td><span style="font-size:15px;margin-right:8px">⚡</span><span class="dn">Contrato mantenimiento eléctrico</span><span class="ds">PDF · 567 KB · Electricidad Martín</span></td>
-                  <td>C/ Velázquez 12</td><td><span class="badge bgr">Contrato</span></td><td>15/02/2026</td><td><span class="badge bg">Vigente</span></td>
-                </tr>
-                <tr>
-                  <td><span style="font-size:15px;margin-right:8px">🧹</span><span class="dn">Contrato limpieza 2025-2026</span><span class="ds">PDF · 234 KB · Limpiezas García</span></td>
-                  <td>C/ Velázquez 12</td><td><span class="badge bgr">Contrato</span></td><td>01/04/2025</td><td><span class="vb urg">🔴 Vence 15 abr</span></td>
-                </tr>
-              </tbody>
+              <tbody id="docs-tbody"></tbody>
             </table>
           </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:8px" id="docs-count"></div>
         </div>
         <div>
-          <div class="card" style="margin-bottom:14px">
-            <div class="card-h"><div class="card-title">Resumen</div></div>
+          <div class="card" style="margin-bottom:12px">
+            <div class="ch"><div class="ct">Resumen</div></div>
             <div style="padding:10px">
-              <div class="dstat"><div style="font-size:18px">📄</div><div><div class="dsv">24</div><div class="dsl">Documentos totales</div></div></div>
-              <div class="dstat"><div style="font-size:18px">✅</div><div><div class="dsv">18</div><div class="dsl">En regla / vigentes</div></div></div>
-              <div class="dstat" style="background:var(--yellow-light)"><div style="font-size:18px">⚠️</div><div><div class="dsv" style="color:var(--yellow)">2</div><div class="dsl">Vencen este mes</div></div></div>
+              <div class="dstat"><span style="font-size:16px">📄</span><div><div class="dsv">9</div><div class="dsl">Documentos totales</div></div></div>
+              <div class="dstat"><span style="font-size:16px">✅</span><div><div class="dsv">7</div><div class="dsl">En regla / vigentes</div></div></div>
+              <div class="dstat" style="background:var(--yl)"><span style="font-size:16px">⚠️</span><div><div class="dsv" style="color:var(--yellow)">2</div><div class="dsl">Vencen pronto</div></div></div>
             </div>
           </div>
-          <div class="card" style="margin-bottom:14px">
-            <div class="card-h"><div class="card-title">⚡ Contratos activos</div></div>
-            <div style="padding:4px 0">
-              <div style="padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px"><div style="font-weight:600">Thyssenkrupp — Ascensor</div><div style="color:var(--muted)">Goya 47 · Anual · Vigente</div></div>
-              <div style="padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px"><div style="font-weight:600">Electricidad Martín</div><div style="color:var(--muted)">Velázquez 12 · Vigente</div></div>
-              <div style="padding:8px 14px;font-size:12px"><div style="font-weight:600">Limpiezas García</div><div style="color:var(--red)">Velázquez · ⚠ Vence 15 abr</div></div>
+          <div class="card" style="margin-bottom:12px">
+            <div class="ch"><div class="ct">⚡ Contratos activos</div></div>
+            <div style="padding:2px 0">
+              <div style="padding:7px 13px;border-bottom:1px solid var(--border);font-size:12px"><div style="font-weight:600">Thyssenkrupp — Ascensor</div><div style="color:var(--muted)">Goya 47 · Vigente</div></div>
+              <div style="padding:7px 13px;border-bottom:1px solid var(--border);font-size:12px"><div style="font-weight:600">Electricidad Martín</div><div style="color:var(--muted)">Velázquez 12 · Vigente</div></div>
+              <div style="padding:7px 13px;font-size:12px"><div style="font-weight:600">Limpiezas García</div><div style="color:var(--red)">Velázquez · ⚠ Vence 15 abr</div></div>
             </div>
           </div>
           <div class="card">
-            <div class="card-h"><div class="card-title">🔗 Docs ligados a incidencias</div></div>
-            <div style="padding:4px 0">
-              <div style="padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer" onclick="go('inc-detalle')"><div style="font-weight:600;color:var(--accent)">INC-047 — Ascensor Goya 47</div><div style="color:var(--muted)">Contrato Thyssenkrupp · Parte técnico</div></div>
-              <div style="padding:8px 14px;font-size:12px"><div style="font-weight:600;color:var(--accent)">INC-031 — Fuga Pza. España</div><div style="color:var(--muted)">Presupuesto Fontanería López</div></div>
+            <div class="ch"><div class="ct">🔗 Ligados a incidencias</div></div>
+            <div style="padding:2px 0">
+              <div style="padding:7px 13px;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer" onclick="openInc('goya','inc1')"><div style="font-weight:600;color:var(--accent)">INC-047 — Ascensor Goya 47</div><div style="color:var(--muted)">Contrato Thyssenkrupp · Parte técnico</div></div>
+              <div style="padding:7px 13px;font-size:12px;cursor:pointer" onclick="openInc('espana','inc2')"><div style="font-weight:600;color:var(--accent)">INC-031 — Fuga Pza. España</div><div style="color:var(--muted)">Presupuesto Fontanería López</div></div>
             </div>
           </div>
         </div>
@@ -561,50 +698,51 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     </div>
   </div>
 
-  <!-- ═══ SCREEN 5 · JUNTAS ═══ -->
+  <!-- ══════════════════════════════
+       JUNTAS
+  ══════════════════════════════ -->
   <div id="screen-juntas" class="screen">
-    <div class="topbar">
-      <div class="tb-bc"><span>Juntas y actas</span></div>
-      <div class="tb-actions"><button class="btn btn-sec btn-sm">📅 Calendario</button><button class="btn btn-pri btn-sm">+ Nueva junta</button></div>
-    </div>
+    <div class="topbar"><div class="tbt">Juntas y actas</div><div class="tbact"><button class="btn bs">📅 Calendario</button><button class="btn bp">+ Nueva junta</button></div></div>
     <div class="content">
-      <div class="page-title">Juntas y actas</div>
-      <div class="page-sub">Convocatorias, registro de acuerdos y borradores de acta asistidos</div>
-      <div class="callout purple">✍️ Fincora genera una propuesta inicial a partir de tus notas y acuerdos. Tú revisas, ajustas y firmas. No es automatismo ciego — es un punto de partida que ahorra horas.</div>
-      <div class="two-col" style="margin-bottom:14px">
+      <div class="ptitle">Juntas y actas</div>
+      <div class="psub">Convocatorias y borradores de acta asistidos</div>
+      <div class="callout cp">✍️ Fincora genera una propuesta inicial a partir de tus notas — tú revisas, ajustas y firmas.</div>
+      <div class="twocol" style="margin-bottom:12px">
         <div class="card">
-          <div class="card-h"><div class="card-title">📅 Próximas juntas</div></div>
-          <div class="jrow"><div class="jdb"><div class="jday">15</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Junta ordinaria — C/ Goya 47</div><div style="font-size:11px;color:var(--muted)">19:00h · Sala comunitaria · 32 vecinos</div></div><div class="badge bb" style="margin-left:auto">Convocada</div></div>
-          <div class="jrow"><div class="jdb"><div class="jday">22</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Junta extraordinaria — Pza. España 3</div><div style="font-size:11px;color:var(--muted)">18:30h · Videoconferencia</div></div><div class="badge by" style="margin-left:auto">Borrador</div></div>
+          <div class="ch"><div class="ct">📅 Próximas juntas</div></div>
+          <div class="jr"><div class="jdb"><div class="jday">15</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Ordinaria — C/ Goya 47</div><div style="font-size:11px;color:var(--muted)">19:00h · 32 vecinos</div></div><div class="badge bb" style="margin-left:auto">Convocada</div></div>
+          <div class="jr"><div class="jdb"><div class="jday">22</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Extraordinaria — Pza. España 3</div><div style="font-size:11px;color:var(--muted)">18:30h · Videoconferencia</div></div><div class="badge by" style="margin-left:auto">Borrador</div></div>
+          <div class="jr"><div class="jdb"><div class="jday">29</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Ordinaria — Velázquez 12</div><div style="font-size:11px;color:var(--muted)">18:00h · Sala comunitaria</div></div><div class="badge bgr" style="margin-left:auto">Sin convoca</div></div>
         </div>
         <div class="card">
-          <div class="card-h"><div class="card-title">✅ Últimas actas</div></div>
-          <div class="jrow"><div style="font-size:18px">📄</div><div><div style="font-size:13px;font-weight:600">Acta ordinaria Goya 47 — feb 2026</div><div style="font-size:11px;color:var(--muted)">Borrador asistido · Firmada por presidente</div></div><div class="badge bg" style="margin-left:auto">Firmada</div></div>
-          <div class="jrow"><div style="font-size:18px">📄</div><div><div style="font-size:13px;font-weight:600">Acta extraordinaria Pza. España — ene 2026</div><div style="font-size:11px;color:var(--muted)">Borrador asistido · PDF descargado</div></div><div class="badge bg" style="margin-left:auto">Firmada</div></div>
+          <div class="ch"><div class="ct">✅ Últimas actas</div></div>
+          <div class="jr"><div style="font-size:16px">📄</div><div><div style="font-size:13px;font-weight:600">Acta ordinaria Goya 47 — feb 2026</div><div style="font-size:11px;color:var(--muted)">Borrador asistido · Firmada</div></div><div class="badge bg" style="margin-left:auto">Firmada</div></div>
+          <div class="jr"><div style="font-size:16px">📄</div><div><div style="font-size:13px;font-weight:600">Acta extraordinaria Pza. España — ene 2026</div><div style="font-size:11px;color:var(--muted)">Borrador asistido · PDF descargado</div></div><div class="badge bg" style="margin-left:auto">Firmada</div></div>
+          <div class="jr"><div style="font-size:16px">📄</div><div><div style="font-size:13px;font-weight:600">Acta ordinaria Velázquez 12 — dic 2025</div><div style="font-size:11px;color:var(--muted)">Borrador asistido · PDF descargado</div></div><div class="badge bg" style="margin-left:auto">Firmada</div></div>
         </div>
       </div>
       <div class="card">
-        <div class="card-h">
-          <div class="card-title">✨ Borrador de acta — Junta ordinaria Goya 47 (15 mar 2026)</div>
-          <div style="display:flex;gap:8px"><button class="btn btn-sec btn-sm">✏️ Editar borrador</button><button class="btn btn-pri btn-sm">📥 Exportar PDF</button></div>
+        <div class="ch">
+          <div class="ct">✨ Borrador — Junta ordinaria Goya 47 (15 mar 2026)</div>
+          <div style="display:flex;gap:7px"><button class="btn bs" style="font-size:11px;padding:4px 9px">✏️ Editar</button><button class="btn bp" style="font-size:11px;padding:4px 9px">📥 Exportar PDF</button></div>
         </div>
-        <div style="padding:18px">
-          <div class="acta-ai">✨ Borrador asistido — propuesta inicial a partir de notas y acuerdos · El administrador revisa y valida antes de firmar</div>
+        <div style="padding:16px">
+          <div class="acta-ai">✨ Borrador asistido — propuesta inicial a partir de notas y acuerdos · El administrador revisa antes de firmar</div>
           <div class="acta-box">
-            <h3>ACTA DE JUNTA ORDINARIA DE PROPIETARIOS<br><span style="font-size:13px;font-family:'DM Sans',sans-serif;font-weight:400">Comunidad C/ Goya nº 47 · Madrid</span></h3>
+            <h3>ACTA DE JUNTA ORDINARIA DE PROPIETARIOS<br><span style="font-size:12px;font-family:'DM Sans',sans-serif;font-weight:400">Comunidad C/ Goya nº 47 · Madrid</span></h3>
             <p><strong>Fecha:</strong> 15 de marzo de 2026 &nbsp;·&nbsp; <strong>Hora:</strong> 19:00h &nbsp;·&nbsp; <strong>Lugar:</strong> Sala comunitaria</p>
-            <p style="margin-top:3px"><strong>Presidente:</strong> D. Antonio Ruiz Moreno &nbsp;·&nbsp; <strong>Secretario/Admin:</strong> D. Miguel García</p>
+            <p><strong>Presidente:</strong> D. Antonio Ruiz Moreno &nbsp;·&nbsp; <strong>Admin:</strong> D. Miguel García</p>
             <h4>ORDEN DEL DÍA</h4>
-            <p>1. Lectura y aprobación del acta anterior.<br>2. Estado de la incidencia del ascensor.<br>3. Aprobación presupuesto pintura zonas comunes.<br>4. Renovación contrato de limpieza 2026-2027.<br>5. Ruegos y preguntas.</p>
+            <p>1. Lectura y aprobación del acta anterior.<br>2. Estado incidencia del ascensor.<br>3. Aprobación presupuesto pintura zonas comunes.<br>4. Renovación contrato limpieza 2026-2027.<br>5. Ruegos y preguntas.</p>
             <h4>PUNTO 1 — APROBACIÓN ACTA ANTERIOR</h4>
             <p>Se da lectura al acta de diciembre 2025. <strong>Aprobada por unanimidad.</strong></p>
             <h4>PUNTO 2 — INCIDENCIA ASCENSOR</h4>
-            <p>El administrador informa: motor de tracción averiado, pieza en pedido, est. reparación 13/03. Se acuerda gestionar acceso alternativo para vecina 4ºB si se demora. <strong>Aprobado por unanimidad.</strong></p>
+            <p>Motor de tracción averiado, pieza en pedido, est. resolución 13/03. Se acuerda acceso alternativo para vecina 4ºB. <strong>Aprobado por unanimidad.</strong></p>
             <h4>PUNTO 3 — PRESUPUESTO PINTURA</h4>
-            <p>Adjudicado a <strong>Reformas Madrid S.L.</strong> (3.850€ vs 4.200€ Pinturas Castellana). <strong>Aprobado por mayoría (28 a favor, 2 abstenciones).</strong></p>
-            <div style="margin-top:18px;padding-top:12px;border-top:1px solid #fde68a;display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:12px">
-              <div><p style="color:#92400e;font-weight:600;margin-bottom:16px">El Presidente:</p><p>D. Antonio Ruiz Moreno</p><div style="border-top:1px solid #d97706;width:130px;margin-top:24px"></div><p style="color:var(--muted)">Firma</p></div>
-              <div><p style="color:#92400e;font-weight:600;margin-bottom:16px">El Secretario/Administrador:</p><p>D. Miguel García</p><div style="border-top:1px solid #d97706;width:130px;margin-top:24px"></div><p style="color:var(--muted)">Firma</p></div>
+            <p>Adjudicado a <strong>Reformas Madrid S.L.</strong> (3.850€). <strong>Aprobado por mayoría (28 favor, 2 abstenciones).</strong></p>
+            <div style="margin-top:16px;padding-top:11px;border-top:1px solid #fde68a;display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:12px">
+              <div><p style="color:#92400e;font-weight:600;margin-bottom:14px">El Presidente:</p><p>D. Antonio Ruiz Moreno</p><div style="border-top:1px solid #d97706;width:120px;margin-top:22px"></div><p style="color:var(--muted)">Firma</p></div>
+              <div><p style="color:#92400e;font-weight:600;margin-bottom:14px">El Admin:</p><p>D. Miguel García</p><div style="border-top:1px solid #d97706;width:120px;margin-top:22px"></div><p style="color:var(--muted)">Firma</p></div>
             </div>
           </div>
         </div>
@@ -612,41 +750,237 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     </div>
   </div>
 
-  <!-- ═══ CLOSING SCREEN ═══ -->
+  <!-- ══════════════════════════════
+       PROVEEDORES (placeholder)
+  ══════════════════════════════ -->
+  <div id="screen-proveedores" class="screen">
+    <div class="topbar"><div class="tbt">Proveedores</div></div>
+    <div class="content">
+      <div class="placeholder-screen">
+        <div class="ph-icon">🔧</div>
+        <div class="ph-title">Módulo de proveedores</div>
+        <div class="ph-sub">Directorio de empresas y autónomos por comunidad — disponible en la Fase 2 del producto.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       CONFIGURACIÓN (placeholder)
+  ══════════════════════════════ -->
+  <div id="screen-configuracion" class="screen">
+    <div class="topbar"><div class="tbt">Configuración</div></div>
+    <div class="content">
+      <div class="placeholder-screen">
+        <div class="ph-icon">⚙️</div>
+        <div class="ph-title">Configuración del despacho</div>
+        <div class="ph-sub">Gestión de usuarios, permisos y preferencias — disponible próximamente.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLOSING -->
   <div id="screen-close" class="screen">
-    <div class="cl-logo">Fin<span>cora</span></div>
-    <h2 class="cl-title">¿Te encajaría probar algo así<br>en <em>10 comunidades</em>?</h2>
-    <p class="cl-sub">Estoy buscando 5 despachos para definir la primera versión con casos reales. El piloto es gratuito y no requiere cambiar tu software contable.</p>
-    <div class="cl-bullets">
-      <div class="cl-bullet"><span>✓</span>Solo incidencias, documentos y juntas — sin tocar contabilidad</div>
-      <div class="cl-bullet"><span>✓</span>Piloto gratuito · Sin permanencia · Sin tarjeta de crédito</div>
-      <div class="cl-bullet"><span>✓</span>Acompañamiento directo del fundador durante el piloto</div>
-      <div class="cl-bullet"><span>✓</span>Datos exportables en cualquier momento</div>
+    <div class="clg">Fin<span>cora</span></div>
+    <h2 class="clt">¿Te encajaría probar esto<br>en <em>10 comunidades</em>?</h2>
+    <p class="cls">Estoy buscando 5 despachos para la primera versión con casos reales. Piloto gratuito, sin cambiar tu software contable.</p>
+    <div class="clbl">
+      <div class="clb"><span>✓</span>Solo incidencias, documentos y juntas</div>
+      <div class="clb"><span>✓</span>Piloto gratuito · Sin permanencia</div>
+      <div class="clb"><span>✓</span>Acompañamiento directo del fundador</div>
+      <div class="clb"><span>✓</span>Datos exportables en cualquier momento</div>
     </div>
-    <div class="cl-actions">
-      <button class="cl-main" onclick="window.open('https://fincora.app#piloto','_blank')">🎯 Solicitar plaza piloto</button>
-      <button class="cl-sec" onclick="window.open('https://fincora.app','_blank')">Ver la landing →</button>
+    <div class="clact">
+      <button class="clm" onclick="window.open('https://fincora.app#piloto','_blank')">🎯 Solicitar plaza piloto</button>
+      <button class="clse" onclick="window.open('https://fincora.app','_blank')">Ver la landing →</button>
     </div>
-    <button class="cl-restart" onclick="restartDemo()">↺ Ver la demo otra vez</button>
+    <button class="clr" onclick="restartDemo()">↺ Ver demo otra vez</button>
   </div>
 
   </main>
 </div>
 
 <script>
-const STEPS=[
-  {screen:'dashboard',nav:0,pill:'1/5',title:'Dashboard del despacho',sub:'Estado de todas las comunidades en un vistazo — sin Excel, sin llamadas'},
-  {screen:'comunidad',nav:1,pill:'2/5',title:'Ficha de comunidad — Goya 47',sub:'Incidencias, documentos y juntas de una comunidad en un solo lugar'},
-  {screen:'inc-detalle',nav:2,pill:'3/5',title:'Incidencia con trazabilidad completa',sub:'El presidente ve el estado en tiempo real — sin llamar al despacho'},
-  {screen:'documentos',nav:3,pill:'4/5',title:'Repositorio documental operativo',sub:'Contratos activos, alertas de vencimiento y docs ligados a incidencias'},
-  {screen:'juntas',nav:4,pill:'5/5',title:'Borrador de acta asistido',sub:'Propuesta inicial a partir de tus notas — tú revisas y firmas'}
-];
-let cur=0,guided=false;
-const navItems=document.querySelectorAll('.nav-item');
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+const COMUNIDADES = {
+  goya: {
+    id:'goya', initial:'G', name:'Comunidad Goya — C/ Goya 47', short:'Goya 47',
+    sub:'Madrid 28001 · 32 vecinos · 4 plantas', avStyle:'',
+    presidente:'Antonio Ruiz Moreno', cuota:'68 € / vecino', cif:'H-28047123', morosos:'2 vecinos',
+    badges: [{cls:'br',txt:'2 incidencias'},{cls:'bb',txt:'Junta 15 mar'}],
+    incIds:['inc1','inc5'],
+    docIds:['d1','d2','d3','d7'],
+    juntas:[{mes:'Mar',dia:'15',name:'Ordinaria',hora:'19:00h · Sala comunitaria',badge:{cls:'bb',txt:'Convocada'}},{mes:'Feb',dia:'10',name:'Ordinaria (completada)',hora:'19:00h',badge:{cls:'bg',txt:'Completada'}}],
+  },
+  espana: {
+    id:'espana', initial:'P', name:'Comunidad Plaza España — Pza. España 3', short:'Pza. España 3',
+    sub:'Madrid 28008 · 58 vecinos · 8 plantas', avStyle:'background:#fff7ed;color:#ea580c',
+    presidente:'Carmen Vidal López', cuota:'95 € / vecino', cif:'H-28058321', morosos:'5 vecinos',
+    badges:[{cls:'bo',txt:'1 incidencia'}],
+    incIds:['inc2'],
+    docIds:['d4','d5','d8'],
+    juntas:[{mes:'Mar',dia:'22',name:'Extraordinaria',hora:'18:30h · Videoconferencia',badge:{cls:'by',txt:'Borrador'}},{mes:'Ene',dia:'20',name:'Extraordinaria (completada)',hora:'18:30h',badge:{cls:'bg',txt:'Completada'}}],
+  },
+  velazquez: {
+    id:'velazquez', initial:'V', name:'Comunidad Velázquez — C/ Velázquez 12', short:'Velázquez 12',
+    sub:'Madrid 28001 · 24 vecinos · 3 plantas', avStyle:'background:#f0fdf4;color:#16a34a',
+    presidente:'Ramón Martínez Gil', cuota:'54 € / vecino', cif:'H-28024765', morosos:'1 vecino',
+    badges:[{cls:'bo',txt:'1 incidencia'}],
+    incIds:['inc3'],
+    docIds:['d6','d9'],
+    juntas:[{mes:'Mar',dia:'29',name:'Ordinaria',hora:'18:00h · Sala comunitaria',badge:{cls:'bgr',txt:'Sin convoca'}},{mes:'Dic',dia:'10',name:'Ordinaria (completada)',hora:'18:00h',badge:{cls:'bg',txt:'Completada'}}],
+  }
+};
 
+const INCIDENCIAS = {
+  inc1:{
+    id:'inc1', commId:'goya', icon:'⚠️',
+    title:'Ascensor parado — planta 3',
+    status:'En curso', priority:'Urgente', category:'Ascensor',
+    proveedor:'Thyssenkrupp', gestor:'Miguel García',
+    apertura:'08/03/2026', estimada:'13/03/2026',
+    ref:'INC-2026-047',
+    desc:'El ascensor lleva parado desde el lunes. Thyssenkrupp revisó ayer: motor de tracción averiado, pieza en pedido. Plazo: 3-5 días hábiles. Vecina del 4ºB (Sra. González) tiene movilidad reducida — situación prioritaria.',
+    nextAction:'Esperando llegada de pieza de repuesto — Thyssenkrupp confirma el viernes',
+    timeline:[
+      {type:'event',icon:'⚠️',title:'Incidencia abierta',text:'Reportada por Antonio Ruiz (Presidente) vía portal vecinos',ts:'Lun 8 mar · 09:14h'},
+      {type:'event',icon:'👤',title:'Asignada a Thyssenkrupp',text:'Contrato de mantenimiento vigente. Técnico enviado.',ts:'Lun 8 mar · 10:30h'},
+      {type:'event',icon:'🔧',title:'Primera visita técnica',text:'Motor de tracción averiado. Pieza de repuesto necesaria.',ts:'Mar 9 mar · 11:00h'},
+      {type:'visible',icon:'💬',title:'Actualización para el presidente',text:'Thyssenkrupp ha diagnosticado la avería. Pieza en pedido urgente. Resolución estimada el viernes 13.',ts:'Mar 9 mar · 16:22h'},
+      {type:'internal',icon:'📝',title:'Nota interna',text:'Hay que insistir mañana — llevan 2 días sin actualización del pedido.',ts:'Mié 10 mar · 09:00h'},
+    ],
+    adjuntos:[
+      {icon:'📋',name:'Parte técnico Thyssenkrupp',meta:'PDF · 128 KB',visible:true},
+      {icon:'📸',name:'Fotos avería (3)',meta:'JPG · 2.4 MB',visible:true},
+      {icon:'📝',name:'Nota interna — gestión piezas',meta:'TXT · 2 KB',visible:false},
+    ]
+  },
+  inc2:{
+    id:'inc2', commId:'espana', icon:'💧',
+    title:'Fuga de agua en garaje — sótano 1',
+    status:'En curso', priority:'Alta', category:'Fontanería',
+    proveedor:'Fontanería López', gestor:'Miguel García',
+    apertura:'05/03/2026', estimada:'14/03/2026',
+    ref:'INC-2026-031',
+    desc:'Fuga de agua detectada en el sótano 1, zona de plazas de garaje 12-18. Fontanería López ha visitado y localizado el origen: junta de tubería principal. Presupuesto recibido: 680€.',
+    nextAction:'Pendiente aprobación de la junta para ejecutar la reparación',
+    timeline:[
+      {type:'event',icon:'💧',title:'Incidencia abierta',text:'Reportada por vecino 3ºC. Manchas de humedad en techo garaje.',ts:'Jue 5 mar · 08:30h'},
+      {type:'event',icon:'👤',title:'Asignada a Fontanería López',text:'Empresa habitual del despacho. Visita solicitada urgente.',ts:'Jue 5 mar · 09:15h'},
+      {type:'event',icon:'🔧',title:'Visita técnica realizada',text:'Junta de tubería principal fisurada. Requiere sustitución.',ts:'Vie 6 mar · 11:00h'},
+      {type:'visible',icon:'💬',title:'Actualización para el presidente',text:'Fontanería López ha localizado la avería. Presupuesto de 680€ recibido. Pendiente aprobación para proceder.',ts:'Lun 9 mar · 10:00h'},
+    ],
+    adjuntos:[
+      {icon:'💧',name:'Informe técnico fontanería',meta:'PDF · 98 KB',visible:true},
+      {icon:'💰',name:'Presupuesto Fontanería López',meta:'PDF · 45 KB',visible:true},
+    ]
+  },
+  inc3:{
+    id:'inc3', commId:'velazquez', icon:'💡',
+    title:'Luminaria portal — fallo alumbrado',
+    status:'En curso', priority:'Normal', category:'Electricidad',
+    proveedor:'Electricidad Martín', gestor:'Laura Sáez',
+    apertura:'09/03/2026', estimada:'12/03/2026',
+    ref:'INC-2026-048',
+    desc:'La luminaria del portal principal lleva 2 días sin funcionar. Electricidad Martín viene mañana a revisar. Podría ser fallo del sensor de movimiento o de la bombilla LED.',
+    nextAction:'Visita de Electricidad Martín mañana miércoles a las 10:00h',
+    timeline:[
+      {type:'event',icon:'💡',title:'Incidencia abierta',text:'Reportada por Ramón Martínez (Presidente). Portal oscuro por las noches.',ts:'Lun 9 mar · 18:00h'},
+      {type:'event',icon:'👤',title:'Asignada a Electricidad Martín',text:'Visita acordada para el miércoles 11.',ts:'Lun 9 mar · 18:45h'},
+      {type:'visible',icon:'💬',title:'Actualización para el presidente',text:'Electricidad Martín visitará mañana miércoles a las 10:00. Resolución esperada en el día.',ts:'Lun 9 mar · 19:00h'},
+    ],
+    adjuntos:[
+      {icon:'📸',name:'Foto luminaria defectuosa',meta:'JPG · 1.1 MB',visible:true},
+    ]
+  },
+  inc4:{
+    id:'inc4', commId:'goya', icon:'🎨',
+    title:'Pintura zonas comunes — presupuesto pendiente',
+    status:'Pendiente de comunidad', priority:'Normal', category:'Pintura',
+    proveedor:'—', gestor:'Miguel García',
+    apertura:'25/02/2026', estimada:'',
+    ref:'INC-2026-018',
+    desc:'Las zonas comunes (portal, rellanos y escalera) necesitan repintura completa. Se han solicitado 2 presupuestos. Pendiente de votación en junta.',
+    nextAction:'Presentar presupuestos en junta del 15 de marzo',
+    timeline:[
+      {type:'event',icon:'🎨',title:'Incidencia abierta',text:'Solicitud del presidente tras inspección anual.',ts:'Mar 25 feb · 10:00h'},
+      {type:'event',icon:'📋',title:'Presupuestos solicitados',text:'Pinturas Castellana y Reformas Madrid contactados.',ts:'Mié 26 feb · 09:00h'},
+      {type:'event',icon:'💰',title:'Presupuestos recibidos',text:'Pinturas Castellana: 4.200€ · Reformas Madrid: 3.850€',ts:'Vie 28 feb · 14:00h'},
+      {type:'visible',icon:'💬',title:'Actualización para el presidente',text:'Tenemos 2 presupuestos. Los presentaremos en la junta del 15 de marzo para votación.',ts:'Lun 2 mar · 10:00h'},
+    ],
+    adjuntos:[
+      {icon:'💰',name:'Presupuesto Pinturas Castellana',meta:'PDF · 89 KB',visible:true},
+      {icon:'💰',name:'Presupuesto Reformas Madrid',meta:'PDF · 76 KB',visible:true},
+    ]
+  },
+  inc5:{
+    id:'inc5', commId:'goya', icon:'🏠',
+    title:'Tejado — revisión general',
+    status:'Pendiente de proveedor', priority:'Normal', category:'Estructura',
+    proveedor:'Cubiertas Madrid S.L.', gestor:'Miguel García',
+    apertura:'01/03/2026', estimada:'20/03/2026',
+    ref:'INC-2026-022',
+    desc:'Revisión periódica del tejado. El presidente solicita inspección antes de la temporada de lluvias. Cubiertas Madrid ha confirmado visita para la semana del 18.',
+    nextAction:'Visita inspección Cubiertas Madrid — semana del 18 de marzo',
+    timeline:[
+      {type:'event',icon:'🏠',title:'Incidencia abierta',text:'Solicitud de inspección preventiva del tejado.',ts:'Dom 1 mar · 11:00h'},
+      {type:'event',icon:'👤',title:'Asignada a Cubiertas Madrid S.L.',text:'Empresa especializada en impermeabilización.',ts:'Lun 2 mar · 09:00h'},
+      {type:'visible',icon:'💬',title:'Actualización para el presidente',text:'Cubiertas Madrid realizará la inspección la semana del 18 de marzo. Les informaremos del resultado.',ts:'Mar 3 mar · 10:00h'},
+    ],
+    adjuntos:[]
+  }
+};
+
+const DOCS = [
+  {id:'d1',commId:'goya',comm:'C/ Goya 47',icon:'📄',name:'Acta junta ordinaria — feb 2026',meta:'PDF · 284 KB',type:'acta',fecha:'10/03/2026',status:{cls:'bg',txt:'Firmada'},content:'acta_goya_feb2026'},
+  {id:'d2',commId:'goya',comm:'C/ Goya 47',icon:'🔧',name:'Contrato mantenimiento ascensor',meta:'PDF · 1.2 MB · Thyssenkrupp · 🔗 INC-047',type:'contrato',fecha:'01/01/2026',status:{cls:'bg',txt:'Vigente'},content:'contrato_ascensor'},
+  {id:'d3',commId:'goya',comm:'C/ Goya 47',icon:'🛡️',name:'Póliza seguro comunidad 2025-2026',meta:'PDF · 3.1 MB · Mapfre',type:'poliza',fecha:'01/07/2025',statusVb:{cls:'',txt:'⚠ Vence jun 26'},content:'poliza_goya'},
+  {id:'d4',commId:'espana',comm:'Pza. España 3',icon:'💧',name:'Presupuesto fontanería — fuga garaje',meta:'PDF · 89 KB · Fontanería López · 🔗 INC-031',type:'presupuesto',fecha:'05/03/2026',status:{cls:'by',txt:'Pendiente'},content:'pres_fontaneria'},
+  {id:'d5',commId:'espana',comm:'Pza. España 3',icon:'📄',name:'Acta junta extraordinaria — ene 2026',meta:'PDF · 198 KB',type:'acta',fecha:'20/01/2026',status:{cls:'bg',txt:'Firmada'},content:'acta_espana_ene'},
+  {id:'d6',commId:'velazquez',comm:'C/ Velázquez 12',icon:'⚡',name:'Contrato mantenimiento eléctrico',meta:'PDF · 567 KB · Electricidad Martín',type:'contrato',fecha:'15/02/2026',status:{cls:'bg',txt:'Vigente'},content:'contrato_electrico'},
+  {id:'d7',commId:'goya',comm:'C/ Goya 47',icon:'💰',name:'Presupuesto pintura zonas comunes',meta:'PDF · 76 KB · Reformas Madrid',type:'presupuesto',fecha:'28/02/2026',status:{cls:'by',txt:'Pendiente aprobación'},content:'pres_pintura'},
+  {id:'d8',commId:'espana',comm:'Pza. España 3',icon:'🛡️',name:'Póliza seguro comunidad 2025-2026',meta:'PDF · 2.8 MB · Allianz',type:'poliza',fecha:'01/09/2025',status:{cls:'bg',txt:'Vigente'},content:'poliza_espana'},
+  {id:'d9',commId:'velazquez',comm:'C/ Velázquez 12',icon:'🧹',name:'Contrato limpieza 2025-2026',meta:'PDF · 234 KB · Limpiezas García',type:'contrato',fecha:'01/04/2025',statusVb:{cls:'urg',txt:'🔴 Vence 15 abr'},content:'contrato_limpieza'},
+];
+
+const DOC_CONTENT = {
+  acta_goya_feb2026:{title:'Acta Junta Ordinaria — Goya 47 (feb 2026)',body:`<div style="background:#fffef7;border:1px solid #fde68a;border-radius:10px;padding:20px;font-size:13px;line-height:1.8;color:#3a3d4a"><h3 style="font-family:'DM Serif Display',serif;font-size:16px;color:#0f1117;text-align:center;margin-bottom:10px">ACTA DE JUNTA ORDINARIA<br><span style="font-size:12px;font-weight:400">Comunidad C/ Goya 47 · Madrid · 10 feb 2026</span></h3><p><strong>Presidente:</strong> D. Antonio Ruiz Moreno &nbsp;·&nbsp; <strong>Admin:</strong> D. Miguel García</p><h4 style="margin:10px 0 4px;font-size:13px;font-weight:700;color:#0f1117">ORDEN DEL DÍA</h4><p>1. Aprobación presupuesto 2026<br>2. Revisión cuotas ordinarias<br>3. Ruegos y preguntas</p><h4 style="margin:10px 0 4px;font-size:13px;font-weight:700;color:#0f1117">PUNTO 1 — PRESUPUESTO 2026</h4><p>Aprobado presupuesto anual de 26.112€. <strong>Unanimidad.</strong></p><h4 style="margin:10px 0 4px;font-size:13px;font-weight:700;color:#0f1117">PUNTO 2 — CUOTAS</h4><p>Se mantiene cuota de 68€/mes por vecino. <strong>Unanimidad.</strong></p><div style="margin-top:16px;display:flex;gap:20px;font-size:12px"><div><p style="color:#92400e;font-weight:600">El Presidente: D. Antonio Ruiz Moreno</p><div style="border-top:1px solid #d97706;width:120px;margin-top:24px"></div></div><div><p style="color:#92400e;font-weight:600">El Administrador: D. Miguel García</p><div style="border-top:1px solid #d97706;width:120px;margin-top:24px"></div></div></div></div>`},
+  contrato_ascensor:{title:'Contrato mantenimiento ascensor — Thyssenkrupp',body:`<div style="font-size:13px;line-height:1.8;color:#3a3d4a"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">PROVEEDOR</div><div style="font-weight:600">Thyssenkrupp Elevadores S.L.</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">VIGENCIA</div><div style="font-weight:600">01/01/2026 — 31/12/2026</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">CUOTA MENSUAL</div><div style="font-weight:600">145 € / mes</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">ESTADO</div><div class="badge bg">Vigente</div></div></div><p><strong>Servicios incluidos:</strong> Revisión mensual obligatoria, atención de averías 24h, piezas de repuesto cubiertas hasta 500€/avería, certificado anual de inspección.</p><p style="margin-top:8px"><strong>Contacto técnico:</strong> Carlos Fernández · 91 234 56 78 · carlos.fernandez@thyssenkrupp.com</p><div style="margin-top:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 13px;font-size:12px;color:#1e40af">🔗 Ligado a incidencia INC-2026-047 (Ascensor parado)</div></div>`},
+  poliza_goya:{title:'Póliza seguro comunidad — Mapfre (Goya 47)',body:`<div style="font-size:13px;line-height:1.8;color:#3a3d4a"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">ASEGURADORA</div><div style="font-weight:600">Mapfre Seguros S.A.</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">VIGENCIA</div><div style="font-weight:600">01/07/2025 — 30/06/2026</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">PRIMA ANUAL</div><div style="font-weight:600">1.840 €</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">ESTADO</div><div class="vb">⚠ Vence jun 26</div></div></div><p><strong>Coberturas:</strong> Daños a terceros hasta 600.000€, incendio y explosión, daños por agua, rotura de cristales, robo en zonas comunes.</p><p style="margin-top:8px"><strong>Número de póliza:</strong> MAP-2025-COM-04789</p><div style="margin-top:12px;background:#fefce8;border:1px solid #fde047;border-radius:8px;padding:10px 13px;font-size:12px;color:#854d0e">⚠ Esta póliza vence en junio 2026. Recordar renovar antes del 15/06/2026.</div></div>`},
+  pres_fontaneria:{title:'Presupuesto fontanería — Fuga garaje Pza. España 3',body:`<div style="font-size:13px;line-height:1.8;color:#3a3d4a"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">EMPRESA</div><div style="font-weight:600">Fontanería López S.L.</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">IMPORTE</div><div style="font-weight:600;font-size:18px">680 €</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">FECHA</div><div style="font-weight:600">05/03/2026</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">ESTADO</div><div class="badge by">Pendiente</div></div></div><p><strong>Descripción trabajo:</strong> Sustitución de junta y tramo de tubería principal en sótano 1, zona garaje. Incluye mano de obra, materiales y prueba de estanqueidad.</p><p style="margin-top:8px"><strong>Plazo de ejecución:</strong> 1 día laboral · <strong>Validez oferta:</strong> 30 días</p><div style="margin-top:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 13px;font-size:12px;color:#1e40af">🔗 Ligado a incidencia INC-2026-031 (Fuga de agua en garaje)</div></div>`},
+  acta_espana_ene:{title:'Acta Junta Extraordinaria — Pza. España 3 (ene 2026)',body:`<div style="background:#fffef7;border:1px solid #fde68a;border-radius:10px;padding:20px;font-size:13px;line-height:1.8;color:#3a3d4a"><h3 style="font-family:'DM Serif Display',serif;font-size:16px;color:#0f1117;text-align:center;margin-bottom:10px">ACTA DE JUNTA EXTRAORDINARIA<br><span style="font-size:12px;font-weight:400">Comunidad Pza. España 3 · Madrid · 20 ene 2026</span></h3><p><strong>Presidente:</strong> D.ª Carmen Vidal López &nbsp;·&nbsp; <strong>Admin:</strong> D. Miguel García</p><h4 style="margin:10px 0 4px;font-size:13px;font-weight:700;color:#0f1117">PUNTO ÚNICO — ASCENSOR</h4><p>Se debate la reparación del ascensor principal. Se aprueba asignar el presupuesto de Elevadores Otis (8.400€) con cargo al fondo de reserva. <strong>Mayoría: 42 a favor, 5 abstenciones, 1 en contra.</strong></p><div style="margin-top:16px;display:flex;gap:20px;font-size:12px"><div><p style="color:#92400e;font-weight:600">La Presidenta: D.ª Carmen Vidal López</p><div style="border-top:1px solid #d97706;width:120px;margin-top:24px"></div></div><div><p style="color:#92400e;font-weight:600">El Administrador: D. Miguel García</p><div style="border-top:1px solid #d97706;width:120px;margin-top:24px"></div></div></div></div>`},
+  contrato_electrico:{title:'Contrato mantenimiento eléctrico — Electricidad Martín',body:`<div style="font-size:13px;line-height:1.8;color:#3a3d4a"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">EMPRESA</div><div style="font-weight:600">Electricidad Martín S.L.</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">VIGENCIA</div><div style="font-weight:600">15/02/2026 — 14/02/2027</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">CUOTA ANUAL</div><div style="font-weight:600">480 €</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">ESTADO</div><div class="badge bg">Vigente</div></div></div><p><strong>Servicios:</strong> Revisión trimestral de instalación eléctrica, atención de averías en zonas comunes, sustitución de luminarias y fusibles incluida.</p></div>`},
+  pres_pintura:{title:'Presupuesto pintura — Reformas Madrid S.L.',body:`<div style="font-size:13px;line-height:1.8;color:#3a3d4a"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">EMPRESA</div><div style="font-weight:600">Reformas Madrid S.L.</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">IMPORTE</div><div style="font-weight:600;font-size:18px">3.850 €</div></div></div><p><strong>Descripción:</strong> Repintura completa de zonas comunes: portal, rellanos y escalera (4 plantas). Incluye preparación de superficie, imprimación y 2 manos de pintura.</p><p style="margin-top:8px"><strong>Alternativa recibida:</strong> Pinturas Castellana — 4.200€</p><div style="margin-top:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 13px;font-size:12px;color:#1e40af">🔗 Ligado a incidencia INC-2026-018 (Pintura zonas comunes)</div></div>`},
+  poliza_espana:{title:'Póliza seguro comunidad — Allianz (Pza. España 3)',body:`<div style="font-size:13px;line-height:1.8;color:#3a3d4a"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">ASEGURADORA</div><div style="font-weight:600">Allianz Seguros S.A.</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">VIGENCIA</div><div style="font-weight:600">01/09/2025 — 31/08/2026</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">PRIMA ANUAL</div><div style="font-weight:600">2.640 €</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">ESTADO</div><div class="badge bg">Vigente</div></div></div><p><strong>Coberturas:</strong> Responsabilidad civil hasta 1.000.000€, incendio, daños por agua, robo y expoliación, defensa jurídica.</p></div>`},
+  contrato_limpieza:{title:'Contrato limpieza — Limpiezas García (Velázquez 12)',body:`<div style="font-size:13px;line-height:1.8;color:#3a3d4a"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">EMPRESA</div><div style="font-weight:600">Limpiezas García S.L.</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">VIGENCIA</div><div style="font-weight:600;color:#dc2626">01/04/2025 — 15/04/2026</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">CUOTA MENSUAL</div><div style="font-weight:600">180 €</div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:#8b8fa8;font-weight:600;margin-bottom:3px">ESTADO</div><div class="vb urg">🔴 Vence 15 abr</div></div></div><p><strong>Servicio:</strong> Limpieza de zonas comunes 3 veces/semana. Portal, escalera, ascensor y garaje.</p><div style="margin-top:12px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px 13px;font-size:12px;color:#7f1d1d">🔴 Contrato vence en 15 días. Contactar con Limpiezas García para renovar o buscar alternativa.</div></div>`},
+};
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let STEPS=[
+  {screen:'dashboard',nav:0,pill:'1/5',title:'Dashboard del despacho',sub:'Estado de las 3 comunidades en un vistazo'},
+  {screen:'comunidad',nav:1,pill:'2/5',title:'Ficha de comunidad',sub:'Incidencias, docs y juntas de Goya 47 en un solo lugar'},
+  {screen:'inc-detalle',nav:2,pill:'3/5',title:'Incidencia con trazabilidad',sub:'El presidente ve el estado sin llamar al despacho'},
+  {screen:'documentos',nav:3,pill:'4/5',title:'Repositorio documental',sub:'Contratos, alertas de vencimiento y docs ligados a incidencias'},
+  {screen:'juntas',nav:4,pill:'5/5',title:'Borrador de acta asistido',sub:'Propuesta inicial — el administrador revisa y firma'},
+];
+let cur=0, guided=false;
+let currentCommId='goya';
+let currentIncId='inc1';
+let prevScreen='dashboard';
+let noteType='interna';
+let docTypeFilter='todos', docCommFilter='todas';
+
+const NIs = () => document.querySelectorAll('.ni');
+
+// ══════════════════════════════════════════════
+// GUIDE
+// ══════════════════════════════════════════════
 function buildDots(){
   document.getElementById('g-dots').innerHTML=STEPS.map((_,i)=>
-    `<div class="gdot${i===cur?' active':i<cur?' done':''}" onclick="jumpTo(${i})"></div>`).join('');
+    `<div class="gd${i===cur?' active':i<cur?' done':''}" onclick="jumpTo(${i})"></div>`).join('');
 }
 function updateBar(){
   const s=STEPS[cur];
@@ -661,50 +995,48 @@ function updateBar(){
   buildDots();
 }
 function applyStep(idx){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+STEPS[idx].screen).classList.add('active');
-  navItems.forEach(n=>n.classList.remove('active'));
-  if(navItems[STEPS[idx].nav])navItems[STEPS[idx].nav].classList.add('active');
+  if(idx===1){openComm('goya',true);}
+  else if(idx===2){openInc('goya','inc1',true);}
+  else{showScreen(STEPS[idx].screen,idx);}
   updateBar();
+}
+function showScreen(name, navIdx){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  NIs().forEach(n=>n.classList.remove('active'));
+  if(navIdx!==undefined && NIs()[STEPS[navIdx].nav]) NIs()[STEPS[navIdx].nav].classList.add('active');
   window.scrollTo(0,0);
 }
 function startGuide(){
   guided=true; cur=0;
   const sp=document.getElementById('splash');
-  sp.style.opacity='0';
-  setTimeout(()=>sp.style.display='none',400);
-  document.getElementById('guide-bar').style.display='flex';
+  sp.style.opacity='0'; setTimeout(()=>sp.style.display='none',400);
+  document.getElementById('gbar').style.display='flex';
   document.getElementById('app').classList.add('guided');
   applyStep(0);
 }
 function skipSplash(){
   const sp=document.getElementById('splash');
-  sp.style.opacity='0';
-  setTimeout(()=>sp.style.display='none',400);
+  sp.style.opacity='0'; setTimeout(()=>sp.style.display='none',400);
+  showAllScreens();
+}
+function showAllScreens(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-dashboard').classList.add('active');
+  NIs()[0].classList.add('active');
 }
 function exitGuide(){
   guided=false;
-  document.getElementById('guide-bar').style.display='none';
+  document.getElementById('gbar').style.display='none';
   document.getElementById('app').classList.remove('guided');
-}
-function showClose(){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-close').classList.add('active');
-  navItems.forEach(n=>n.classList.remove('active'));
 }
 function nextStep(){if(cur<STEPS.length-1){cur++;applyStep(cur);}}
 function prevStep(){if(cur>0){cur--;applyStep(cur);}}
 function jumpTo(idx){cur=idx;applyStep(idx);}
-function go(screen,fromNav){
-  if(fromNav){const idx=STEPS.findIndex(s=>s.screen===screen);if(idx!==-1)cur=idx;}
+function showClose(){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  const t=document.getElementById('screen-'+screen);
-  if(t)t.classList.add('active');
-  const idx=STEPS.findIndex(s=>s.screen===screen);
-  navItems.forEach(n=>n.classList.remove('active'));
-  if(idx!==-1&&navItems[STEPS[idx].nav])navItems[STEPS[idx].nav].classList.add('active');
-  if(guided)updateBar();
-  window.scrollTo(0,0);
+  document.getElementById('screen-close').classList.add('active');
+  NIs().forEach(n=>n.classList.remove('active'));
 }
 function restartDemo(){
   cur=0;
@@ -712,11 +1044,411 @@ function restartDemo(){
   document.getElementById('btn-next').onclick=nextStep;
   applyStep(0);
 }
+
+// ══════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════
+function goNav(screen){
+  prevScreen=screen;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  NIs().forEach(n=>n.classList.remove('active'));
+  if(screen==='comunidades'||screen==='comunidad'){
+    if(screen==='comunidades'){
+      document.getElementById('screen-comunidades').classList.add('active');
+      NIs()[1].classList.add('active');
+    } else {
+      openComm(currentCommId);
+    }
+  } else if(screen==='incidencias'){
+    renderAllIncs();
+    document.getElementById('screen-incidencias').classList.add('active');
+    NIs()[2].classList.add('active');
+  } else if(screen==='documentos'){
+    renderDocs();
+    document.getElementById('screen-documentos').classList.add('active');
+    NIs()[3].classList.add('active');
+  } else if(screen==='juntas'){
+    document.getElementById('screen-juntas').classList.add('active');
+    NIs()[4].classList.add('active');
+  } else if(screen==='dashboard'){
+    document.getElementById('screen-dashboard').classList.add('active');
+    NIs()[0].classList.add('active');
+  } else if(screen==='proveedores'){
+    document.getElementById('screen-proveedores').classList.add('active');
+    NIs()[5].classList.add('active');
+  } else if(screen==='configuracion'){
+    document.getElementById('screen-configuracion').classList.add('active');
+    NIs()[6].classList.add('active');
+  }
+  if(guided) updateBar();
+  window.scrollTo(0,0);
+}
+function goBack(){goNav(prevScreen==='inc-detalle'?'incidencias':prevScreen);}
+
+// ══════════════════════════════════════════════
+// COMUNIDAD
+// ══════════════════════════════════════════════
+function openComm(cid, skipNav){
+  currentCommId=cid;
+  const c=COMUNIDADES[cid];
+  document.getElementById('comm-bc').textContent=c.short;
+  document.getElementById('comm-name').textContent=c.name;
+  document.getElementById('comm-sub').textContent=c.sub;
+  const av=document.getElementById('comm-av');
+  av.textContent=c.initial;
+  av.style.cssText=c.avStyle;
+  document.getElementById('comm-badges').innerHTML=c.badges.map(b=>`<div class="badge ${b.cls}">${b.txt}</div>`).join('');
+  // Reset to first tab
+  document.querySelectorAll('#screen-comunidad .tab').forEach((t,i)=>{t.classList.toggle('active',i===0);});
+  showCommTab('incidencias', null, true);
+  if(!skipNav){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    NIs().forEach(n=>n.classList.remove('active'));
+    NIs()[1].classList.add('active');
+  }
+  document.getElementById('screen-comunidad').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function showCommTab(tab, btn, noToggle){
+  if(!noToggle && btn){
+    document.querySelectorAll('#screen-comunidad .tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  ['incidencias','documentos','juntas','info'].forEach(t=>{
+    document.getElementById('comm-tab-'+t).style.display=t===tab?'':'none';
+  });
+  const c=COMUNIDADES[currentCommId];
+  if(tab==='incidencias'){
+    const el=document.getElementById('comm-incs');
+    const incs=c.incIds.map(id=>INCIDENCIAS[id]);
+    el.innerHTML=incs.map(inc=>`
+      <div class="ir" onclick="openInc('${inc.commId}','${inc.id}')">
+        <div class="idot ${statusDot(inc.status)}"></div>
+        <div><div class="itl">${inc.title}</div><div class="imt">${inc.ref} · ${inc.status}</div></div>
+        <div class="irr"><div class="badge ${statusBadge(inc.status)}">${inc.priority}</div></div>
+      </div>`).join('')+'<div class="ir" style="cursor:default"><div class="idot dg"></div><div><div class="itl">Interfonos — revisión general</div><div class="imt">Resuelta hace 4 días · Electro Madrid</div></div><div class="irr"><div class="badge bg">Resuelta</div></div></div>';
+  } else if(tab==='documentos'){
+    const el=document.getElementById('comm-docs-list');
+    const docs=DOCS.filter(d=>d.commId===currentCommId);
+    el.innerHTML=docs.map(d=>`
+      <div class="ir" onclick="openDoc('${d.id}')">
+        <div style="font-size:16px">${d.icon}</div>
+        <div><div class="itl">${d.name}</div><div class="imt">${d.meta}</div></div>
+        <div class="irr">${d.status?`<div class="badge ${d.status.cls}">${d.status.txt}</div>`:d.statusVb?`<div class="vb ${d.statusVb.cls}">${d.statusVb.txt}</div>`:''}</div>
+      </div>`).join('');
+  } else if(tab==='juntas'){
+    const el=document.getElementById('comm-juntas-list');
+    el.innerHTML=c.juntas.map(j=>`
+      <div class="jr">
+        <div class="jdb"><div class="jday">${j.dia}</div><div class="jmon">${j.mes}</div></div>
+        <div><div style="font-size:13px;font-weight:600">${j.name}</div><div style="font-size:11px;color:var(--muted)">${j.hora}</div></div>
+        <div class="badge ${j.badge.cls}" style="margin-left:auto">${j.badge.txt}</div>
+      </div>`).join('');
+  } else if(tab==='info'){
+    const el=document.getElementById('comm-info-fields');
+    el.innerHTML=`
+      <div class="mf"><span class="mk">Presidente</span><span class="mv">${c.presidente}</span></div>
+      <div class="mf"><span class="mk">Cuota mensual</span><span class="mv">${c.cuota}</span></div>
+      <div class="mf"><span class="mk">CIF</span><span class="mv">${c.cif}</span></div>
+      <div class="mf"><span class="mk">Morosos</span><span class="mv" style="color:var(--red)">${c.morosos}</span></div>
+      <div class="mf"><span class="mk">Administrador</span><span class="mv">Miguel García</span></div>`;
+  }
+}
+
+// ══════════════════════════════════════════════
+// INCIDENCIAS
+// ══════════════════════════════════════════════
+function statusDot(s){return s==='Urgente'||s==='En curso'?s==='Urgente'?'dr':'do':s==='Resuelta'?'dg':'dgr';}
+function statusBadge(p){return p==='Urgente'?'br':p==='Alta'?'bo':p==='Normal'?'bb':'bgr';}
+function priorityBadgeFromStatus(s){return s==='Urgente'?'br':s==='En curso'?'bo':s==='Resuelta'?'bg':'bgr';}
+
+function openInc(commId, incId, skipNav){
+  prevScreen=currentCommId?'comunidad':'incidencias';
+  currentCommId=commId;
+  currentIncId=incId;
+  const inc=INCIDENCIAS[incId];
+  document.getElementById('inc-bc').textContent=inc.title;
+  document.getElementById('inc-title-h').textContent=inc.title;
+  document.getElementById('inc-desc').textContent=inc.desc;
+  document.getElementById('inc-badges').innerHTML=`
+    <div class="badge br">${inc.priority}</div>
+    <div class="badge bo">${inc.status}</div>
+    <div class="badge bb">${inc.category}</div>
+    <span style="font-size:11px;color:var(--muted);margin-left:4px">${inc.ref}</span>`;
+  renderStepper(inc.status);
+  renderTimeline(incId);
+  document.getElementById('inc-meta-fields').innerHTML=`
+    <div class="mf"><span class="mk">Comunidad</span><span class="mv" style="color:var(--accent);cursor:pointer" onclick="openComm('${commId}')">${COMUNIDADES[commId].short}</span></div>
+    <div class="mf"><span class="mk">Prioridad</span><span class="mv"><div class="badge ${statusBadge(inc.priority)}">${inc.priority}</div></span></div>
+    <div class="mf"><span class="mk">Proveedor</span><span class="mv">${inc.proveedor}</span></div>
+    <div class="mf"><span class="mk">Gestor</span><span class="mv">${inc.gestor}</span></div>
+    <div class="mf"><span class="mk">Apertura</span><span class="mv">${inc.apertura}</span></div>
+    <div class="mf"><span class="mk">Est. resolución</span><span class="mv">${inc.estimada||'—'}</span></div>
+    <div class="mf"><span class="mk">Próxima acción</span><span class="mv" style="font-size:11px;color:var(--muted);text-align:right;max-width:160px">${inc.nextAction}</span></div>`;
+  document.getElementById('pv-estado').textContent=inc.status;
+  document.getElementById('pv-prov').textContent=inc.proveedor;
+  const rb=document.getElementById('inc-resolve-btn');
+  if(inc.status==='En curso'||inc.status==='Pendiente de proveedor'||inc.status==='Pendiente de comunidad'){
+    rb.style.display='';
+    rb.onclick=()=>resolveInc(incId);
+  } else {rb.style.display='none';}
+  document.getElementById('inc-adjuntos').innerHTML=inc.adjuntos.map(a=>`
+    <div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer">
+      <span>${a.icon}</span>
+      <div style="font-size:12px"><div style="font-weight:500">${a.name}</div><div style="color:var(--muted)">${a.meta}</div></div>
+      ${a.visible?'<div class="badge bb" style="margin-left:auto">Ver</div>':'<div class="badge bgr" style="margin-left:auto">Solo despacho</div>'}
+    </div>`).join('');
+  if(!skipNav){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    NIs().forEach(n=>n.classList.remove('active'));
+    NIs()[2].classList.add('active');
+  }
+  document.getElementById('screen-inc-detalle').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function renderStepper(status){
+  const states=['Nueva','En curso','Pendiente de proveedor','Verificada','Resuelta'];
+  const curIdx={'Nueva':0,'Revisando':0,'En curso':1,'Pendiente de proveedor':2,'Pendiente de comunidad':2,'Verificada':3,'Resuelta':4}[status]??1;
+  document.getElementById('inc-stepper').innerHTML=states.map((s,i)=>`
+    <div class="step ${i<curIdx?'done':i===curIdx?'cur':''}">
+      <div class="sdot">${i<curIdx?'✓':(i+1)}</div>
+      <div class="slb2">${s}</div>
+    </div>`).join('');
+}
+
+function renderTimeline(incId){
+  const inc=INCIDENCIAS[incId];
+  document.getElementById('inc-timeline').innerHTML=inc.timeline.map(e=>`
+    <div class="tli ${e.type==='internal'?'internal':e.type==='visible'?'visible':''}">
+      <div class="tld">${e.icon}</div>
+      <div>
+        <div class="tlt">${e.title}</div>
+        <div class="tltx">${e.text}</div>
+        <div class="tlts">${e.ts}</div>
+      </div>
+    </div>`).join('');
+}
+
+let noteTypeVal='interna';
+function setNoteType(t){
+  noteTypeVal=t;
+  document.getElementById('tb-int').classList.toggle('active',t==='interna');
+  document.getElementById('tb-vis').classList.toggle('active',t==='visible');
+  document.getElementById('note-input').placeholder=t==='interna'?'Nota interna (solo el despacho la ve)...':'Actualización para el presidente...';
+}
+
+function addNote(){
+  const input=document.getElementById('note-input');
+  const text=input.value.trim();
+  if(!text)return;
+  const inc=INCIDENCIAS[currentIncId];
+  const isVisible=noteTypeVal==='visible';
+  const now='Ahora mismo';
+  inc.timeline.push({
+    type:isVisible?'visible':'internal',
+    icon:isVisible?'💬':'📝',
+    title:isVisible?'Actualización para el presidente':'Nota interna',
+    text:text,
+    ts:now
+  });
+  if(isVisible){
+    document.getElementById('pv-upd').textContent='ahora mismo';
+  }
+  renderTimeline(currentIncId);
+  input.value='';
+  // Scroll to bottom of timeline
+  const tl=document.getElementById('inc-timeline');
+  tl.scrollTop=tl.scrollHeight;
+}
+
+function resolveInc(incId){
+  const inc=INCIDENCIAS[incId];
+  inc.status='Resuelta';
+  inc.timeline.push({type:'event',icon:'✅',title:'Incidencia resuelta',text:'Marcada como resuelta por Miguel García.',ts:'Ahora mismo'});
+  renderTimeline(incId);
+  renderStepper('Resuelta');
+  document.getElementById('pv-estado').textContent='Resuelta';
+  document.getElementById('inc-resolve-btn').style.display='none';
+  document.getElementById('inc-badges').innerHTML=`
+    <div class="badge bg">Resuelta</div>
+    <div class="badge bb">${inc.category}</div>
+    <span style="font-size:11px;color:var(--muted);margin-left:4px">${inc.ref}</span>`;
+}
+
+function renderAllIncs(){
+  const el=document.getElementById('all-incs-list');
+  const allIncs=Object.values(INCIDENCIAS);
+  const visible=el._filter?allIncs.filter(i=>el._filter==='todas'||i.priority.toLowerCase()===el._filter||i.status.toLowerCase().replace(/ /g,'-')===el._filter):allIncs;
+  el.innerHTML=visible.map(inc=>`
+    <div class="ir" onclick="openInc('${inc.commId}','${inc.id}')">
+      <div class="idot ${statusDot(inc.status)}"></div>
+      <div style="flex:1"><div class="itl">${inc.title}</div><div class="imt">${COMUNIDADES[inc.commId].short} · ${inc.ref} · ${inc.status}</div></div>
+      <div class="irr"><div class="badge ${statusBadge(inc.priority)}">${inc.priority}</div></div>
+    </div>`).join('');
+}
+
+function filterIncs(f, btn){
+  document.querySelectorAll('#screen-incidencias .filterbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const el=document.getElementById('all-incs-list');
+  el._filter=f;
+  renderAllIncs();
+}
+
+// ══════════════════════════════════════════════
+// PRESIDENTE
+// ══════════════════════════════════════════════
+function openPresidente(){
+  const inc=INCIDENCIAS[currentIncId];
+  const comm=COMUNIDADES[inc.commId];
+  document.getElementById('pres-title').textContent=inc.title;
+  document.getElementById('pres-comm').textContent=comm.name+' · '+inc.ref;
+  document.getElementById('pres-icon').textContent=inc.icon;
+  document.getElementById('pres-badge').innerHTML=`<div class="badge ${priorityBadgeFromStatus(inc.status)}">${inc.status}</div>`;
+  document.getElementById('pres-since').textContent='Abierta: '+inc.apertura+(inc.estimada?' · Resolución est.: '+inc.estimada:'');
+  document.getElementById('pres-next').textContent=inc.nextAction;
+  document.getElementById('pres-desc').textContent=inc.desc;
+  document.getElementById('pres-details').innerHTML=`
+    <div class="mf"><span class="mk">Proveedor</span><span class="mv">${inc.proveedor}</span></div>
+    <div class="mf"><span class="mk">Categoría</span><span class="mv">${inc.category}</span></div>
+    <div class="mf"><span class="mk">Gestor</span><span class="mv">${inc.gestor}</span></div>
+    <div class="mf"><span class="mk">Apertura</span><span class="mv">${inc.apertura}</span></div>
+    ${inc.estimada?`<div class="mf"><span class="mk">Est. resolución</span><span class="mv">${inc.estimada}</span></div>`:''}`;
+  const visibleEvents=inc.timeline.filter(e=>e.type==='visible'||e.type==='event');
+  document.getElementById('pres-timeline').innerHTML=visibleEvents.length?visibleEvents.map(e=>`
+    <div class="tli">
+      <div class="tld">${e.icon}</div>
+      <div><div class="tlt">${e.title}</div><div class="tltx">${e.text}</div><div class="tlts">${e.ts}</div></div>
+    </div>`).join(''):'<div style="font-size:13px;color:var(--muted)">Sin actualizaciones todavía.</div>';
+  const visibleAdj=inc.adjuntos.filter(a=>a.visible);
+  document.getElementById('pres-adjuntos').innerHTML=visibleAdj.length?visibleAdj.map(a=>`
+    <div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--border)">
+      <span>${a.icon}</span>
+      <div style="font-size:12px"><div style="font-weight:500">${a.name}</div><div style="color:var(--muted)">${a.meta}</div></div>
+      <div class="badge bb" style="margin-left:auto">Ver</div>
+    </div>`).join(''):'<div style="padding:12px 16px;font-size:13px;color:var(--muted)">Sin documentos adjuntos visibles.</div>';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-presidente').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function closePresidente(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-inc-detalle').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════════
+// DOCUMENTOS
+// ══════════════════════════════════════════════
+function renderDocs(){
+  const search=(document.getElementById('doc-search').value||'').toLowerCase();
+  let filtered=DOCS.filter(d=>{
+    const matchType=docTypeFilter==='todos'||d.type===docTypeFilter;
+    const matchComm=docCommFilter==='todas'||d.commId===docCommFilter;
+    const matchSearch=!search||d.name.toLowerCase().includes(search)||d.comm.toLowerCase().includes(search)||d.meta.toLowerCase().includes(search);
+    return matchType&&matchComm&&matchSearch;
+  });
+  const tbody=document.getElementById('docs-tbody');
+  tbody.innerHTML=filtered.map(d=>`
+    <tr class="drow" onclick="openDoc('${d.id}')">
+      <td><span style="font-size:14px;margin-right:7px">${d.icon}</span><span class="dn">${d.name}</span><span class="ds">${d.meta}</span></td>
+      <td style="color:var(--muted);font-size:12px">${d.comm}</td>
+      <td><div class="badge bgr">${d.type.charAt(0).toUpperCase()+d.type.slice(1)}</div></td>
+      <td style="color:var(--muted);font-size:12px">${d.fecha}</td>
+      <td>${d.status?`<div class="badge ${d.status.cls}">${d.status.txt}</div>`:d.statusVb?`<div class="vb ${d.statusVb.cls}">${d.statusVb.txt}</div>`:''}</td>
+    </tr>`).join('');
+  document.getElementById('docs-count').textContent=`${filtered.length} documento${filtered.length!==1?'s':''} mostrado${filtered.length!==1?'s':''}`;
+}
+
+function filterDocs(){renderDocs();}
+
+function filterDocsType(t, btn){
+  docTypeFilter=t;
+  document.querySelectorAll('#screen-documentos .filterrow:nth-child(2) .filterbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDocs();
+}
+
+function filterDocsComm(c, btn){
+  docCommFilter=c;
+  document.querySelectorAll('#screen-documentos .filterrow:nth-child(3) .filterbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDocs();
+}
+
+function openDoc(docId){
+  const d=DOCS.find(x=>x.id===docId);
+  const content=DOC_CONTENT[d.content];
+  document.getElementById('modal-title').textContent=content.title;
+  document.getElementById('modal-body').innerHTML=content.body;
+  document.getElementById('modal').style.display='flex';
+}
+
+// ══════════════════════════════════════════════
+// NEW INC MODAL
+// ══════════════════════════════════════════════
+function openNewIncModal(){
+  document.getElementById('modal-title').textContent='Nueva incidencia';
+  document.getElementById('modal-body').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div>
+          <select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">
+            <option>C/ Goya 47</option><option>Pza. España 3</option><option>C/ Velázquez 12</option>
+          </select></div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PRIORIDAD *</div>
+          <select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">
+            <option>Normal</option><option>Alta</option><option>Urgente</option>
+          </select></div>
+      </div>
+      <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TÍTULO *</div>
+        <input placeholder="Ej: Avería en portal — puerta no cierra" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
+      <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">DESCRIPCIÓN</div>
+        <textarea rows="3" placeholder="Describe el problema con detalle..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div>
+          <select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">
+            <option>Ascensor</option><option>Fontanería</option><option>Electricidad</option><option>Humedades</option><option>Pintura</option><option>Puerta/Garaje</option><option>Limpieza</option><option>Seguridad</option><option>Estructura</option><option>Otros</option>
+          </select></div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">REPORTADO POR</div>
+          <select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">
+            <option>Presidente</option><option>Vecino</option><option>Despacho propio</option>
+          </select></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px">
+        <button class="btn bs" onclick="closeModal()">Cancelar</button>
+        <button class="btn bp" onclick="closeModal()">✅ Crear incidencia</button>
+      </div>
+    </div>`;
+  document.getElementById('modal').style.display='flex';
+}
+
+// ══════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modal'))return;
+  document.getElementById('modal').style.display='none';
+}
+
+// ══════════════════════════════════════════════
+// KEYBOARD
+// ══════════════════════════════════════════════
 document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeModal();
   if(!guided)return;
   if(e.key==='ArrowRight')nextStep();
   if(e.key==='ArrowLeft')prevStep();
 });
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+renderDocs();
+renderAllIncs();
 </script>
 </body>
 </html>
