@@ -121,7 +121,7 @@
     padding: 14px 20px;
     border: 2px solid var(--border); border-radius: 10px;
     font-size: 15px; font-family: inherit;
-    outline: none; background: white; width: 290px;
+    outline: none; background: white; width: 220px;
     transition: border 0.15s; color: var(--ink);
   }
   .hero-form input:focus { border-color: var(--accent); }
@@ -394,8 +394,9 @@
   </div>
 
   <div class="hero-form">
+    <input type="text" id="hero-company" placeholder="Nombre del despacho" />
     <input type="email" id="hero-email" placeholder="tu@despacho.es" />
-    <button class="btn-primary" onclick="handleSignup('hero-email','hero-success')">
+    <button class="btn-primary" onclick="handleSignup('hero-email','hero-success', this)">
       Quiero una plaza piloto →
     </button>
   </div>
@@ -605,7 +606,10 @@
   async function handleSignup(emailId, successId, btn) {
     const emailInput = document.getElementById(emailId);
     const email = emailInput.value.trim();
-    const company = document.getElementById('pilot-company')?.value.trim() || '';
+    // Detect company field from same form prefix (hero- or pilot-)
+    const prefix = emailId.replace('email', '');
+    const companyInput = document.getElementById(prefix + 'company');
+    const company = companyInput?.value.trim() || '';
 
     if (!email || !email.includes('@') || !email.includes('.')) {
       emailInput.style.borderColor = '#ef4444';
@@ -631,7 +635,7 @@
 
       if (res.ok) {
         emailInput.value = '';
-        if (document.getElementById('pilot-company')) document.getElementById('pilot-company').value = '';
+        if (companyInput) companyInput.value = '';
         const s = document.getElementById(successId);
         s.style.display = 'block';
         setTimeout(() => s.style.display = 'none', 7000);
