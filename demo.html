@@ -1038,6 +1038,25 @@ function refreshSidebarBadges(){ var sbc=document.getElementById('sb-comms'); va
 function refreshDocsSummary(){ var total=DOCS.length; var ok=DOCS.filter(function(d){return d.status&&String(d.status.txt||'').match(/Firmada|Vigente|Activo|Subido/i);}).length; var soon=DOCS.filter(function(d){return (d.statusVb&&String(d.statusVb.txt||'').match(/Vence|vence/i))||(d.status&&String(d.status.txt||'').match(/Pendiente|Convocada/i));}).length; var t=document.getElementById('docs-total'),o=document.getElementById('docs-ok'),s=document.getElementById('docs-soon'); if(t)t.textContent=total; if(o)o.textContent=ok; if(s)s.textContent=soon; }
 function refreshAllCommunitySelectors(){ var opts=getCommOptions(); document.querySelectorAll('.comm-dyn-select').forEach(function(sel){ var cur=sel.value; sel.innerHTML=opts; if(cur && sel.querySelector('option[value="'+cur+'"]')) sel.value=cur; }); }
 
+function ensureCommunityShape(c){
+  if(!c) return null;
+  if(!c.id) c.id = makeUid ? makeUid('comm') : ('comm_'+Math.random().toString(36).slice(2,8));
+  if(!c.short) c.short = c.name || c.id;
+  if(!c.name) c.name = 'Comunidad ' + c.short;
+  if(!c.sub) c.sub = 'Madrid · — vecinos';
+  if(!c.initial) c.initial = String(c.short||c.id).charAt(0).toUpperCase();
+  if(!c.avStyle) c.avStyle = 'background:#eff6ff;color:#2563eb';
+  if(!Array.isArray(c.incIds)) c.incIds = [];
+  if(!Array.isArray(c.docIds)) c.docIds = [];
+  if(!Array.isArray(c.juntas)) c.juntas = [];
+  if(!c.info) c.info = {vecinos:'—',plantas:'—',cp:'—'};
+  if(!Array.isArray(c.badges)) c.badges = [];
+  if(!c.presidente) c.presidente = 'Sin designar';
+  if(!c.cuota) c.cuota = '—';
+  if(!c.cif) c.cif = '—';
+  if(!c.morosos) c.morosos = '0 vecinos';
+  return c;
+}
 
 const NIs = () => document.querySelectorAll('.ni');
 
@@ -1120,6 +1139,7 @@ function goNav(screen){
   NIs().forEach(n=>n.classList.remove('active'));
   if(screen==='comunidades'||screen==='comunidad'){
     if(screen==='comunidades'){
+      renderCommList();
       document.getElementById('screen-comunidades').classList.add('active');
       NIs()[1].classList.add('active');
     } else {
@@ -1137,6 +1157,7 @@ function goNav(screen){
     document.getElementById('screen-juntas').classList.add('active');
     NIs()[4].classList.add('active');
   } else if(screen==='dashboard'){
+    refreshDashboard();
     document.getElementById('screen-dashboard').classList.add('active');
     NIs()[0].classList.add('active');
   } else if(screen==='proveedores'){
@@ -1155,6 +1176,7 @@ function goBack(){goNav(prevScreen==='inc-detalle'?'incidencias':prevScreen);}
 // COMUNIDAD
 // ══════════════════════════════════════════════
 function openComm(cid, skipNav){
+  if(!cid) cid = Object.keys(COMUNIDADES)[0];
   var c=ensureCommunityShape(COMUNIDADES[cid]);
   if(!c) return;
   currentCommId=cid;
@@ -1190,7 +1212,7 @@ function showCommTab(tab, btn, noToggle){
     var el=document.getElementById('comm-incs');
     var incs=(c.incIds||[]).map(function(id){return INCIDENCIAS[id];}).filter(Boolean);
     el.innerHTML=(incs.length?incs.map(function(inc){
-      return '<div class="ir" data-open-inc="'+inc.id+'" data-comm-id="'+inc.commId+'" style="cursor:pointer">'
+      return '<div class="ir" data-open-inc="'+inc.id+'" data-comm-id="'+inc.commId+'" onclick="openInc(\''+inc.commId+'\',\''+inc.id+'\')" style="cursor:pointer">'
         +'<div class="idot '+statusDot(inc.status)+'"></div>'
         +'<div><div class="itl">'+escapeHtml(inc.title||'Incidencia')+'</div><div class="imt">'+escapeHtml(inc.ref||'—')+' · '+escapeHtml(inc.status||'Nueva')+'</div></div>'
         +'<div class="irr"><div class="badge '+statusBadge(inc.priority||'Normal')+'">'+escapeHtml(inc.priority||'Normal')+'</div></div>'
@@ -1201,7 +1223,7 @@ function showCommTab(tab, btn, noToggle){
     var docs=DOCS.filter(function(d){return d.commId===currentCommId;});
     el.innerHTML=docs.length?docs.map(function(d){
       var st=d.status?'<div class="badge '+d.status.cls+'">'+d.status.txt+'</div>':d.statusVb?'<div class="vb '+d.statusVb.cls+'">'+d.statusVb.txt+'</div>':'';
-      return '<div class="ir" data-open-doc="'+d.id+'" style="cursor:pointer">'
+      return '<div class="ir" data-open-doc="'+d.id+'" onclick="openDoc(\''+d.id+'\')" style="cursor:pointer">'
         +'<div style="font-size:16px">'+(d.icon||'📄')+'</div>'
         +'<div><div class="itl">'+escapeHtml(d.name||'Documento')+'</div><div class="imt">'+escapeHtml(d.meta||'')+'</div></div>'
         +'<div class="irr">'+st+'</div>'
@@ -1236,6 +1258,8 @@ function statusBadge(p){return p==='Urgente'?'br':p==='Alta'?'bo':p==='Normal'?'
 function priorityBadgeFromStatus(s){return s==='Urgente'?'br':s==='En curso'?'bo':s==='Resuelta'?'bg':'bgr';}
 
 function openInc(commId, incId, skipNav){
+  if(!incId || !INCIDENCIAS[incId]) return;
+  if(!commId) commId = INCIDENCIAS[incId].commId;
   prevScreen=currentCommId?'comunidad':'incidencias';
   currentCommId=commId; currentIncId=incId;
   var inc=INCIDENCIAS[incId]; if(!inc) return;
@@ -1523,11 +1547,11 @@ function openProvModal(nombre, categoria, contacto, comunidad, notas, importe){
 // INCIDENCIAS — render + presidente
 // ══════════════════════════════════════════════
 function renderAllIncs(){
-  var el=document.getElementById('all-incs-list'); if(!el)return; refreshDashboard();
+  var el=document.getElementById('all-incs-list'); if(!el)return; syncCommunityRelations(); refreshFilterCounts(); refreshSidebarBadges();
   var allIncs=Object.values(INCIDENCIAS); var f=el._filter||'todas';
   var visible=allIncs.filter(function(i){ if(f==='todas') return true; if(f==='urgente') return i.priority==='Urgente'; if(f==='en-curso') return i.status==='En curso'; if(f==='pendiente') return i.status==='Pendiente de proveedor'||i.status==='Pendiente de comunidad'||i.status==='Nueva'||i.status==='Revisando'; return true;});
   el.innerHTML=visible.map(function(inc){
-    return '<div class="ir" data-open-inc="'+inc.id+'" data-comm-id="'+inc.commId+'" style="cursor:pointer">'
+    return '<div class="ir" data-open-inc="'+inc.id+'" data-comm-id="'+inc.commId+'" onclick="openInc(\''+inc.commId+'\',\''+inc.id+'\')" style="cursor:pointer">'
       +'<div class="idot '+statusDot(inc.status)+'"></div>'
       +'<div style="flex:1"><div class="itl">'+escapeHtml(inc.title||'Incidencia')+'</div><div class="imt">'+escapeHtml((COMUNIDADES[inc.commId]&&COMUNIDADES[inc.commId].short)||inc.commId)+' · '+escapeHtml(inc.ref||'—')+' · '+escapeHtml(inc.status||'Nueva')+'</div></div>'
       +'<div class="irr"><div class="badge '+statusBadge(inc.priority||'Normal')+'">'+escapeHtml(inc.priority||'Normal')+'</div></div>'
@@ -2328,13 +2352,14 @@ function renderCommList(){
   var palBg=['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff','#fef9c3'];
   var palTc=['#2563eb','#16a34a','#ea580c','#7c3aed','#ca8a04'];
   var keys=Object.keys(COMUNIDADES);
+  if(!keys.length){ el.innerHTML='<div style="padding:16px;font-size:13px;color:var(--muted)">No hay comunidades todavía.</div>'; return; }
   el.innerHTML=keys.map(function(id,i){
     var c=ensureCommunityShape(COMUNIDADES[id]);
     var openIncs=(c.incIds||[]).filter(function(iid){return INCIDENCIAS[iid]&&INCIDENCIAS[iid].status!=='Resuelta'&&INCIDENCIAS[iid].status!=='Cerrada';}).length;
     var avStyle=commColors[id]||(c.avStyle||('background:'+palBg[i%5]+';color:'+palTc[i%5]));
     var ini=commInits[id]||(c.initial||(c.short||id).charAt(0).toUpperCase());
     var badgeHtml=openIncs>0?'<div class="badge bo">'+openIncs+' incidencia'+(openIncs!==1?'s':'')+'</div>':'<div class="badge bg">Sin incidencias</div>';
-    return '<div class="cr" data-open-comm="'+id+'" style="padding:14px 16px;cursor:pointer">'
+    return '<div class="cr" data-open-comm="'+id+'" onclick="openComm(\''+id+'\')" style="padding:14px 16px;cursor:pointer">'
       +'<div class="cav" style="width:40px;height:40px;font-size:15px;'+avStyle+'">'+escapeHtml(ini)+'</div>'
       +'<div style="flex:1"><div class="cn" style="font-size:14px">'+escapeHtml(c.name||id)+'</div>'
       +'<div class="csb">'+escapeHtml(c.sub||'—')+'</div></div>'
@@ -2354,7 +2379,7 @@ function renderDashIncs(){
   var shown=open.slice(0,6);
   el.innerHTML=shown.map(function(inc){
     var commShort=(COMUNIDADES[inc.commId]&&COMUNIDADES[inc.commId].short)||inc.commId;
-    return '<div class="ir" data-open-inc="'+inc.id+'" data-comm-id="'+inc.commId+'" style="cursor:pointer">'
+    return '<div class="ir" data-open-inc="'+inc.id+'" data-comm-id="'+inc.commId+'" onclick="openInc(\''+inc.commId+'\',\''+inc.id+'\')" style="cursor:pointer">'
       +'<div class="idot '+statusDot(inc.status)+'"></div>'
       +'<div><div class="itl">'+escapeHtml(inc.title||'Incidencia')+'</div>'
       +'<div class="imt">'+escapeHtml(commShort)+' · '+escapeHtml(inc.ref||'—')+' · '+escapeHtml(inc.status||'Nueva')+'</div></div>'
