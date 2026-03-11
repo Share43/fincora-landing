@@ -523,11 +523,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
           <div class="card" style="margin-bottom:12px">
             <div class="ch"><div class="ct">Descripción</div></div>
             <div style="padding:12px 16px;font-size:13px;color:var(--ink2);line-height:1.7" id="inc-desc">—</div>
-            <div class="pgrid" style="padding:0 16px 12px">
-              <div class="pt" onclick="openAdjunto('Foto avería — Motor tracción','📸','JPG · 1.2 MB · Tomada 8 mar 2026')">📸</div>
-              <div class="pt" onclick="openAdjunto('Foto avería — Cabina ascensor','📸','JPG · 0.9 MB · Tomada 8 mar 2026')">📸</div>
-              <div class="pt" onclick="openAdjunto('Parte técnico Thyssenkrupp','📋','PDF · 128 KB · Emitido 9 mar 2026')">📋</div>
-            </div>
+            <div class="pgrid" id="inc-preview-grid" style="padding:0 16px 12px"></div>
           </div>
           <div class="card">
             <div class="ch"><div class="ct">Historial de seguimiento</div></div>
@@ -1020,6 +1016,38 @@ function attachmentPreviewMarkup(att){
   }
   return '<div style="background:#fff;border:1px solid #e2e4ea;border-radius:10px;width:100%;padding:20px 22px;font-size:12px;color:#3a3d4a;line-height:1.8"><div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8b8fa8;border-bottom:1px solid #e2e4ea;padding-bottom:8px;margin-bottom:12px">DESPACHO GARCÍA &amp; ASOCIADOS · MADRID</div><p><strong>Documento:</strong> '+escapeHtml(att.name)+'</p><p><strong>Tamaño:</strong> '+escapeHtml(att.meta||'—')+'</p><p><strong>Fecha:</strong> '+new Date().toLocaleDateString('es-ES')+'</p><div style="background:#f4f5f7;border-radius:6px;padding:10px 12px;margin-top:10px;color:#8b8fa8">Vista previa demo disponible para este archivo.</div></div>';
 }
+function isImageMime(mime){ return !!mime && String(mime).indexOf('image/')===0; }
+function isPdfMime(mime){ return String(mime||'')==='application/pdf'; }
+function attachmentThumbContent(att){
+  att=normalizeAdjunto(att);
+  if(isImageMime(att.mime) && att.dataUrl){
+    return '<img src="'+att.dataUrl+'" alt="'+escapeHtml(att.name)+'" style="width:100%;height:100%;object-fit:cover;display:block">';
+  }
+  if(isPdfMime(att.mime)){
+    return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;background:#fff"><div style="font-size:22px">📄</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">PDF</div></div>';
+  }
+  return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;background:#fff"><div style="font-size:22px">'+(att.icon||'📋')+'</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">'+escapeHtml(((att.meta||'Archivo').split('·')[0]||'Archivo').trim())+'</div></div>';
+}
+function attachmentThumbBox(att, size){
+  att=normalizeAdjunto(att);
+  var dims=size==='small'?'width:54px;height:54px;flex:0 0 54px;':'aspect-ratio:1;';
+  var bg=isImageMime(att.mime)&&att.dataUrl?'background:#0f172a;border-color:#cbd5e1;overflow:hidden;':'background:var(--bg);';
+  return '<div class="pt" style="'+dims+bg+'">'+attachmentThumbContent(att)+'</div>';
+}
+function attachmentRowMarkup(att, showVisibility){
+  att=normalizeAdjunto(att);
+  return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto(\''+att.id+'\')">'
+    +attachmentThumbBox(att,'small')
+    +'<div style="font-size:12px;min-width:0"><div style="font-weight:500">'+escapeHtml(att.name)+'</div><div style="color:var(--muted)">'+escapeHtml(att.meta||'')+(showVisibility?(att.visible?' · visible presidente':' · interno'):'')+'</div></div>'
+    +'<div style="margin-left:auto;display:flex;gap:6px"><button class="badge bb" style="border:0;cursor:pointer" onclick="event.stopPropagation();openAdjunto(\''+att.id+'\')">Ver</button><button class="badge bg" style="border:0;cursor:pointer" onclick="event.stopPropagation();downloadAdjunto(\''+att.id+'\')">Descargar</button></div>'
+    +'</div>';
+}
+function renderIncPreviewGrid(inc){
+  var grid=document.getElementById('inc-preview-grid');
+  if(!grid) return;
+  var atts=(inc.adjuntos||[]).map(normalizeAdjunto).slice(0,6);
+  grid.innerHTML=atts.length?atts.map(function(att){ return '<div onclick="openAdjunto(\''+att.id+'\')" style="cursor:pointer">'+attachmentThumbBox(att,'grid')+'</div>'; }).join('') : '';
+}
 function findAttachmentById(attId){
   var ids=Object.keys(INCIDENCIAS);
   for(var i=0;i<ids.length;i++){
@@ -1291,7 +1319,8 @@ function openInc(commId, incId, skipNav){
   document.getElementById('pv-prov').textContent=inc.proveedor||'Sin asignar';
   var rb=document.getElementById('inc-resolve-btn');
   if(inc.status==='En curso'||inc.status==='Pendiente de proveedor'||inc.status==='Pendiente de comunidad'){ rb.style.display=''; rb.onclick=function(){ resolveInc(incId); }; } else { rb.style.display='none'; }
-  document.getElementById('inc-adjuntos').innerHTML=(inc.adjuntos||[]).map(function(a){ normalizeAdjunto(a); return '<div style="display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto(\''+a.id+'\')"><span>'+a.icon+'</span><div style="font-size:12px"><div style="font-weight:500">'+escapeHtml(a.name)+'</div><div style="color:var(--muted)">'+escapeHtml(a.meta||'')+(a.visible?' · visible presidente':' · interno')+'</div></div><div style="margin-left:auto;display:flex;gap:6px"><button class="badge '+(a.visible?'bg':'bb')+'" style="border:0;cursor:pointer" onclick="event.stopPropagation();openAdjunto(\''+a.id+'\')">Ver</button><button class="badge bb" style="border:0;cursor:pointer" onclick="event.stopPropagation();downloadAdjunto(\''+a.id+'\')">Descargar</button></div></div>'; }).join('') || '<div style="font-size:13px;color:var(--muted)">Sin adjuntos todavía.</div>';
+  renderIncPreviewGrid(inc);
+  document.getElementById('inc-adjuntos').innerHTML=(inc.adjuntos||[]).map(function(a){ return attachmentRowMarkup(a,true); }).join('') || '<div style="font-size:13px;color:var(--muted);padding:12px 0">Sin adjuntos todavía.</div>';
   if(!skipNav){ document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');}); NIs().forEach(function(n){n.classList.remove('active');}); if(NIs()[2]) NIs()[2].classList.add('active'); }
   showScreen('inc-detalle');
 }
@@ -1579,7 +1608,7 @@ function openPresidente(){
   var visibleEvents=(inc.timeline||[]).filter(function(e){return e.type==='visible'||e.type==='event';});
   document.getElementById('pres-timeline').innerHTML=visibleEvents.length?visibleEvents.map(function(e){return '<div class="tli"><div class="tld">'+e.icon+'</div><div><div class="tlt">'+e.title+'</div><div class="tltx">'+e.text+'</div><div class="tlts">'+e.ts+'</div></div></div>';}).join(''):'<div style="font-size:13px;color:var(--muted)">Sin actualizaciones todavía.</div>';
   var visibleAdj=(inc.adjuntos||[]).filter(function(a){return a.visible;});
-  document.getElementById('pres-adjuntos').innerHTML=visibleAdj.length?visibleAdj.map(function(a){ normalizeAdjunto(a); return '<div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto(\''+a.id+'\')"><span>'+a.icon+'</span><div style="font-size:12px"><div style="font-weight:500">'+escapeHtml(a.name)+'</div><div style="color:var(--muted)">'+escapeHtml(a.meta||'')+'</div></div><div class="badge bb" style="margin-left:auto">Ver →</div></div>'; }).join(''):'<div style="padding:12px 16px;font-size:13px;color:var(--muted)">Sin documentos adjuntos visibles.</div>';
+  document.getElementById('pres-adjuntos').innerHTML=visibleAdj.length?visibleAdj.map(function(a){ return '<div style="padding:0 16px">'+attachmentRowMarkup(a,false)+'</div>'; }).join(''):'<div style="padding:12px 16px;font-size:13px;color:var(--muted)">Sin documentos adjuntos visibles.</div>';
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById('screen-presidente').classList.add('active');
   window.scrollTo(0,0);
