@@ -395,11 +395,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
       <div class="twocol">
         <div class="card">
           <div class="ch"><div class="ct">⚠️ Incidencias urgentes</div><button class="clk" onclick="goNav('incidencias')">Ver todas →</button></div>
-          <div class="ir" onclick="openInc('goya','inc1')"><div class="idot dr"></div><div><div class="itl">Ascensor parado — C/ Goya 47</div><div class="imt">Hace 2 días · Sin asignar · Vecina 4ºB sin movilidad</div></div><div class="irr"><div class="badge br">Urgente</div></div></div>
-          <div class="ir" onclick="openInc('espana','inc2')"><div class="idot do"></div><div><div class="itl">Fuga de agua en garaje — Pza. España 3</div><div class="imt">Hace 5 días · Fontanería López asignado</div></div><div class="irr"><div class="badge bo">En curso</div></div></div>
-          <div class="ir" onclick="openInc('velazquez','inc3')"><div class="idot do"></div><div><div class="itl">Luminaria portal — Velázquez 12</div><div class="imt">Hace 1 día · Electricidad Martín</div></div><div class="irr"><div class="badge bo">En curso</div></div></div>
-          <div class="ir"><div class="idot dgr"></div><div><div class="itl">Pintura zonas comunes — Serrano 88</div><div class="imt">Pendiente de presupuesto</div></div><div class="irr"><div class="badge bgr">Pendiente</div></div></div>
-          <div class="ir"><div class="idot dgr"></div><div><div class="itl">Tejado — revisión general — Goya 47</div><div class="imt">Pendiente · 2 presupuestos recibidos</div></div><div class="irr"><div class="badge bgr">Pendiente</div></div></div>
+          <div id="dash-incs-list"></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="card">
@@ -434,23 +430,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     <div class="content">
       <div class="ptitle">Tus 3 comunidades</div>
       <div class="psub">Haz clic en cualquier comunidad para ver su ficha completa</div>
-      <div class="card" id="comm-list">
-        <div class="cr" onclick="openComm('goya')" style="padding:14px 16px">
-          <div class="cav" style="width:40px;height:40px;font-size:15px">G</div>
-          <div style="flex:1"><div class="cn" style="font-size:14px">C/ Goya 47 — Comunidad Goya</div><div class="csb">32 vecinos · 4 plantas · Madrid 28001 · Presidente: Antonio Ruiz Moreno</div></div>
-          <div class="cbdg"><div class="badge br">2 incidencias</div><div class="badge bb">Junta 15 mar</div></div>
-        </div>
-        <div class="cr" onclick="openComm('espana')" style="padding:14px 16px">
-          <div class="cav" style="width:40px;height:40px;font-size:15px;background:#fff7ed;color:#ea580c">P</div>
-          <div style="flex:1"><div class="cn" style="font-size:14px">Pza. España 3 — Comunidad Plaza España</div><div class="csb">58 vecinos · 8 plantas · Madrid 28008 · Presidente: Carmen Vidal López</div></div>
-          <div class="cbdg"><div class="badge bo">1 incidencia</div></div>
-        </div>
-        <div class="cr" onclick="openComm('velazquez')" style="padding:14px 16px">
-          <div class="cav" style="width:40px;height:40px;font-size:15px;background:#f0fdf4;color:#16a34a">V</div>
-          <div style="flex:1"><div class="cn" style="font-size:14px">C/ Velázquez 12 — Comunidad Velázquez</div><div class="csb">24 vecinos · 3 plantas · Madrid 28001 · Presidente: Ramón Martínez Gil</div></div>
-          <div class="cbdg"><div class="badge bo">1 incidencia</div></div>
-        </div>
-      </div>
+      <div class="card" id="comm-list"></div>
     </div>
   </div>
 
@@ -505,10 +485,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     <div class="content">
       <div class="ptitle">Todas las incidencias</div>
       <div class="filterrow">
-        <button class="filterbtn active" onclick="filterIncs('todas',this)">Todas (5)</button>
-        <button class="filterbtn" onclick="filterIncs('urgente',this)">Urgentes (2)</button>
-        <button class="filterbtn" onclick="filterIncs('en-curso',this)">En curso (2)</button>
-        <button class="filterbtn" onclick="filterIncs('pendiente',this)">Pendientes (1)</button>
+        <button class="filterbtn active" id="fb-todas" onclick="filterIncs('todas',this)">Todas</button>
+        <button class="filterbtn" id="fb-urgente" onclick="filterIncs('urgente',this)">Urgentes</button>
+        <button class="filterbtn" id="fb-en-curso" onclick="filterIncs('en-curso',this)">En curso</button>
+        <button class="filterbtn" id="fb-pendiente" onclick="filterIncs('pendiente',this)">Pendientes</button>
       </div>
       <div class="card" id="all-incs-list"></div>
     </div>
@@ -1353,6 +1333,8 @@ function confirmChangeStatus(incId, newStatus, oldStatus){
   renderTimeline(incId);
   renderStepper(newStatus);
   renderStatusBtns(incId);
+  refreshDashboard();
+  renderCommList();
   document.getElementById('pv-estado').textContent=newStatus;
   const rb=document.getElementById('inc-resolve-btn');
   rb.style.display=(newStatus==='Resuelta'||newStatus==='Cerrada')?'none':'';
@@ -1902,12 +1884,6 @@ function saveAssignProv(incId){
   inc.timeline.push({type:'event',icon:'🔧',title:'Proveedor asignado: '+prov,text:old&&old!=='Sin asignar'?'Anterior: '+old+(nota?' · '+nota:nota):(nota||''),ts:'Ahora mismo'});
   if(prov&&prov!=='Sin asignar') inc.nextAction='Contactar con '+prov+' para visita';
   closeModal();
-  // refresh meta panel
-  document.getElementById('inc-meta-fields').querySelector('.mk') && openInc(inc.commId,incId,true);
-  renderTimeline(incId);
-  // update proveedor in meta
-  var mf=document.getElementById('inc-meta-fields');
-  if(mf) mf.innerHTML=mf.innerHTML; // triggers re-render via openInc below
   openInc(inc.commId,incId,true);
 }
 
@@ -1965,18 +1941,7 @@ function saveNewComm(){
   refreshDashboard();
   refreshDocCommFilter();
   // Re-render comunidades list
-  var el=document.getElementById('comm-list');
-  if(el){
-    var colors=['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff'];
-    var tcs=['#2563eb','#16a34a','#ea580c','#7c3aed'];
-    var ci=Object.keys(COMUNIDADES).length%4;
-    el.innerHTML+=
-      '<div class="cr" onclick="openComm(\''+id+'\')">'
-      +'<div class="cav" style="background:'+colors[ci]+';color:'+tcs[ci]+'">'+nombre.charAt(0)+'</div>'
-      +'<div><div class="cn">'+nombre+'</div><div class="csb">'+vec+' vecinos · 0 incidencias</div></div>'
-      +'<div class="cbdg"><div class="badge bg">Sin incidencias</div></div>'
-      +'</div>';
-  }
+  renderCommList();
 }
 
 // ══════════════════════════════════════════════
@@ -2416,6 +2381,71 @@ function saveAdjunto(){
 // ══════════════════════════════════════════════
 // DASHBOARD REFRESH
 // ══════════════════════════════════════════════
+function renderCommList(){
+  var el=document.getElementById('comm-list');
+  if(!el)return;
+  var commColors={goya:'',espana:'background:#fff7ed;color:#ea580c',velazquez:'background:#f0fdf4;color:#16a34a'};
+  var commInits={goya:'G',espana:'P',velazquez:'V'};
+  var palBg=['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff','#fef9c3'];
+  var palTc=['#2563eb','#16a34a','#ea580c','#7c3aed','#ca8a04'];
+  var keys=Object.keys(COMUNIDADES);
+  el.innerHTML=keys.map(function(id,i){
+    var c=COMUNIDADES[id];
+    var openIncs=c.incIds.filter(function(iid){return INCIDENCIAS[iid]&&INCIDENCIAS[iid].status!=='Resuelta'&&INCIDENCIAS[iid].status!=='Cerrada';}).length;
+    var avStyle=commColors[id]||(c.avStyle||('background:'+palBg[i%5]+';color:'+palTc[i%5]));
+    var ini=commInits[id]||(c.initial||c.short.charAt(0));
+    var badgeHtml=openIncs>0?'<div class="badge bo">'+openIncs+' incidencia'+(openIncs!==1?'s':'')+'</div>':'<div class="badge bg">Sin incidencias</div>';
+    return '<div class="cr" onclick="openComm('+JSON.stringify(id)+')" style="padding:14px 16px">'
+      +'<div class="cav" style="width:40px;height:40px;font-size:15px;'+avStyle+'">'+ini+'</div>'
+      +'<div style="flex:1"><div class="cn" style="font-size:14px">'+c.name+'</div>'
+      +'<div class="csb">'+c.sub+'</div></div>'
+      +'<div class="cbdg">'+badgeHtml+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function renderDashIncs(){
+  var el=document.getElementById('dash-incs-list');
+  if(!el)return;
+  var allIncs=Object.values(INCIDENCIAS);
+  var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';});
+  // Sort: urgente first, then by status
+  open.sort(function(a,b){
+    var pri={Urgente:0,Alta:1,Normal:2};
+    return (pri[a.priority]||2)-(pri[b.priority]||2);
+  });
+  var shown=open.slice(0,6);
+  el.innerHTML=shown.map(function(inc){
+    var oc='openInc('+JSON.stringify(inc.commId)+','+JSON.stringify(inc.id)+')';
+    var dot=statusDot(inc.status);
+    var bdg=statusBadge(inc.priority);
+    var commShort=(COMUNIDADES[inc.commId]&&COMUNIDADES[inc.commId].short)||inc.commId;
+    return '<div class="ir" onclick="'+oc+'">'
+      +'<div class="idot '+dot+'"></div>'
+      +'<div><div class="itl">'+inc.title+'</div>'
+      +'<div class="imt">'+commShort+' · '+inc.ref+' · '+inc.status+'</div></div>'
+      +'<div class="irr"><div class="badge '+bdg+'">'+inc.priority+'</div></div>'
+      +'</div>';
+  }).join('') || '<div style="padding:16px;font-size:13px;color:var(--muted)">Sin incidencias activas.</div>';
+}
+
+function refreshFilterCounts(){
+  var allIncs=Object.values(INCIDENCIAS);
+  var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';});
+  var counts={
+    todas:open.length,
+    urgente:open.filter(function(i){return i.priority==='Urgente';}).length,
+    'en-curso':open.filter(function(i){return i.status==='En curso';}).length,
+    pendiente:open.filter(function(i){return i.status==='Pendiente de proveedor'||i.status==='Pendiente de comunidad'||i.status==='Nueva'||i.status==='Revisando';}).length
+  };
+  ['todas','urgente','en-curso','pendiente'].forEach(function(k){
+    var btn=document.getElementById('fb-'+k);
+    if(!btn)return;
+    var base={todas:'Todas',urgente:'Urgentes','en-curso':'En curso',pendiente:'Pendientes'}[k];
+    btn.textContent=counts[k]>0?base+' ('+counts[k]+')':base;
+  });
+}
+
 function refreshDashboard(){
   var allIncs=Object.values(INCIDENCIAS);
   var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';});
@@ -2427,6 +2457,9 @@ function refreshDashboard(){
   if(dbComms) dbComms.textContent=commsCount;
   if(dbIncs) dbIncs.textContent=open.length;
   if(dbUrg) dbUrg.textContent=urgent.length+' urgente'+(urgent.length!==1?'s':'');
+  renderDashIncs();
+  renderCommList();
+  refreshFilterCounts();
 }
 
 // ══════════════════════════════════════════════
@@ -2504,6 +2537,7 @@ renderDocs();
 renderAllIncs();
 refreshDashboard();
 refreshDocCommFilter();
+setNoteType('interna');
 </script>
 </body>
 </html>
