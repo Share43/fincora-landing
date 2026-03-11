@@ -430,11 +430,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
        COMUNIDADES (lista)
   ══════════════════════════════ -->
   <div id="screen-comunidades" class="screen">
-    <div class="topbar"><div class="tbt">Comunidades</div><div class="tbact"><button class="btn bp">+ Nueva comunidad</button></div></div>
+    <div class="topbar"><div class="tbt">Comunidades</div><div class="tbact"><button class="btn bp" onclick="openNewCommModal()">+ Nueva comunidad</button></div></div>
     <div class="content">
       <div class="ptitle">Tus 3 comunidades</div>
       <div class="psub">Haz clic en cualquier comunidad para ver su ficha completa</div>
-      <div class="card">
+      <div class="card" id="comm-list">
         <div class="cr" onclick="openComm('goya')" style="padding:14px 16px">
           <div class="cav" style="width:40px;height:40px;font-size:15px">G</div>
           <div style="flex:1"><div class="cn" style="font-size:14px">C/ Goya 47 — Comunidad Goya</div><div class="csb">32 vecinos · 4 plantas · Madrid 28001 · Presidente: Antonio Ruiz Moreno</div></div>
@@ -521,6 +521,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     <div class="topbar">
       <div class="tbc"><span class="crumb" onclick="goBack()">← Volver</span><span>›</span><span id="inc-bc">Incidencia</span></div>
       <div class="tbact">
+        <button class="btn bs" onclick="openAssignProvModal(currentIncId)">🔧 Proveedor</button>
         <button class="btn bs" onclick="openPresidente()">👁️ Vista del presidente</button>
         <button class="btn bp" id="inc-resolve-btn">✅ Marcar resuelta</button>
       </div>
@@ -768,31 +769,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
       <div class="psub">Empresas y autónomos asignados a tus comunidades</div>
       <div class="card">
         <div class="ch"><div class="ct">Proveedores activos</div></div>
-        <div class="cr" onclick="openProvModal('Thyssenkrupp Elevadores S.L.','Ascensores','📞 91 234 56 78 · carlos.fernandez@thyssenkrupp.com','Goya 47','Contrato vigente hasta dic 2026','145 €/mes')">
-          <div class="cav" style="background:#eff6ff;color:#2563eb">T</div>
-          <div><div class="cn">Thyssenkrupp Elevadores S.L.</div><div class="csb">Ascensores · C/ Goya 47 · 145 €/mes</div></div>
-          <div class="cbdg"><div class="badge bg">Activo</div><div class="badge bb">🔗 INC-047</div></div>
-        </div>
-        <div class="cr" onclick="openProvModal('Fontanería López S.L.','Fontanería','📞 91 345 67 89 · lopez.fontaneria@gmail.com','Pza. España 3','Colaborador habitual · Sin contrato fijo','Por obra')">
-          <div class="cav" style="background:#eff6ff;color:#2563eb">F</div>
-          <div><div class="cn">Fontanería López S.L.</div><div class="csb">Fontanería · Pza. España 3 · Por obra</div></div>
-          <div class="cbdg"><div class="badge bo">En obra</div><div class="badge bb">🔗 INC-031</div></div>
-        </div>
-        <div class="cr" onclick="openProvModal('Electricidad Martín S.L.','Electricidad','📞 91 456 78 90 · martin@electricidadmartin.es','Velázquez 12','Contrato mantenimiento eléctrico — vigente feb 2027','480 €/año')">
-          <div class="cav" style="background:#eff6ff;color:#2563eb">E</div>
-          <div><div class="cn">Electricidad Martín S.L.</div><div class="csb">Electricidad · Velázquez 12 · 480 €/año</div></div>
-          <div class="cbdg"><div class="badge bg">Activo</div><div class="badge bb">🔗 INC-048</div></div>
-        </div>
-        <div class="cr" onclick="openProvModal('Limpiezas García S.L.','Limpieza','📞 91 567 89 01 · info@limpiezasgarcia.com','Velázquez 12','Contrato limpieza — vence 15 abr 2026','180 €/mes')">
-          <div class="cav" style="background:#fff7ed;color:#ea580c">L</div>
-          <div><div class="cn">Limpiezas García S.L.</div><div class="csb">Limpieza · Velázquez 12 · 180 €/mes</div></div>
-          <div class="cbdg"><div class="vb urg">⚠ Contrato vence abr</div></div>
-        </div>
-        <div class="cr" onclick="openProvModal('Cubiertas Madrid S.L.','Estructura / Tejados','📞 91 678 90 12 · info@cubiertasmadrid.com','Goya 47','Presupuesto en proceso · Visita sem. 18 mar','Pendiente')">
-          <div class="cav" style="background:#f0fdf4;color:#16a34a">C</div>
-          <div><div class="cn">Cubiertas Madrid S.L.</div><div class="csb">Tejados · Goya 47 · Pendiente presupuesto</div></div>
-          <div class="cbdg"><div class="badge by">Pendiente visita</div></div>
-        </div>
+        <div id="prov-list"></div>
       </div>
     </div>
   </div>
@@ -813,21 +790,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
           <div class="mf"><span class="mk">Teléfono</span><span class="mv">91 123 45 67</span></div>
           <div class="mf"><span class="mk">Email</span><span class="mv"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="31585f575e7156504352585050425e525850555e421f5442">[email&#160;protected]</a></span></div>
           <div class="mf"><span class="mk">Dirección</span><span class="mv">C/ Serrano 44, Madrid</span></div>
-          <div style="padding:12px 16px"><button class="btn bs" style="font-size:12px">✏️ Editar datos</button></div>
+          <div style="padding:12px 16px"><button class="btn bs" style="font-size:12px" onclick="openEditDespachoModal()">✏️ Editar datos</button></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div class="card">
-            <div class="ch"><div class="ct">Usuarios</div><button class="clk" onclick="openInviteUserModal()">+ Invitar</button></div>
-            <div class="cr" style="cursor:pointer" onclick="openUserModal('Miguel García','Administrador principal','Admin','MG','#0f1117','miguel.garcia@garciaasociados.es','Acceso completo a todas las comunidades y modulos.')">
-              <div class="uav" style="width:28px;height:28px;font-size:12px">MG</div>
-              <div><div class="cn" style="font-size:13px">Miguel García</div><div class="csb">Administrador principal</div></div>
-              <div class="badge bg" style="margin-left:auto">Admin</div>
-            </div>
-            <div class="cr" style="cursor:pointer" onclick="openUserModal('Laura Sáez','Gestora','Gestor','LS','#7c3aed','laura.saez@garciaasociados.es','Acceso a incidencias y documentos. Sin acceso a configuracion ni facturacion.')">
-              <div class="uav" style="width:28px;height:28px;font-size:12px;background:#7c3aed">LS</div>
-              <div><div class="cn" style="font-size:13px">Laura Sáez</div><div class="csb">Gestora</div></div>
-              <div class="badge bb" style="margin-left:auto">Gestor</div>
-            </div>
+            <div class="ch"><div class="ct">Usuarios</div><div style="display:flex;gap:6px"><button class="clk" onclick="openCreateUserModal()">+ Crear</button><button class="clk" onclick="openInviteUserModal()">📧 Invitar</button></div></div>
+            <div id="usuarios-list"></div>
           </div>
           <div class="card">
             <div class="ch"><div class="ct">Notificaciones</div></div>
@@ -1537,299 +1505,796 @@ function openProvModal(nombre, categoria, contacto, comunidad, notas, importe){
     </div>`;
   document.getElementById('modal').style.display='flex';
 }
-function openNewProvModal(){
-  document.getElementById('modal-title').textContent='Añadir proveedor';
-  document.getElementById('modal-body').innerHTML=`
-    <div style="display:flex;flex-direction:column;gap:11px">
-      <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div><input placeholder="Ej: Reformas Madrid S.L." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div><select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Fontanería</option><option>Electricidad</option><option>Ascensores</option><option>Limpieza</option><option>Pintura</option><option>Estructura</option><option>Otros</option></select></div>
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD</div><select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Todas</option><option>C/ Goya 47</option><option>Pza. España 3</option><option>C/ Velázquez 12</option></select></div>
-      </div>
-      <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TELÉFONO / EMAIL</div><input placeholder="91 000 00 00 · email@empresa.es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
-      <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px">
-        <button class="btn bs" onclick="closeModal()">Cancelar</button>
-        <button class="btn bp" onclick="closeModal()">✅ Guardar proveedor</button>
-      </div>
-    </div>`;
-  document.getElementById('modal').style.display='flex';
-}
-function setNoteType(t){
-  noteTypeVal=t;
-  document.getElementById('tb-int').classList.toggle('active',t==='interna');
-  document.getElementById('tb-vis').classList.toggle('active',t==='visible');
-  document.getElementById('note-input').placeholder=t==='interna'?'Nota interna (solo el despacho la ve)...':'Actualización para el presidente...';
-}
-
-function addNote(){
-  const input=document.getElementById('note-input');
-  const text=input.value.trim();
-  if(!text)return;
-  const inc=INCIDENCIAS[currentIncId];
-  const isVisible=noteTypeVal==='visible';
-  const now='Ahora mismo';
-  inc.timeline.push({
-    type:isVisible?'visible':'internal',
-    icon:isVisible?'💬':'📝',
-    title:isVisible?'Actualización para el presidente':'Nota interna',
-    text:text,
-    ts:now
-  });
-  if(isVisible){
-    document.getElementById('pv-upd').textContent='ahora mismo';
-  }
-  renderTimeline(currentIncId);
-  input.value='';
-  // Scroll to bottom of timeline
-  const tl=document.getElementById('inc-timeline');
-  tl.scrollTop=tl.scrollHeight;
-}
-
-function resolveInc(incId){
-  changeStatus(incId,'Resuelta');
-}
-
+// ══════════════════════════════════════════════
+// INCIDENCIAS — render + presidente
+// ══════════════════════════════════════════════
 function renderAllIncs(){
-  const el=document.getElementById('all-incs-list');
-  const allIncs=Object.values(INCIDENCIAS);
-  const visible=el._filter?allIncs.filter(i=>el._filter==='todas'||i.priority.toLowerCase()===el._filter||i.status.toLowerCase().replace(/ /g,'-')===el._filter):allIncs;
-  el.innerHTML=visible.map(inc=>`
-    <div class="ir" onclick="openInc('${inc.commId}','${inc.id}')">
-      <div class="idot ${statusDot(inc.status)}"></div>
-      <div style="flex:1"><div class="itl">${inc.title}</div><div class="imt">${COMUNIDADES[inc.commId].short} · ${inc.ref} · ${inc.status}</div></div>
-      <div class="irr"><div class="badge ${statusBadge(inc.priority)}">${inc.priority}</div></div>
-    </div>`).join('');
+  var el=document.getElementById('all-incs-list');
+  if(!el)return;
+  var allIncs=Object.values(INCIDENCIAS);
+  var visible=el._filter?allIncs.filter(function(i){return el._filter==='todas'||i.priority.toLowerCase()===el._filter||i.status.toLowerCase().replace(/ /g,'-')===el._filter;}):allIncs;
+  el.innerHTML=visible.map(function(inc){
+    var oc='openInc('+JSON.stringify(inc.commId)+','+JSON.stringify(inc.id)+')';
+    return '<div class="ir" onclick="'+oc+'">'
+      +'<div class="idot '+statusDot(inc.status)+'"></div>'
+      +'<div style="flex:1"><div class="itl">'+inc.title+'</div><div class="imt">'+COMUNIDADES[inc.commId].short+' · '+inc.ref+' · '+inc.status+'</div></div>'
+      +'<div class="irr"><div class="badge '+statusBadge(inc.priority)+'">'+inc.priority+'</div></div>'
+      +'</div>';
+  }).join('');
 }
-
-function filterIncs(f, btn){
-  document.querySelectorAll('#screen-incidencias .filterbtn').forEach(b=>b.classList.remove('active'));
+function filterIncs(f,btn){
+  document.querySelectorAll('#screen-incidencias .filterbtn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
-  const el=document.getElementById('all-incs-list');
+  var el=document.getElementById('all-incs-list');
   el._filter=f;
   renderAllIncs();
 }
 
-// ══════════════════════════════════════════════
-// PRESIDENTE
-// ══════════════════════════════════════════════
 function openPresidente(){
-  const inc=INCIDENCIAS[currentIncId];
-  const comm=COMUNIDADES[inc.commId];
+  var inc=INCIDENCIAS[currentIncId];
+  var comm=COMUNIDADES[inc.commId];
   document.getElementById('pres-title').textContent=inc.title;
   document.getElementById('pres-comm').textContent=comm.name+' · '+inc.ref;
   document.getElementById('pres-icon').textContent=inc.icon;
-  document.getElementById('pres-badge').innerHTML=`<div class="badge ${priorityBadgeFromStatus(inc.status)}">${inc.status}</div>`;
+  document.getElementById('pres-badge').innerHTML='<div class="badge '+priorityBadgeFromStatus(inc.status)+'">'+inc.status+'</div>';
   document.getElementById('pres-since').textContent='Abierta: '+inc.apertura+(inc.estimada?' · Resolución est.: '+inc.estimada:'');
   document.getElementById('pres-next').textContent=inc.nextAction;
   document.getElementById('pres-desc').textContent=inc.desc;
-  document.getElementById('pres-details').innerHTML=`
-    <div class="mf"><span class="mk">Proveedor</span><span class="mv">${inc.proveedor}</span></div>
-    <div class="mf"><span class="mk">Categoría</span><span class="mv">${inc.category}</span></div>
-    <div class="mf"><span class="mk">Gestor</span><span class="mv">${inc.gestor}</span></div>
-    <div class="mf"><span class="mk">Apertura</span><span class="mv">${inc.apertura}</span></div>
-    ${inc.estimada?`<div class="mf"><span class="mk">Est. resolución</span><span class="mv">${inc.estimada}</span></div>`:''}`;
-  const visibleEvents=inc.timeline.filter(e=>e.type==='visible'||e.type==='event');
-  document.getElementById('pres-timeline').innerHTML=visibleEvents.length?visibleEvents.map(e=>`
-    <div class="tli">
-      <div class="tld">${e.icon}</div>
-      <div><div class="tlt">${e.title}</div><div class="tltx">${e.text}</div><div class="tlts">${e.ts}</div></div>
-    </div>`).join(''):'<div style="font-size:13px;color:var(--muted)">Sin actualizaciones todavía.</div>';
-  const visibleAdj=inc.adjuntos.filter(a=>a.visible);
-  document.getElementById('pres-adjuntos').innerHTML=visibleAdj.length?visibleAdj.map(a=>`
-    <div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto('${a.name.replace(/'/g,"\\'")}','${a.icon}','${a.meta}')">
-      <span>${a.icon}</span>
-      <div style="font-size:12px"><div style="font-weight:500">${a.name}</div><div style="color:var(--muted)">${a.meta}</div></div>
-      <div class="badge bb" style="margin-left:auto">Ver →</div>
-    </div>`).join(''):'<div style="padding:12px 16px;font-size:13px;color:var(--muted)">Sin documentos adjuntos visibles.</div>';
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('pres-details').innerHTML=
+    '<div class="mf"><span class="mk">Proveedor</span><span class="mv">'+inc.proveedor+'</span></div>'
+    +'<div class="mf"><span class="mk">Categoría</span><span class="mv">'+inc.category+'</span></div>'
+    +'<div class="mf"><span class="mk">Gestor</span><span class="mv">'+inc.gestor+'</span></div>'
+    +'<div class="mf"><span class="mk">Apertura</span><span class="mv">'+inc.apertura+'</span></div>'
+    +(inc.estimada?'<div class="mf"><span class="mk">Est. resolución</span><span class="mv">'+inc.estimada+'</span></div>':'');
+  var visibleEvents=inc.timeline.filter(function(e){return e.type==='visible'||e.type==='event';});
+  document.getElementById('pres-timeline').innerHTML=visibleEvents.length?visibleEvents.map(function(e){
+    return '<div class="tli"><div class="tld">'+e.icon+'</div><div><div class="tlt">'+e.title+'</div><div class="tltx">'+e.text+'</div><div class="tlts">'+e.ts+'</div></div></div>';
+  }).join(''):'<div style="font-size:13px;color:var(--muted)">Sin actualizaciones todavía.</div>';
+  var visibleAdj=inc.adjuntos.filter(function(a){return a.visible;});
+  document.getElementById('pres-adjuntos').innerHTML=visibleAdj.length?visibleAdj.map(function(a){
+    return '<div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto(\''+a.name.replace(/'/g,"\\'")+'\'  ,\''+a.icon+'\',\''+a.meta+'\')">'
+      +'<span>'+a.icon+'</span>'
+      +'<div style="font-size:12px"><div style="font-weight:500">'+a.name+'</div><div style="color:var(--muted)">'+a.meta+'</div></div>'
+      +'<div class="badge bb" style="margin-left:auto">Ver →</div>'
+      +'</div>';
+  }).join(''):'<div style="padding:12px 16px;font-size:13px;color:var(--muted)">Sin documentos adjuntos visibles.</div>';
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById('screen-presidente').classList.add('active');
   window.scrollTo(0,0);
 }
 
 function closePresidente(){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById('screen-inc-detalle').classList.add('active');
   window.scrollTo(0,0);
 }
 
 // ══════════════════════════════════════════════
-// DOCUMENTOS
+// DOCUMENTOS — render + filters + preview
 // ══════════════════════════════════════════════
+
 function renderDocs(){
-  const search=(document.getElementById('doc-search').value||'').toLowerCase();
-  let filtered=DOCS.filter(d=>{
-    const matchType=docTypeFilter==='todos'||d.type===docTypeFilter;
-    const matchComm=docCommFilter==='todas'||d.commId===docCommFilter;
-    const matchSearch=!search||d.name.toLowerCase().includes(search)||d.comm.toLowerCase().includes(search)||d.meta.toLowerCase().includes(search);
+  var search=(document.getElementById('doc-search')?document.getElementById('doc-search').value:'').toLowerCase();
+  var filtered=DOCS.filter(function(d){
+    var matchType=docTypeFilter==='todos'||d.type===docTypeFilter;
+    var matchComm=docCommFilter==='todas'||d.commId===docCommFilter;
+    var matchSearch=!search||d.name.toLowerCase().includes(search)||d.comm.toLowerCase().includes(search)||(d.meta||'').toLowerCase().includes(search);
     return matchType&&matchComm&&matchSearch;
   });
-  const tbody=document.getElementById('docs-tbody');
-  tbody.innerHTML=filtered.map(d=>`
-    <tr class="drow" onclick="openDoc('${d.id}')">
-      <td><span style="font-size:14px;margin-right:7px">${d.icon}</span><span class="dn">${d.name}</span><span class="ds">${d.meta}</span></td>
-      <td style="color:var(--muted);font-size:12px">${d.comm}</td>
-      <td><div class="badge bgr">${d.type.charAt(0).toUpperCase()+d.type.slice(1)}</div></td>
-      <td style="color:var(--muted);font-size:12px">${d.fecha}</td>
-      <td>${d.status?`<div class="badge ${d.status.cls}">${d.status.txt}</div>`:d.statusVb?`<div class="vb ${d.statusVb.cls}">${d.statusVb.txt}</div>`:''}</td>
-    </tr>`).join('');
-  document.getElementById('docs-count').textContent=`${filtered.length} documento${filtered.length!==1?'s':''} mostrado${filtered.length!==1?'s':''}`;
+  var tbody=document.getElementById('docs-tbody');
+  if(!tbody)return;
+  tbody.innerHTML=filtered.map(function(d){
+    var st=d.status?'<div class="badge '+d.status.cls+'">'+d.status.txt+'</div>':d.statusVb?'<div class="vb '+d.statusVb.cls+'">'+d.statusVb.txt+'</div>':'';
+    return '<tr class="drow" onclick="openDoc('+JSON.stringify(d.id)+')">'
+      +'<td><span style="font-size:14px;margin-right:7px">'+d.icon+'</span><span class="dn">'+d.name+'</span><span class="ds">'+d.meta+'</span></td>'
+      +'<td style="color:var(--muted);font-size:12px">'+d.comm+'</td>'
+      +'<td><div class="badge bgr">'+d.type.charAt(0).toUpperCase()+d.type.slice(1)+'</div></td>'
+      +'<td style="color:var(--muted);font-size:12px">'+d.fecha+'</td>'
+      +'<td>'+st+'</td>'
+      +'</tr>';
+  }).join('');
+  var cnt=document.getElementById('docs-count');
+  if(cnt) cnt.textContent=filtered.length+' documento'+(filtered.length!==1?'s':'')+' mostrado'+(filtered.length!==1?'s':'');
 }
-
 function filterDocs(){renderDocs();}
 
-function filterDocsType(t, btn){
-  docTypeFilter=t;
-  document.querySelectorAll('#screen-documentos .filterrow:nth-child(2) .filterbtn').forEach(b=>b.classList.remove('active'));
+function filterDocsType(t,btn){
+  document.querySelectorAll('#screen-documentos .filterbtn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
+  docTypeFilter=t;
   renderDocs();
 }
 
-function filterDocsComm(c, btn){
-  docCommFilter=c;
-  document.querySelectorAll('#screen-documentos .filterrow:nth-child(3) .filterbtn').forEach(b=>b.classList.remove('active'));
+function filterDocsComm(c,btn){
+  document.querySelectorAll('#screen-documentos .filterbtn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
+  docCommFilter=c;
   renderDocs();
 }
 
 function openDoc(docId){
-  const d=DOCS.find(x=>x.id===docId);
-  const content=DOC_CONTENT[d.content];
-  document.getElementById('modal-title').textContent=content.title;
-  document.getElementById('modal-body').innerHTML=content.body;
+  var d=DOCS.find(function(x){return x.id===docId;});
+  if(!d)return;
+  var content=DOC_CONTENT[d.content]||null;
+  document.getElementById('modal-title').textContent=d.name;
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:14px">'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">'
+    +'<div class="card" style="padding:9px 12px"><div style="color:var(--muted);font-weight:600;font-size:10px;margin-bottom:2px">COMUNIDAD</div><div style="font-weight:600">'+d.comm+'</div></div>'
+    +'<div class="card" style="padding:9px 12px"><div style="color:var(--muted);font-weight:600;font-size:10px;margin-bottom:2px">TIPO</div><div class="badge bgr">'+d.type.charAt(0).toUpperCase()+d.type.slice(1)+'</div></div>'
+    +'<div class="card" style="padding:9px 12px"><div style="color:var(--muted);font-weight:600;font-size:10px;margin-bottom:2px">FECHA</div><div style="font-weight:600">'+d.fecha+'</div></div>'
+    +'</div>'
+    +(content?content.body:'<div style="background:var(--bg);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:13px">'+d.icon+' Vista previa no disponible para este documento.</div>')
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cerrar</button>'
+    +'<button class="btn bp" onclick="downloadAdjunto(\''+d.name.replace(/'/g,"\\'")+'\')">📥 Descargar</button>'
+    +'</div></div>';
   document.getElementById('modal').style.display='flex';
 }
 
 // ══════════════════════════════════════════════
-// NEW INC MODAL
+// PROVEEDORES DATA + RENDER
+// ══════════════════════════════════════════════
+var PROVEEDORES=[
+  {id:'p1',nombre:'Thyssenkrupp Elevadores S.L.',cat:'Ascensores',contacto:'91 234 56 78 · carlos.fernandez@thyssenkrupp.com',comm:'Goya 47',notas:'Contrato vigente hasta dic 2026',importe:'145 €/mes',badge:'bg',badgeTxt:'Activo',warn:'🔗 INC-047',color:'#eff6ff',tc:'#2563eb'},
+  {id:'p2',nombre:'Fontanería López S.L.',cat:'Fontanería',contacto:'91 345 67 89 · lopez.fontaneria@gmail.com',comm:'Pza. España 3',notas:'Colaborador habitual · Sin contrato fijo',importe:'Por obra',badge:'bo',badgeTxt:'En obra',warn:'🔗 INC-031',color:'#eff6ff',tc:'#2563eb'},
+  {id:'p3',nombre:'Electricidad Martín S.L.',cat:'Electricidad',contacto:'91 456 78 90 · martin@electricidadmartin.es',comm:'Velázquez 12',notas:'Contrato mantenimiento eléctrico — vigente feb 2027',importe:'480 €/año',badge:'bg',badgeTxt:'Activo',warn:'🔗 INC-048',color:'#eff6ff',tc:'#2563eb'},
+  {id:'p4',nombre:'Limpiezas García S.L.',cat:'Limpieza',contacto:'91 567 89 01 · info@limpiezasgarcia.com',comm:'Velázquez 12',notas:'Contrato limpieza — vence 15 abr 2026',importe:'180 €/mes',badge:'',badgeTxt:'',warn:'⚠ Contrato vence abr',color:'#fff7ed',tc:'#ea580c'},
+  {id:'p5',nombre:'Cubiertas Madrid S.L.',cat:'Tejados',contacto:'91 678 90 12 · info@cubiertasmadrid.com',comm:'Goya 47',notas:'Presupuesto en proceso · Visita sem. 18 mar',importe:'Pendiente',badge:'by',badgeTxt:'Pendiente',warn:'',color:'#f0fdf4',tc:'#16a34a'}
+];
+
+function renderProveedores(){
+  var el=document.getElementById('prov-list');
+  if(!el)return;
+  el.innerHTML=PROVEEDORES.map(function(p){
+    var ini=p.nombre.charAt(0);
+    return '<div class="cr" onclick="openProvModal(\''+p.id+'\')">'
+      +'<div class="cav" style="background:'+p.color+';color:'+p.tc+'">'+ini+'</div>'
+      +'<div><div class="cn">'+p.nombre+'</div><div class="csb">'+p.cat+' · '+p.comm+' · '+p.importe+'</div></div>'
+      +'<div class="cbdg">'+(p.badge?'<div class="badge '+p.badge+'">'+p.badgeTxt+'</div>':'')+(p.warn?'<div class="'+(p.warn.startsWith('⚠')?'vb urg':'badge bb')+'">'+p.warn+'</div>':'')+'</div>'
+      +'</div>';
+  }).join('');
+  // Also refresh proveedor selects in modals if open
+  refreshProvSelect();
+}
+
+function refreshProvSelect(){
+  var sels=document.querySelectorAll('.prov-select');
+  sels.forEach(function(sel){
+    var cur=sel.value;
+    sel.innerHTML='<option value="">Sin asignar</option>'+PROVEEDORES.map(function(p){
+      return '<option value="'+p.nombre+'">'+p.nombre+'</option>';
+    }).join('');
+    sel.value=cur;
+  });
+}
+
+function openProvModal(id){
+  var p=PROVEEDORES.find(function(x){return x.id===id;});
+  if(!p)return;
+  document.getElementById('modal-title').textContent=p.nombre;
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:12px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">CATEGORÍA</div><div style="font-weight:600">'+p.cat+'</div></div>'
+    +'<div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">COMUNIDAD</div><div style="font-weight:600">'+p.comm+'</div></div>'
+    +'<div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">IMPORTE</div><div style="font-weight:700;font-size:15px;color:var(--ink)">'+p.importe+'</div></div>'
+    +'<div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">ESTADO</div><div class="badge '+(p.badge||'bgr')+'">'+(p.badgeTxt||'Activo')+'</div></div>'
+    +'</div>'
+    +'<div class="card" style="padding:12px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px">CONTACTO</div><div style="font-size:13px">'+p.contacto+'</div></div>'
+    +'<div class="card" style="padding:12px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px">NOTAS</div><div style="font-size:13px;color:var(--ink2)">'+p.notas+'</div></div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cerrar</button>'
+    +'<button class="btn bp" onclick="openEditProvModal(\''+id+'\')">✏️ Editar</button>'
+    +'</div></div>';
+  document.getElementById('modal').style.display='flex';
+}
+
+function openEditProvModal(id){
+  var p=PROVEEDORES.find(function(x){return x.id===id;});
+  document.getElementById('modal-title').textContent='Editar proveedor';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:11px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div>'
+    +'<input id="ep-nombre" value="'+p.nombre+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">IMPORTE</div>'
+    +'<input id="ep-importe" value="'+p.importe+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD</div>'
+    +'<input id="ep-comm" value="'+p.comm+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CONTACTO</div>'
+    +'<input id="ep-contacto" value="'+p.contacto+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOTAS</div>'
+    +'<textarea id="ep-notas" rows="2" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical">'+p.notas+'</textarea></div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
+    +'<button class="btn bp" onclick="saveEditProv(\''+id+'\')">💾 Guardar</button>'
+    +'</div></div>';
+  document.getElementById('modal').style.display='flex';
+}
+
+function saveEditProv(id){
+  var p=PROVEEDORES.find(function(x){return x.id===id;});
+  p.nombre=document.getElementById('ep-nombre').value.trim()||p.nombre;
+  p.importe=document.getElementById('ep-importe').value.trim()||p.importe;
+  p.comm=document.getElementById('ep-comm').value.trim()||p.comm;
+  p.contacto=document.getElementById('ep-contacto').value.trim()||p.contacto;
+  p.notas=document.getElementById('ep-notas').value.trim()||p.notas;
+  closeModal();
+  renderProveedores();
+}
+
+function openNewProvModal(){
+  document.getElementById('modal-title').textContent='Nuevo proveedor';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:11px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div>'
+    +'<input id="np-nombre" placeholder="Ej: Reformas Madrid S.L." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div>'
+    +'<select id="np-cat" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option>Fontanería</option><option>Electricidad</option><option>Ascensores</option><option>Limpieza</option><option>Pintura</option><option>Estructura</option><option>Tejados</option><option>Otros</option>'
+    +'</select></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD</div>'
+    +'<select id="np-comm" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option>Goya 47</option><option>Pza. España 3</option><option>Velázquez 12</option><option>Todas</option>'
+    +'</select></div>'
+    +'</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CONTACTO (tel · email)</div>'
+    +'<input id="np-contacto" placeholder="91 000 00 00 · email@empresa.es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">IMPORTE / CONTRATO</div>'
+    +'<input id="np-importe" placeholder="Ej: 180 €/mes  ó  Por obra" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div id="np-err" style="display:none;font-size:12px;color:var(--red)">El nombre es obligatorio.</div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
+    +'<button class="btn bp" onclick="saveNewProv()">✅ Guardar proveedor</button>'
+    +'</div></div>';
+  document.getElementById('modal').style.display='flex';
+}
+
+function saveNewProv(){
+  var nombre=(document.getElementById('np-nombre').value||'').trim();
+  if(!nombre){document.getElementById('np-err').style.display='';return;}
+  var cat=document.getElementById('np-cat').value;
+  var comm=document.getElementById('np-comm').value;
+  var contacto=document.getElementById('np-contacto').value.trim()||'—';
+  var importe=document.getElementById('np-importe').value.trim()||'—';
+  var id='p'+Date.now();
+  PROVEEDORES.push({id:id,nombre:nombre,cat:cat,contacto:contacto,comm:comm,notas:'Añadido hoy.',importe:importe,badge:'bg',badgeTxt:'Activo',warn:'',color:'#f0fdf4',tc:'#16a34a'});
+  closeModal();
+  renderProveedores();
+}
+
+// ══════════════════════════════════════════════
+// NEW INC MODAL — with proveedor assignment + adjunto
 // ══════════════════════════════════════════════
 function openNewIncModal(){
   document.getElementById('modal-title').textContent='Nueva incidencia';
-  document.getElementById('modal-body').innerHTML=`
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div>
-          <select id="ni-comm" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">
-            <option value="goya">C/ Goya 47</option><option value="espana">Pza. España 3</option><option value="velazquez">C/ Velázquez 12</option>
-          </select></div>
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PRIORIDAD *</div>
-          <select id="ni-prior" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">
-            <option>Normal</option><option>Alta</option><option>Urgente</option>
-          </select></div>
-      </div>
-      <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TÍTULO *</div>
-        <input id="ni-title" placeholder="Ej: Avería en portal — puerta no cierra" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
-      <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">DESCRIPCIÓN</div>
-        <textarea id="ni-desc" rows="3" placeholder="Describe el problema con detalle..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical"></textarea></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div>
-          <select id="ni-cat" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">
-            <option>Ascensor</option><option>Fontanería</option><option>Electricidad</option><option>Humedades</option><option>Pintura</option><option>Puerta/Garaje</option><option>Limpieza</option><option>Seguridad</option><option>Estructura</option><option>Otros</option>
-          </select></div>
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">REPORTADO POR</div>
-          <select id="ni-rep" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">
-            <option>Presidente</option><option>Vecino</option><option>Despacho propio</option>
-          </select></div>
-      </div>
-      <div id="ni-err" style="display:none;color:var(--red);font-size:12px">El título y la comunidad son obligatorios.</div>
-      <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px">
-        <button class="btn bs" onclick="closeModal()">Cancelar</button>
-        <button class="btn bp" onclick="saveNewInc()">✅ Crear incidencia</button>
-      </div>
-    </div>`;
+  var provOpts=PROVEEDORES.map(function(p){return '<option value="'+p.nombre+'">'+p.nombre+'</option>';}).join('');
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:12px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div>'
+    +'<select id="ni-comm" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option value="goya">C/ Goya 47</option><option value="espana">Pza. España 3</option><option value="velazquez">C/ Velázquez 12</option>'
+    +'</select></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PRIORIDAD *</div>'
+    +'<select id="ni-prior" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option>Normal</option><option>Alta</option><option>Urgente</option>'
+    +'</select></div>'
+    +'</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TÍTULO *</div>'
+    +'<input id="ni-title" placeholder="Ej: Avería en portal — puerta no cierra" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">DESCRIPCIÓN</div>'
+    +'<textarea id="ni-desc" rows="2" placeholder="Describe el problema..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical"></textarea></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div>'
+    +'<select id="ni-cat" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option>Ascensor</option><option>Fontanería</option><option>Electricidad</option><option>Humedades</option><option>Pintura</option><option>Puerta/Garaje</option><option>Limpieza</option><option>Estructura</option><option>Otros</option>'
+    +'</select></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PROVEEDOR</div>'
+    +'<select id="ni-prov" class="prov-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option value="">Sin asignar</option>'+provOpts
+    +'</select></div>'
+    +'</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ADJUNTO (opcional)</div>'
+    +'<div id="ni-adj-zone" style="border:2px dashed var(--border);border-radius:8px;padding:14px;text-align:center;font-size:12px;color:var(--muted);cursor:pointer" onclick="document.getElementById(\'ni-file\').click()">'
+    +'📎 Clic para adjuntar un archivo'
+    +'<input type="file" id="ni-file" style="display:none" onchange="previewNiFile(this)">'
+    +'</div>'
+    +'<div id="ni-adj-preview" style="display:none;margin-top:6px;padding:8px 10px;background:var(--bg);border-radius:8px;font-size:12px;display:flex;align-items:center;gap:8px">'
+    +'<span id="ni-adj-icon" style="font-size:18px">📄</span>'
+    +'<span id="ni-adj-name" style="font-weight:500"></span>'
+    +'<span id="ni-adj-size" style="color:var(--muted)"></span>'
+    +'</div>'
+    +'</div>'
+    +'<div id="ni-err" style="display:none;color:var(--red);font-size:12px">El título es obligatorio.</div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
+    +'<button class="btn bp" onclick="saveNewInc()">✅ Crear incidencia</button>'
+    +'</div></div>';
   document.getElementById('modal').style.display='flex';
 }
+
+var _niFileData=null;
+function previewNiFile(input){
+  if(!input.files||!input.files[0])return;
+  var f=input.files[0];
+  var icon=f.type.includes('image')?'📸':f.type.includes('pdf')?'📄':'📋';
+  var size=(f.size/1024).toFixed(0)+' KB';
+  document.getElementById('ni-adj-icon').textContent=icon;
+  document.getElementById('ni-adj-name').textContent=f.name;
+  document.getElementById('ni-adj-size').textContent=size;
+  document.getElementById('ni-adj-preview').style.display='flex';
+  document.getElementById('ni-adj-zone').style.display='none';
+  _niFileData={icon:icon,name:f.name,meta:f.type.split('/')[1].toUpperCase()+' · '+size,visible:true};
+}
+
 function saveNewInc(){
-  const commId=document.getElementById('ni-comm').value;
-  const title=document.getElementById('ni-title').value.trim();
-  const priority=document.getElementById('ni-prior').value;
-  const desc=document.getElementById('ni-desc').value.trim();
-  const category=document.getElementById('ni-cat').value;
-  const reportedBy=document.getElementById('ni-rep').value;
+  var commId=document.getElementById('ni-comm').value;
+  var title=(document.getElementById('ni-title').value||'').trim();
+  var priority=document.getElementById('ni-prior').value;
+  var desc=(document.getElementById('ni-desc').value||'').trim();
+  var category=document.getElementById('ni-cat').value;
+  var provEl=document.getElementById('ni-prov');
+  var proveedor=provEl?provEl.value||'Sin asignar':'Sin asignar';
   if(!title){document.getElementById('ni-err').style.display='';return;}
-  const today=new Date().toLocaleDateString('es-ES');
-  const newId='inc_'+Date.now();
-  const refNum=Math.floor(Math.random()*900+100);
+  var today=new Date().toLocaleDateString('es-ES');
+  var newId='inc_'+Date.now();
+  var refNum=Math.floor(Math.random()*900+100);
+  var adjuntos=_niFileData?[_niFileData]:[];
+  _niFileData=null;
   INCIDENCIAS[newId]={
-    id:newId, commId, icon:'⚠️', title, status:'Nueva', priority, category,
-    proveedor:'Sin asignar', gestor:'Miguel García',
-    apertura:today, estimada:'', ref:`INC-2026-${refNum}`,
+    id:newId,commId:commId,icon:'⚠️',title:title,status:'Nueva',priority:priority,category:category,
+    proveedor:proveedor,gestor:'Miguel García',
+    apertura:today,estimada:'',ref:'INC-2026-'+refNum,
     desc:desc||'Sin descripción.',
-    nextAction:'Revisar y asignar proveedor',
-    timeline:[{type:'event',icon:'⚠️',title:'Incidencia abierta',text:`Reportada por ${reportedBy}.`,ts:'Ahora mismo'}],
-    adjuntos:[]
+    nextAction:proveedor&&proveedor!=='Sin asignar'?'Contactar con '+proveedor+' para visita':'Revisar y asignar proveedor',
+    timeline:[{type:'event',icon:'⚠️',title:'Incidencia abierta',text:'Nueva incidencia creada.'+(proveedor&&proveedor!=='Sin asignar'?' Asignada a '+proveedor+'.':''),ts:'Ahora mismo'}],
+    adjuntos:adjuntos
   };
   COMUNIDADES[commId].incIds.push(newId);
   closeModal();
   renderAllIncs();
-  // If currently on this community's tab, refresh it
-  if(currentCommId===commId){
-    showCommTab('incidencias',null,true);
-  }
-  // Navigate to the new incident
+  if(currentCommId===commId){showCommTab('incidencias',null,true);}
   openInc(commId,newId);
 }
 
-// ══════════════════════════════════════════════
-// MODAL
-// ══════════════════════════════════════════════
-function closeModal(e){
-  if(e&&e.target!==document.getElementById('modal'))return;
-  document.getElementById('modal').style.display='none';
-}
-
-// ══════════════════════════════════════════════
-// KEYBOARD
-// ══════════════════════════════════════════════
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape') closeModal();
-  if(!guided)return;
-  if(e.key==='ArrowRight')nextStep();
-  if(e.key==='ArrowLeft')prevStep();
-});
-
-
-// INIT
-function openUserModal(nombre,rol,tipo,iniciales,color,email,permisos){
-  document.getElementById('modal-title').textContent=nombre;
-  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:10px"><div style="width:44px;height:44px;border-radius:50%;background:'+color+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+iniciales+'</div><div><div style="font-weight:700;font-size:15px">'+nombre+'</div><div style="font-size:12px;color:var(--muted)">'+rol+'</div></div><div class="badge '+(tipo==='Admin'?'bg':'bb')+'" style="margin-left:auto">'+tipo+'</div></div><div class="card" style="padding:0"><div class="mf"><span class="mk">Email</span><span class="mv">'+email+'</span></div><div class="mf"><span class="mk">Rol</span><span class="mv">'+tipo+'</span></div></div><div class="card" style="padding:12px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px">PERMISOS</div><div style="font-size:13px;color:var(--ink2)">'+permisos+'</div></div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cerrar</button><button class="btn bp" onclick="closeModal()">Editar</button></div></div>';
+// Assign proveedor from inc detail
+function openAssignProvModal(incId){
+  var inc=INCIDENCIAS[incId];
+  var provOpts=PROVEEDORES.map(function(p){
+    var sel=inc.proveedor===p.nombre?' selected':'';
+    return '<option value="'+p.nombre+'"'+sel+'>'+p.nombre+'</option>';
+  }).join('');
+  document.getElementById('modal-title').textContent='Asignar proveedor';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:12px">'
+    +'<div style="font-size:13px;color:var(--ink2)">Incidencia: <strong>'+inc.title+'</strong></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PROVEEDOR</div>'
+    +'<select id="ap-prov" class="prov-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option value="">Sin asignar</option>'+provOpts
+    +'</select></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOTA INTERNA (opcional)</div>'
+    +'<input id="ap-nota" placeholder="Ej: Llamar antes de las 10h" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
+    +'<button class="btn bp" onclick="saveAssignProv(\''+incId+'\')">✅ Asignar</button>'
+    +'</div></div>';
   document.getElementById('modal').style.display='flex';
 }
+
+function saveAssignProv(incId){
+  var inc=INCIDENCIAS[incId];
+  var prov=document.getElementById('ap-prov').value||'Sin asignar';
+  var nota=(document.getElementById('ap-nota').value||'').trim();
+  var old=inc.proveedor;
+  inc.proveedor=prov;
+  inc.timeline.push({type:'event',icon:'🔧',title:'Proveedor asignado: '+prov,text:old&&old!=='Sin asignar'?'Anterior: '+old+(nota?' · '+nota:nota):(nota||''),ts:'Ahora mismo'});
+  if(prov&&prov!=='Sin asignar') inc.nextAction='Contactar con '+prov+' para visita';
+  closeModal();
+  // refresh meta panel
+  document.getElementById('inc-meta-fields').querySelector('.mk') && openInc(inc.commId,incId,true);
+  renderTimeline(incId);
+  // update proveedor in meta
+  var mf=document.getElementById('inc-meta-fields');
+  if(mf) mf.innerHTML=mf.innerHTML; // triggers re-render via openInc below
+  openInc(inc.commId,incId,true);
+}
+
+// ══════════════════════════════════════════════
+// NUEVA COMUNIDAD
+// ══════════════════════════════════════════════
+function openNewCommModal(){
+  document.getElementById('modal-title').textContent='Nueva comunidad';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:11px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE / DIRECCIÓN *</div>'
+    +'<input id="nc-nombre" placeholder="Ej: C/ Mayor 12" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">Nº VECINOS</div>'
+    +'<input id="nc-vec" type="number" placeholder="Ej: 24" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CUOTA MENSUAL</div>'
+    +'<input id="nc-cuota" placeholder="Ej: 85 €/mes" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PRESIDENTE</div>'
+    +'<input id="nc-pres" placeholder="Nombre del presidente" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CIF COMUNIDAD</div>'
+    +'<input id="nc-cif" placeholder="Ej: H-28123456" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div id="nc-err" style="display:none;font-size:12px;color:var(--red)">El nombre es obligatorio.</div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
+    +'<button class="btn bp" onclick="saveNewComm()">✅ Crear comunidad</button>'
+    +'</div></div>';
+  document.getElementById('modal').style.display='flex';
+}
+
+function saveNewComm(){
+  var nombre=(document.getElementById('nc-nombre').value||'').trim();
+  if(!nombre){document.getElementById('nc-err').style.display='';return;}
+  var vec=document.getElementById('nc-vec').value||'—';
+  var cuota=document.getElementById('nc-cuota').value||'—';
+  var pres=document.getElementById('nc-pres').value||'Sin designar';
+  var cif=document.getElementById('nc-cif').value||'—';
+  var id='comm_'+Date.now();
+  COMUNIDADES[id]={
+    short:nombre,name:nombre,
+    sub:vec+' vecinos · 0 incidencias',
+    inc:0,incUrgent:false,
+    president:pres,cuota:cuota,cif:cif,morosos:'0',
+    presidente:pres,incIds:[],docIds:[]
+  };
+  closeModal();
+  // Re-render comunidades list
+  var el=document.getElementById('comm-list');
+  if(el){
+    var colors=['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff'];
+    var tcs=['#2563eb','#16a34a','#ea580c','#7c3aed'];
+    var ci=Object.keys(COMUNIDADES).length%4;
+    el.innerHTML+=
+      '<div class="cr" onclick="openComm(\''+id+'\')">'
+      +'<div class="cav" style="background:'+colors[ci]+';color:'+tcs[ci]+'">'+nombre.charAt(0)+'</div>'
+      +'<div><div class="cn">'+nombre+'</div><div class="csb">'+vec+' vecinos · 0 incidencias</div></div>'
+      +'<div class="cbdg"><div class="badge bg">Sin incidencias</div></div>'
+      +'</div>';
+  }
+}
+
+// ══════════════════════════════════════════════
+// EDITAR DESPACHO
+// ══════════════════════════════════════════════
+var DESPACHO={nombre:'García & Asociados',cif:'B-28123456',tel:'91 123 45 67',email:'info@garciaasociados.es',dir:'C/ Serrano 44, Madrid'};
+
+function openEditDespachoModal(){
+  document.getElementById('modal-title').textContent='Editar datos del despacho';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:11px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE</div>'
+    +'<input id="ed-nombre" value="'+DESPACHO.nombre+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CIF</div>'
+    +'<input id="ed-cif" value="'+DESPACHO.cif+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TELÉFONO</div>'
+    +'<input id="ed-tel" value="'+DESPACHO.tel+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">EMAIL</div>'
+    +'<input id="ed-email" value="'+DESPACHO.email+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">DIRECCIÓN</div>'
+    +'<input id="ed-dir" value="'+DESPACHO.dir+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
+    +'<button class="btn bp" onclick="saveDespacho()">💾 Guardar</button>'
+    +'</div></div>';
+  document.getElementById('modal').style.display='flex';
+}
+
+function saveDespacho(){
+  DESPACHO.nombre=document.getElementById('ed-nombre').value.trim()||DESPACHO.nombre;
+  DESPACHO.cif=document.getElementById('ed-cif').value.trim()||DESPACHO.cif;
+  DESPACHO.tel=document.getElementById('ed-tel').value.trim()||DESPACHO.tel;
+  DESPACHO.email=document.getElementById('ed-email').value.trim()||DESPACHO.email;
+  DESPACHO.dir=document.getElementById('ed-dir').value.trim()||DESPACHO.dir;
+  closeModal();
+  // Update displayed fields
+  var card=document.querySelector('#screen-configuracion .card');
+  if(card){
+    card.querySelectorAll('.mv')[0].textContent=DESPACHO.nombre;
+    card.querySelectorAll('.mv')[1].textContent=DESPACHO.cif;
+    card.querySelectorAll('.mv')[2].textContent=DESPACHO.tel;
+    card.querySelectorAll('.mv')[3].textContent=DESPACHO.email;
+    card.querySelectorAll('.mv')[4].textContent=DESPACHO.dir;
+  }
+}
+
+// ══════════════════════════════════════════════
+// USUARIOS
+// ══════════════════════════════════════════════
+var USUARIOS=[
+  {id:'u1',nombre:'Miguel García',rol:'Administrador principal',tipo:'Admin',ini:'MG',color:'#0f1117',email:'miguel.garcia@garciaasociados.es',tel:'91 123 45 67',permisos:'Acceso completo a todas las comunidades y módulos.'},
+  {id:'u2',nombre:'Laura Sáez',rol:'Gestora',tipo:'Gestor',ini:'LS',color:'#7c3aed',email:'laura.saez@garciaasociados.es',tel:'—',permisos:'Acceso a incidencias y documentos. Sin acceso a configuración.'}
+];
+
+function renderUsuarios(){
+  var el=document.getElementById('usuarios-list');
+  if(!el)return;
+  var typeCls={'Admin':'bg','Gestor':'bb','Solo lectura':'bgr'};
+  el.innerHTML=USUARIOS.map(function(u){
+    return '<div class="cr" style="cursor:pointer" onclick="openUserModal(\''+u.id+'\')">'
+      +'<div class="uav" style="width:28px;height:28px;font-size:12px;background:'+u.color+'">'+u.ini+'</div>'
+      +'<div><div class="cn" style="font-size:13px">'+u.nombre+'</div><div class="csb">'+u.rol+'</div></div>'
+      +'<div class="badge '+(typeCls[u.tipo]||'bgr')+'" style="margin-left:auto">'+u.tipo+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function openUserModal(id){
+  var u=USUARIOS.find(function(x){return x.id===id;});
+  if(!u)return;
+  var typeCls={'Admin':'bg','Gestor':'bb','Solo lectura':'bgr'};
+  document.getElementById('modal-title').textContent=u.nombre;
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:12px">'
+    +'<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:10px">'
+    +'<div style="width:44px;height:44px;border-radius:50%;background:'+u.color+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+u.ini+'</div>'
+    +'<div><div style="font-weight:700;font-size:15px">'+u.nombre+'</div><div style="font-size:12px;color:var(--muted)">'+u.rol+'</div></div>'
+    +'<div class="badge '+(typeCls[u.tipo]||'bgr')+'" style="margin-left:auto">'+u.tipo+'</div>'
+    +'</div>'
+    +'<div class="card" style="padding:0">'
+    +'<div class="mf"><span class="mk">Email</span><span class="mv">'+u.email+'</span></div>'
+    +'<div class="mf"><span class="mk">Teléfono</span><span class="mv">'+u.tel+'</span></div>'
+    +'<div class="mf"><span class="mk">Rol</span><span class="mv">'+u.tipo+'</span></div>'
+    +'</div>'
+    +'<div class="card" style="padding:12px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px">PERMISOS</div>'
+    +'<div style="font-size:13px;color:var(--ink2)">'+u.permisos+'</div></div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cerrar</button>'
+    +'<button class="btn bp" onclick="openEditUserModal(\''+u.id+'\')">✏️ Editar</button>'
+    +'</div></div>';
+  document.getElementById('modal').style.display='flex';
+}
+
+function openEditUserModal(id){
+  var u=USUARIOS.find(function(x){return x.id===id;});
+  document.getElementById('modal-title').textContent='Editar usuario';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:11px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE</div>'
+    +'<input id="eu-nombre" value="'+u.nombre+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ROL</div>'
+    +'<select id="eu-tipo" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option'+(u.tipo==='Admin'?' selected':'')+'>Admin</option>'
+    +'<option'+(u.tipo==='Gestor'?' selected':'')+'>Gestor</option>'
+    +'<option'+(u.tipo==='Solo lectura'?' selected':'')+'>Solo lectura</option>'
+    +'</select></div>'
+    +'</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">EMAIL</div>'
+    +'<input id="eu-email" value="'+u.email+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TELÉFONO</div>'
+    +'<input id="eu-tel" value="'+u.tel+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="openUserModal(\''+u.id+'\')">Cancelar</button>'
+    +'<button class="btn bp" onclick="saveEditUser(\''+u.id+'\')">💾 Guardar</button>'
+    +'</div></div>';
+  document.getElementById('modal').style.display='flex';
+}
+
+function saveEditUser(id){
+  var u=USUARIOS.find(function(x){return x.id===id;});
+  u.nombre=document.getElementById('eu-nombre').value.trim()||u.nombre;
+  u.tipo=document.getElementById('eu-tipo').value;
+  u.email=document.getElementById('eu-email').value.trim()||u.email;
+  u.tel=document.getElementById('eu-tel').value.trim()||u.tel;
+  u.ini=u.nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  closeModal();
+  renderUsuarios();
+}
+
+function openCreateUserModal(){
+  document.getElementById('modal-title').textContent='Crear usuario';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:11px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div>'
+    +'<input id="cu-nombre" placeholder="Nombre completo" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ROL *</div>'
+    +'<select id="cu-tipo" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option>Gestor</option><option>Admin</option><option>Solo lectura</option>'
+    +'</select></div>'
+    +'</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">EMAIL *</div>'
+    +'<input id="cu-email" placeholder="email@ejemplo.es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TELÉFONO</div>'
+    +'<input id="cu-tel" placeholder="91 000 00 00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div id="cu-err" style="display:none;font-size:12px;color:var(--red)">Nombre y email son obligatorios.</div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
+    +'<button class="btn bp" onclick="saveCreateUser()">✅ Crear usuario</button>'
+    +'</div></div>';
+  document.getElementById('modal').style.display='flex';
+}
+
+function saveCreateUser(){
+  var nombre=(document.getElementById('cu-nombre').value||'').trim();
+  var email=(document.getElementById('cu-email').value||'').trim();
+  if(!nombre||!email){document.getElementById('cu-err').style.display='';return;}
+  var tipo=document.getElementById('cu-tipo').value;
+  var tel=(document.getElementById('cu-tel').value||'').trim()||'—';
+  var colors={'Admin':'#0f1117','Gestor':'#7c3aed','Solo lectura':'#8b8fa8'};
+  var permsMap={'Admin':'Acceso completo.','Gestor':'Acceso a incidencias y documentos.','Solo lectura':'Solo puede consultar. Sin edición.'};
+  var id='u'+Date.now();
+  var ini=nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  USUARIOS.push({id:id,nombre:nombre,rol:tipo,tipo:tipo,ini:ini,color:colors[tipo]||'#64748b',email:email,tel:tel,permisos:permsMap[tipo]||''});
+  closeModal();
+  renderUsuarios();
+}
+
 function openInviteUserModal(){
-  document.getElementById('modal-title').textContent='Invitar usuario';
-  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">EMAIL *</div><input placeholder="nombre@ejemplo.com" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ROL</div><select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Gestor</option><option>Admin</option><option>Solo lectura</option></select></div><div style="background:var(--al);border-radius:8px;padding:9px 12px;font-size:12px;color:#1e40af">Se enviara email de invitacion al nuevo usuario.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="closeModal()">Enviar invitacion</button></div></div>';
+  document.getElementById('modal-title').textContent='Invitar por email';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:11px">'
+    +'<div style="background:var(--al);border-radius:8px;padding:9px 12px;font-size:12px;color:#1e40af">El invitado recibirá un email para activar su cuenta con acceso de solo lectura.</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">EMAIL *</div>'
+    +'<input id="inv-email" placeholder="presidente@ejemplo.es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE (opcional)</div>'
+    +'<input id="inv-nombre" placeholder="Ej: Antonio Ruiz (Presidente Goya 47)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ROL</div>'
+    +'<select id="inv-tipo" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option>Solo lectura</option><option>Gestor</option>'
+    +'</select></div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
+    +'<button class="btn bp" onclick="closeModal()">📧 Enviar invitación</button>'
+    +'</div></div>';
   document.getElementById('modal').style.display='flex';
 }
+
+// ══════════════════════════════════════════════
+// JUNTAS MODALS
+// ══════════════════════════════════════════════
 function openCalendarioModal(){
   document.getElementById('modal-title').textContent='Calendario de juntas';
-  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:14px"><div style="background:var(--bg);border-radius:10px;padding:16px"><div style="font-weight:700;text-align:center;margin-bottom:12px">Marzo 2026</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px;line-height:2.2"><div style="font-weight:700;color:var(--muted)">L</div><div style="font-weight:700;color:var(--muted)">M</div><div style="font-weight:700;color:var(--muted)">X</div><div style="font-weight:700;color:var(--muted)">J</div><div style="font-weight:700;color:var(--muted)">V</div><div style="font-weight:700;color:var(--muted)">S</div><div style="font-weight:700;color:var(--muted)">D</div><div></div><div></div><div></div><div></div><div></div><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div><div>10</div><div>11</div><div>12</div><div>13</div><div>14</div><div><span style="background:#2563eb;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">15</span></div><div>16</div><div>17</div><div>18</div><div>19</div><div>20</div><div>21</div><div><span style="background:#ea580c;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">22</span></div><div>23</div><div>24</div><div>25</div><div>26</div><div>27</div><div>28</div><div><span style="background:#8b8fa8;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">29</span></div><div>30</div><div>31</div></div></div><div style="display:flex;flex-direction:column;gap:7px;font-size:13px"><div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#2563eb;flex-shrink:0"></div><div><strong>15 mar</strong> Ordinaria Goya 47 19:00h</div></div><div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#ea580c;flex-shrink:0"></div><div><strong>22 mar</strong> Extraordinaria Pza. Espana 3 18:30h</div></div><div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#8b8fa8;flex-shrink:0"></div><div><strong>29 mar</strong> Ordinaria Velazquez 12 18:00h</div></div></div><div style="display:flex;justify-content:flex-end"><button class="btn bs" onclick="closeModal()">Cerrar</button></div></div>';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:14px">'
+    +'<div style="background:var(--bg);border-radius:10px;padding:16px">'
+    +'<div style="font-weight:700;text-align:center;margin-bottom:12px">Marzo 2026</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px;line-height:2.2">'
+    +'<div style="font-weight:700;color:var(--muted)">L</div><div style="font-weight:700;color:var(--muted)">M</div><div style="font-weight:700;color:var(--muted)">X</div><div style="font-weight:700;color:var(--muted)">J</div><div style="font-weight:700;color:var(--muted)">V</div><div style="font-weight:700;color:var(--muted)">S</div><div style="font-weight:700;color:var(--muted)">D</div>'
+    +'<div></div><div></div><div></div><div></div><div></div><div>1</div><div>2</div>'
+    +'<div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div>'
+    +'<div>10</div><div>11</div><div>12</div><div>13</div><div>14</div>'
+    +'<div><span style="background:#2563eb;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">15</span></div>'
+    +'<div>16</div><div>17</div><div>18</div><div>19</div><div>20</div><div>21</div>'
+    +'<div><span style="background:#ea580c;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">22</span></div>'
+    +'<div>23</div><div>24</div><div>25</div><div>26</div><div>27</div><div>28</div>'
+    +'<div><span style="background:#8b8fa8;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">29</span></div>'
+    +'<div>30</div><div>31</div>'
+    +'</div></div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;font-size:13px">'
+    +'<div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#2563eb;flex-shrink:0"></div><div><strong>15 mar</strong> Ordinaria Goya 47 · 19:00h · Sala comunitaria</div></div>'
+    +'<div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#ea580c;flex-shrink:0"></div><div><strong>22 mar</strong> Extraordinaria Pza. España 3 · 18:30h · Videoconferencia</div></div>'
+    +'<div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#8b8fa8;flex-shrink:0"></div><div><strong>29 mar</strong> Ordinaria Velázquez 12 · 18:00h · Sala comunitaria</div></div>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:flex-end"><button class="btn bs" onclick="closeModal()">Cerrar</button></div>'
+    +'</div>';
   document.getElementById('modal').style.display='flex';
 }
+
 function openNuevaJuntaModal(){
   document.getElementById('modal-title').textContent='Nueva junta';
-  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div><select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>C/ Goya 47</option><option>Pza. Espana 3</option><option>C/ Velazquez 12</option></select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Ordinaria</option><option>Extraordinaria</option></select></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA *</div><input type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">HORA</div><input type="time" value="19:00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">LUGAR</div><input placeholder="Sala comunitaria..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="closeModal()">Crear junta</button></div></div>';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:11px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div>'
+    +'<select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option>C/ Goya 47</option><option>Pza. España 3</option><option>C/ Velázquez 12</option>'
+    +'</select></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div>'
+    +'<select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option>Ordinaria</option><option>Extraordinaria</option>'
+    +'</select></div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA *</div>'
+    +'<input type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">HORA</div>'
+    +'<input type="time" value="19:00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">LUGAR</div>'
+    +'<input placeholder="Sala comunitaria / Videoconferencia..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
+    +'<button class="btn bp" onclick="closeModal()">📅 Crear junta</button>'
+    +'</div></div>';
   document.getElementById('modal').style.display='flex';
 }
+
+// ══════════════════════════════════════════════
+// DOCUMENTOS — EXPORTAR / SUBIR
+// ══════════════════════════════════════════════
 function exportarDocs(){
-  var TAB=String.fromCharCode(9), NL=String.fromCharCode(10);
-  var rows=DOCS.map(function(d){return d.name+TAB+d.comm+TAB+d.type+TAB+d.fecha+TAB+(d.status?d.status.txt:d.statusVb?d.statusVb.txt:'--');}).join(NL);
+  var TAB=String.fromCharCode(9),NL=String.fromCharCode(10);
+  var rows=DOCS.map(function(d){return d.name+TAB+d.comm+TAB+d.type+TAB+d.fecha+TAB+(d.status?d.status.txt:d.statusVb?d.statusVb.txt:'—');}).join(NL);
   var blob=new Blob(['Documento'+TAB+'Comunidad'+TAB+'Tipo'+TAB+'Fecha'+TAB+'Estado'+NL+rows],{type:'text/plain'});
   var a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
   a.download='Fincora_Documentos.txt';
   a.click();
 }
+
 function subirDocModal(){
   document.getElementById('modal-title').textContent='Subir documento';
-  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div><select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>C/ Goya 47</option><option>Pza. Espana 3</option><option>C/ Velazquez 12</option></select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Acta</option><option>Contrato</option><option>Poliza</option><option>Factura</option><option>Presupuesto</option><option>Otro</option></select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA</div><input type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div><input placeholder="Ej: Acta junta ordinaria mar 2026" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div style="border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer" onclick="this.style.background=\'var(--al)\'">Clic para seleccionar archivo -- max 50 MB</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="closeModal()">Subir</button></div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-function openCircularModal(){
-  var c=COMUNIDADES[currentCommId];
-  document.getElementById('modal-title').textContent='Circular a '+c.short;
-  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div style="background:var(--al);border-radius:8px;padding:9px 12px;font-size:12px;color:#1e40af">Dirigida a los propietarios de <strong>'+c.short+'</strong></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ASUNTO *</div><input placeholder="Ej: Aviso corte de agua el jueves" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">MENSAJE *</div><textarea rows="4" placeholder="Estimados propietarios,..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical"></textarea></div><div style="display:flex;gap:10px;font-size:12px"><label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" checked> Email</label><label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox"> SMS</label></div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="closeModal()">Enviar circular</button></div></div>';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:11px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div>'
+    +'<select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option>C/ Goya 47</option><option>Pza. España 3</option><option>C/ Velázquez 12</option>'
+    +'</select></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div>'
+    +'<select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +'<option>Acta</option><option>Contrato</option><option>Póliza</option><option>Factura</option><option>Presupuesto</option><option>Otro</option>'
+    +'</select></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA</div>'
+    +'<input type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div>'
+    +'<input placeholder="Ej: Acta junta ordinaria mar 2026" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div style="border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer">'
+    +'Clic para seleccionar archivo — máx. 50 MB'
+    +'</div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
+    +'<button class="btn bp" onclick="closeModal()">📤 Subir</button>'
+    +'</div></div>';
   document.getElementById('modal').style.display='flex';
 }
 
+// ══════════════════════════════════════════════
+// CIRCULAR
+// ══════════════════════════════════════════════
+function openCircularModal(){
+  var c=COMUNIDADES[currentCommId];
+  document.getElementById('modal-title').textContent='Circular a '+c.short;
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:11px">'
+    +'<div style="background:var(--al);border-radius:8px;padding:9px 12px;font-size:12px;color:#1e40af">Dirigida a los propietarios de <strong>'+c.short+'</strong></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ASUNTO *</div>'
+    +'<input placeholder="Ej: Aviso corte de agua el jueves" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">MENSAJE *</div>'
+    +'<textarea rows="4" placeholder="Estimados propietarios,..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical"></textarea></div>'
+    +'<div style="display:flex;gap:10px;font-size:12px">'
+    +'<label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" checked> Email</label>'
+    +'<label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox"> SMS</label>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
+    +'<button class="btn bp" onclick="closeModal()">📧 Enviar circular</button>'
+    +'</div></div>';
+  document.getElementById('modal').style.display='flex';
+}
+
+// ══════════════════════════════════════════════
+// MODAL + KEYBOARD
+// ══════════════════════════════════════════════
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modal'))return;
+  document.getElementById('modal').style.display='none';
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape') closeModal();
+  if(!guided)return;
+  if(e.key==='ArrowRight')nextStep();
+  if(e.key==='ArrowLeft')prevStep();
+});
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+renderProveedores();
+renderUsuarios();
 renderDocs();
 renderAllIncs();
 </script>
