@@ -990,7 +990,7 @@ function makeUid(prefix){return prefix+'_'+Date.now()+'_'+Math.floor(Math.random
 function escapeHtml(str){return String(str||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
 function humanFileSize(bytes){return !bytes?'0 KB':(bytes/1024>=1024?((bytes/1024/1024).toFixed(1)+' MB'):Math.max(1,Math.round(bytes/1024))+' KB');}
 function formatInputDate(val){if(!val)return new Date().toLocaleDateString('es-ES'); var d=new Date(val+'T00:00:00'); return isNaN(d)?val:d.toLocaleDateString('es-ES');}
-function downloadBlob(url,name){var a=document.createElement('a'); a.href=url; a.download=name||'descarga'; a.click();}
+function downloadBlob(url,name){var a=document.createElement('a'); a.href=url; a.download=name||'descarga'; a.rel='noopener'; a.style.display='none'; document.body.appendChild(a); a.click(); setTimeout(function(){ if(a.parentNode) a.parentNode.removeChild(a); if(String(url||'').indexOf('blob:')===0) try{URL.revokeObjectURL(url);}catch(e){} }, 200);}
 function readFileData(file, cb){ if(!file){cb(null);return;} var r=new FileReader(); r.onload=function(e){cb({dataUrl:e.target.result,mime:file.type||'application/octet-stream'});}; r.onerror=function(){cb({dataUrl:'',mime:file.type||'application/octet-stream'});}; r.readAsDataURL(file); }
 function normalizeAdjunto(att){
   if(!att.id) att.id=makeUid('att');
@@ -1226,7 +1226,7 @@ function showCommTab(tab, btn, noToggle){
       return '<div class="ir" data-open-doc="'+d.id+'" onclick="openDoc(\''+d.id+'\')" style="cursor:pointer">'
         +'<div style="font-size:16px">'+(d.icon||'📄')+'</div>'
         +'<div><div class="itl">'+escapeHtml(d.name||'Documento')+'</div><div class="imt">'+escapeHtml(d.meta||'')+'</div></div>'
-        +'<div class="irr">'+st+'</div>'
+        +'<div class="irr" style="display:flex;align-items:center;gap:6px">'+st+'<button class="badge bb" style="border:0;cursor:pointer" onclick="event.stopPropagation();openDoc(\''+d.id+'\')">Ver</button><button class="badge bg" style="border:0;cursor:pointer" onclick="event.stopPropagation();downloadDocFile(\''+d.id+'\')">Descargar</button></div>'
         +'</div>';
     }).join(''):'<div style="padding:16px;font-size:13px;color:var(--muted)">Sin documentos registrados.</div>';
   } else if(tab==='juntas'){
@@ -1291,7 +1291,7 @@ function openInc(commId, incId, skipNav){
   document.getElementById('pv-prov').textContent=inc.proveedor||'Sin asignar';
   var rb=document.getElementById('inc-resolve-btn');
   if(inc.status==='En curso'||inc.status==='Pendiente de proveedor'||inc.status==='Pendiente de comunidad'){ rb.style.display=''; rb.onclick=function(){ resolveInc(incId); }; } else { rb.style.display='none'; }
-  document.getElementById('inc-adjuntos').innerHTML=(inc.adjuntos||[]).map(function(a){ normalizeAdjunto(a); return '<div style="display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" data-open-adjunto="'+a.id+'"><span>'+a.icon+'</span><div style="font-size:12px"><div style="font-weight:500">'+escapeHtml(a.name)+'</div><div style="color:var(--muted)">'+escapeHtml(a.meta||'')+(a.visible?' · visible presidente':' · interno')+'</div></div><div class="badge '+(a.visible?'bg':'bb')+'" style="margin-left:auto">Ver</div></div>'; }).join('') || '<div style="font-size:13px;color:var(--muted)">Sin adjuntos todavía.</div>';
+  document.getElementById('inc-adjuntos').innerHTML=(inc.adjuntos||[]).map(function(a){ normalizeAdjunto(a); return '<div style="display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto(\''+a.id+'\')"><span>'+a.icon+'</span><div style="font-size:12px"><div style="font-weight:500">'+escapeHtml(a.name)+'</div><div style="color:var(--muted)">'+escapeHtml(a.meta||'')+(a.visible?' · visible presidente':' · interno')+'</div></div><div style="margin-left:auto;display:flex;gap:6px"><button class="badge '+(a.visible?'bg':'bb')+'" style="border:0;cursor:pointer" onclick="event.stopPropagation();openAdjunto(\''+a.id+'\')">Ver</button><button class="badge bb" style="border:0;cursor:pointer" onclick="event.stopPropagation();downloadAdjunto(\''+a.id+'\')">Descargar</button></div></div>'; }).join('') || '<div style="font-size:13px;color:var(--muted)">Sin adjuntos todavía.</div>';
   if(!skipNav){ document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');}); NIs().forEach(function(n){n.classList.remove('active');}); if(NIs()[2]) NIs()[2].classList.add('active'); }
   showScreen('inc-detalle');
 }
@@ -1599,7 +1599,7 @@ function renderDocs(){
   var search=(document.getElementById('doc-search')?document.getElementById('doc-search').value:'').toLowerCase();
   var filtered=DOCS.filter(function(d){ var matchType=docTypeFilter==='todos'||d.type===docTypeFilter; var matchComm=docCommFilter==='todas'||d.commId===docCommFilter; var matchSearch=!search||d.name.toLowerCase().includes(search)||d.comm.toLowerCase().includes(search)||(d.meta||'').toLowerCase().includes(search); return matchType&&matchComm&&matchSearch; });
   var tbody=document.getElementById('docs-tbody'); if(!tbody)return;
-  tbody.innerHTML=filtered.map(function(d){ var st=d.status?'<div class="badge '+d.status.cls+'">'+d.status.txt+'</div>':d.statusVb?'<div class="vb '+d.statusVb.cls+'">'+d.statusVb.txt+'</div>':''; return '<tr class="drow" onclick="openDoc('+JSON.stringify(d.id)+')"><td><span style="font-size:14px;margin-right:7px">'+d.icon+'</span><span class="dn">'+escapeHtml(d.name)+'</span><span class="ds">'+escapeHtml(d.meta||'')+'</span></td><td style="color:var(--muted);font-size:12px">'+escapeHtml(d.comm)+'</td><td><div class="badge bgr">'+d.type.charAt(0).toUpperCase()+d.type.slice(1)+'</div></td><td style="color:var(--muted);font-size:12px">'+escapeHtml(d.fecha)+'</td><td>'+st+'</td></tr>'; }).join('');
+  tbody.innerHTML=filtered.map(function(d){ var st=d.status?'<div class="badge '+d.status.cls+'">'+d.status.txt+'</div>':d.statusVb?'<div class="vb '+d.statusVb.cls+'">'+d.statusVb.txt+'</div>':''; return '<tr class="drow" onclick="openDoc('+JSON.stringify(d.id)+')"><td><span style="font-size:14px;margin-right:7px">'+d.icon+'</span><span class="dn">'+escapeHtml(d.name)+'</span><span class="ds">'+escapeHtml(d.meta||'')+'</span></td><td style="color:var(--muted);font-size:12px">'+escapeHtml(d.comm)+'</td><td><div class="badge bgr">'+d.type.charAt(0).toUpperCase()+d.type.slice(1)+'</div></td><td style="color:var(--muted);font-size:12px">'+escapeHtml(d.fecha)+'</td><td><div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">'+st+'<button class="badge bb" style="border:0;cursor:pointer" onclick="event.stopPropagation();openDoc(\''+d.id+'\')">Ver</button><button class="badge bg" style="border:0;cursor:pointer" onclick="event.stopPropagation();downloadDocFile(\''+d.id+'\')">Descargar</button></div></td></tr>'; }).join('');
   var cnt=document.getElementById('docs-count'); if(cnt) cnt.textContent=filtered.length+' documento'+(filtered.length!==1?'s':'')+' mostrado'+(filtered.length!==1?'s':'');
   refreshDocsSummary();
 }
@@ -2162,7 +2162,7 @@ function saveNuevaJunta(){
   var d=new Date(dateVal+'T00:00:00'); var meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   COMUNIDADES[commId].juntas.unshift({mes:meses[d.getMonth()],dia:String(d.getDate()).padStart(2,'0'),name:tipo,hora:(document.getElementById('nj-time').value||'19:00')+'h · '+((document.getElementById('nj-place').value||'Sala comunitaria').trim()),badge:{cls:'bb',txt:'Convocada'},notes:(document.getElementById('nj-notes').value||'').trim()});
   if(_juntaUploadData){ var docId=makeUid('doc'); var docName=_juntaUploadData.name||('Convocatoria '+tipo+' '+COMUNIDADES[commId].short); DOC_CONTENT[docId]={title:docName,body:attachmentPreviewMarkup({name:docName,meta:_juntaUploadData.meta,mime:_juntaUploadData.mime,dataUrl:_juntaUploadData.dataUrl})}; DOCS.unshift({id:docId,commId:commId,comm:COMUNIDADES[commId].short,icon:_juntaUploadData.icon||'📄',name:docName,meta:_juntaUploadData.meta,type:'acta',fecha:formatInputDate(dateVal),status:{cls:'by',txt:'Convocada'},content:docId,dataUrl:_juntaUploadData.dataUrl,mime:_juntaUploadData.mime}); }
-  _juntaUploadData=null; closeModal(); renderDocs(); refreshDashboard(); if(currentCommId===commId) showCommTab('juntas',null,true);
+  _juntaUploadData=null; syncCommunityRelations(); closeModal(); renderDocs(); refreshDashboard(); refreshAllCommunitySelectors(); if(currentCommId===commId){ showCommTab('juntas',null,true); }
 }
 
 // ══════════════════════════════════════════════
@@ -2198,7 +2198,7 @@ function saveUploadedDoc(){
   var comm=COMUNIDADES[commId]; var id=makeUid('doc');
   DOC_CONTENT[id]={title:name,body:attachmentPreviewMarkup({name:name,meta:_docUploadData.meta,mime:_docUploadData.mime,dataUrl:_docUploadData.dataUrl})};
   DOCS.unshift({id:id,commId:commId,comm:comm.short,icon:_docUploadData.icon||'📄',name:name,meta:_docUploadData.meta,type:type,fecha:fecha,status:{cls:'bg',txt:'Subido'},content:id,dataUrl:_docUploadData.dataUrl,mime:_docUploadData.mime});
-  _docUploadData=null; closeModal(); renderDocs(); refreshDashboard(); if(currentCommId===commId) showCommTab('documentos',null,true);
+  _docUploadData=null; syncCommunityRelations(); closeModal(); renderDocs(); refreshDashboard(); refreshAllCommunitySelectors(); if(currentCommId===commId) showCommTab('documentos',null,true);
 }
 
 // ══════════════════════════════════════════════
