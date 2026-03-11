@@ -359,8 +359,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     <div class="ssec">
       <div class="slbl">Principal</div>
       <button class="ni active" onclick="goNav('dashboard')"><span class="nic">🏠</span>Dashboard</button>
-      <button class="ni" onclick="goNav('comunidades')"><span class="nic">🏢</span>Comunidades<span class="nbadge g">3</span></button>
-      <button class="ni" onclick="goNav('incidencias')"><span class="nic">⚠️</span>Incidencias<span class="nbadge">5</span></button>
+      <button class="ni" onclick="goNav('comunidades')"><span class="nic">🏢</span>Comunidades<span class="nbadge g" id="sb-comms">3</span></button>
+      <button class="ni" onclick="goNav('incidencias')"><span class="nic">⚠️</span>Incidencias<span class="nbadge" id="sb-incs">5</span></button>
       <button class="ni" onclick="goNav('documentos')"><span class="nic">📂</span>Documentos</button>
       <button class="ni" onclick="goNav('juntas')"><span class="nic">📋</span>Juntas y actas</button>
     </div>
@@ -662,9 +662,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
           <div class="card" style="margin-bottom:12px">
             <div class="ch"><div class="ct">Resumen</div></div>
             <div style="padding:10px">
-              <div class="dstat"><span style="font-size:16px">📄</span><div><div class="dsv">9</div><div class="dsl">Documentos totales</div></div></div>
-              <div class="dstat"><span style="font-size:16px">✅</span><div><div class="dsv">7</div><div class="dsl">En regla / vigentes</div></div></div>
-              <div class="dstat" style="background:var(--yl)"><span style="font-size:16px">⚠️</span><div><div class="dsv" style="color:var(--yellow)">2</div><div class="dsl">Vencen pronto</div></div></div>
+              <div class="dstat"><span style="font-size:16px">📄</span><div><div class="dsv" id="docs-total">9</div><div class="dsl">Documentos totales</div></div></div>
+              <div class="dstat"><span style="font-size:16px">✅</span><div><div class="dsv" id="docs-ok">7</div><div class="dsl">En regla / vigentes</div></div></div>
+              <div class="dstat" style="background:var(--yl)"><span style="font-size:16px">⚠️</span><div><div class="dsv" id="docs-soon" style="color:var(--yellow)">2</div><div class="dsl">Vencen pronto</div></div></div>
             </div>
           </div>
           <div class="card" style="margin-bottom:12px">
@@ -983,6 +983,61 @@ let currentIncId='inc1';
 let prevScreen='dashboard';
 let noteType='interna';
 let docTypeFilter='todos', docCommFilter='todas';
+let currentDocsDraft={type:'todos',comm:'todas'};
+let currentJuntasDraft={};
+
+function makeUid(prefix){return prefix+'_'+Date.now()+'_'+Math.floor(Math.random()*1000);} 
+function escapeHtml(str){return String(str||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+function humanFileSize(bytes){return !bytes?'0 KB':(bytes/1024>=1024?((bytes/1024/1024).toFixed(1)+' MB'):Math.max(1,Math.round(bytes/1024))+' KB');}
+function formatInputDate(val){if(!val)return new Date().toLocaleDateString('es-ES'); var d=new Date(val+'T00:00:00'); return isNaN(d)?val:d.toLocaleDateString('es-ES');}
+function downloadBlob(url,name){var a=document.createElement('a'); a.href=url; a.download=name||'descarga'; a.click();}
+function readFileData(file, cb){ if(!file){cb(null);return;} var r=new FileReader(); r.onload=function(e){cb({dataUrl:e.target.result,mime:file.type||'application/octet-stream'});}; r.onerror=function(){cb({dataUrl:'',mime:file.type||'application/octet-stream'});}; r.readAsDataURL(file); }
+function normalizeAdjunto(att){
+  if(!att.id) att.id=makeUid('att');
+  if(!att.mime){
+    var m=(att.meta||'').toLowerCase();
+    if(m.indexOf('jpg')>=0||m.indexOf('jpeg')>=0) att.mime='image/jpeg';
+    else if(m.indexOf('png')>=0) att.mime='image/png';
+    else if(m.indexOf('pdf')>=0) att.mime='application/pdf';
+    else att.mime='text/plain';
+  }
+  if(!att.dataUrl){
+    if(att.mime.indexOf('image/')===0){
+      att.dataUrl='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540"><rect width="100%" height="100%" fill="#0f172a"/><circle cx="250" cy="220" r="72" fill="#60a5fa" opacity=".78"/><rect x="120" y="330" width="660" height="90" rx="14" fill="#1e293b"/><text x="450" y="355" fill="#e2e8f0" font-family="Arial" font-size="28" text-anchor="middle">'+escapeHtml(att.name)+'</text><text x="450" y="392" fill="#94a3b8" font-family="Arial" font-size="18" text-anchor="middle">'+escapeHtml(att.meta||'Imagen adjunta')+'</text></svg>');
+    } else {
+      att.dataUrl='data:text/plain;charset=utf-8,'+encodeURIComponent('Documento adjunto: '+(att.name||'Adjunto')+'\n'+(att.meta||''));
+    }
+  }
+  return att;
+}
+function attachmentPreviewMarkup(att){
+  att=normalizeAdjunto(att);
+  if(att.dataUrl && att.mime && att.mime.indexOf('image/')===0){
+    return '<div style="background:#0f172a;border-radius:10px;padding:10px;display:flex;justify-content:center"><img src="'+att.dataUrl+'" alt="'+escapeHtml(att.name)+'" style="max-width:100%;max-height:340px;border-radius:8px;object-fit:contain"></div>';
+  }
+  if(att.dataUrl && att.mime==='application/pdf'){
+    return '<iframe src="'+att.dataUrl+'" style="width:100%;height:420px;border:1px solid var(--border);border-radius:10px;background:#fff"></iframe>';
+  }
+  return '<div style="background:#fff;border:1px solid #e2e4ea;border-radius:10px;width:100%;padding:20px 22px;font-size:12px;color:#3a3d4a;line-height:1.8"><div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8b8fa8;border-bottom:1px solid #e2e4ea;padding-bottom:8px;margin-bottom:12px">DESPACHO GARCÍA &amp; ASOCIADOS · MADRID</div><p><strong>Documento:</strong> '+escapeHtml(att.name)+'</p><p><strong>Tamaño:</strong> '+escapeHtml(att.meta||'—')+'</p><p><strong>Fecha:</strong> '+new Date().toLocaleDateString('es-ES')+'</p><div style="background:#f4f5f7;border-radius:6px;padding:10px 12px;margin-top:10px;color:#8b8fa8">Vista previa demo disponible para este archivo.</div></div>';
+}
+function findAttachmentById(attId){
+  var ids=Object.keys(INCIDENCIAS);
+  for(var i=0;i<ids.length;i++){
+    var inc=INCIDENCIAS[ids[i]]; var atts=inc.adjuntos||[];
+    for(var j=0;j<atts.length;j++) if(atts[j].id===attId) return {inc:inc,att:atts[j]};
+  }
+  return null;
+}
+function syncCommunityRelations(){
+  Object.keys(COMUNIDADES).forEach(function(cid){ COMUNIDADES[cid].incIds=[]; COMUNIDADES[cid].docIds=[]; if(!COMUNIDADES[cid].juntas) COMUNIDADES[cid].juntas=[]; if(!COMUNIDADES[cid].info) COMUNIDADES[cid].info={vecinos:'—',plantas:'—',cp:'—'}; });
+  Object.keys(INCIDENCIAS).forEach(function(iid){ var inc=INCIDENCIAS[iid]; if(COMUNIDADES[inc.commId]) COMUNIDADES[inc.commId].incIds.push(iid); (inc.adjuntos||[]).forEach(normalizeAdjunto); });
+  DOCS.forEach(function(doc){ if(COMUNIDADES[doc.commId]) COMUNIDADES[doc.commId].docIds.push(doc.id); });
+  Object.keys(COMUNIDADES).forEach(function(cid){ var c=COMUNIDADES[cid]; var openCount=c.incIds.filter(function(iid){return INCIDENCIAS[iid]&&INCIDENCIAS[iid].status!=='Resuelta'&&INCIDENCIAS[iid].status!=='Cerrada';}).length; var main={cls:openCount>0?'bo':'bg',txt:openCount>0?(openCount+' incidencia'+(openCount!==1?'s':'')):'Sin incidencias'}; var extra=(c.juntas&&c.juntas[0]&&c.juntas[0].mes&&c.juntas[0].dia)?{cls:'bb',txt:'Junta '+c.juntas[0].dia+' '+String(c.juntas[0].mes).toLowerCase()}:null; c.badges=[main].concat(extra?[extra]:[]); });
+}
+function refreshSidebarBadges(){ var sbc=document.getElementById('sb-comms'); var sbi=document.getElementById('sb-incs'); if(sbc) sbc.textContent=Object.keys(COMUNIDADES).length; if(sbi) sbi.textContent=Object.values(INCIDENCIAS).filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';}).length; }
+function refreshDocsSummary(){ var total=DOCS.length; var ok=DOCS.filter(function(d){return d.status&&String(d.status.txt||'').match(/Firmada|Vigente|Activo|Subido/i);}).length; var soon=DOCS.filter(function(d){return (d.statusVb&&String(d.statusVb.txt||'').match(/Vence|vence/i))||(d.status&&String(d.status.txt||'').match(/Pendiente|Convocada/i));}).length; var t=document.getElementById('docs-total'),o=document.getElementById('docs-ok'),s=document.getElementById('docs-soon'); if(t)t.textContent=total; if(o)o.textContent=ok; if(s)s.textContent=soon; }
+function refreshAllCommunitySelectors(){ var opts=getCommOptions(); document.querySelectorAll('.comm-dyn-select').forEach(function(sel){ var cur=sel.value; sel.innerHTML=opts; if(cur && sel.querySelector('option[value="'+cur+'"]')) sel.value=cur; }); }
+
 
 const NIs = () => document.querySelectorAll('.ni');
 
@@ -1177,48 +1232,23 @@ function priorityBadgeFromStatus(s){return s==='Urgente'?'br':s==='En curso'?'bo
 
 function openInc(commId, incId, skipNav){
   prevScreen=currentCommId?'comunidad':'incidencias';
-  currentCommId=commId;
-  currentIncId=incId;
-  const inc=INCIDENCIAS[incId];
+  currentCommId=commId; currentIncId=incId;
+  const inc=INCIDENCIAS[incId]; if(!inc) return;
   document.getElementById('inc-bc').textContent=inc.title;
   document.getElementById('inc-title-h').textContent=inc.title;
-  document.getElementById('inc-desc').textContent=inc.desc;
-  document.getElementById('inc-badges').innerHTML=`
-    <div class="badge br">${inc.priority}</div>
-    <div class="badge bo">${inc.status}</div>
-    <div class="badge bb">${inc.category}</div>
-    <span style="font-size:11px;color:var(--muted);margin-left:4px">${inc.ref}</span>`;
+  document.getElementById('inc-icon').textContent=inc.icon||'⚠️';
+  document.getElementById('inc-desc').textContent=inc.desc||'—';
+  document.getElementById('inc-badges').innerHTML='<div class="badge '+statusBadge(inc.priority)+'">'+inc.priority+'</div><div class="badge '+priorityBadgeFromStatus(inc.status)+'">'+inc.status+'</div><div class="badge bb">'+inc.category+'</div><span style="font-size:11px;color:var(--muted);margin-left:4px">'+inc.ref+'</span>';
   renderStepper(inc.status);
   renderTimeline(incId);
-  document.getElementById('inc-meta-fields').innerHTML=`
-    <div class="mf"><span class="mk">Comunidad</span><span class="mv" style="color:var(--accent);cursor:pointer" onclick="openComm('${commId}')">${COMUNIDADES[commId].short}</span></div>
-    <div class="mf"><span class="mk">Prioridad</span><span class="mv"><div class="badge ${statusBadge(inc.priority)}">${inc.priority}</div></span></div>
-    <div class="mf"><span class="mk">Proveedor</span><span class="mv">${inc.proveedor}</span></div>
-    <div class="mf"><span class="mk">Gestor</span><span class="mv">${inc.gestor}</span></div>
-    <div class="mf"><span class="mk">Apertura</span><span class="mv">${inc.apertura}</span></div>
-    <div class="mf"><span class="mk">Est. resolución</span><span class="mv">${inc.estimada||'—'}</span></div>
-    <div class="mf"><span class="mk">Próxima acción</span><span class="mv" style="font-size:11px;color:var(--muted);text-align:right;max-width:160px">${inc.nextAction}</span></div>`;
-  document.getElementById('pv-estado').textContent=inc.status;
-  document.getElementById('pv-prov').textContent=inc.proveedor;
+  document.getElementById('inc-meta-fields').innerHTML='<div class="mf"><span class="mk">Comunidad</span><span class="mv" style="color:var(--accent);cursor:pointer" onclick="openComm(\''+commId+'\')">'+COMUNIDADES[commId].short+'</span></div><div class="mf"><span class="mk">Prioridad</span><span class="mv"><div class="badge '+statusBadge(inc.priority)+'">'+inc.priority+'</div></span></div><div class="mf"><span class="mk">Proveedor</span><span class="mv">'+(inc.proveedor||'Sin asignar')+'</span></div><div class="mf"><span class="mk">Gestor</span><span class="mv">'+(inc.gestor||'—')+'</span></div><div class="mf"><span class="mk">Apertura</span><span class="mv">'+(inc.apertura||'—')+'</span></div><div class="mf"><span class="mk">Est. resolución</span><span class="mv">'+(inc.estimada||'—')+'</span></div><div class="mf"><span class="mk">Próxima acción</span><span class="mv" style="font-size:11px;color:var(--muted);text-align:right;max-width:160px">'+(inc.nextAction||'—')+'</span></div>';
+  document.getElementById('pv-estado').textContent=inc.status||'—';
+  document.getElementById('pv-prov').textContent=inc.proveedor||'Sin asignar';
   const rb=document.getElementById('inc-resolve-btn');
-  if(inc.status==='En curso'||inc.status==='Pendiente de proveedor'||inc.status==='Pendiente de comunidad'){
-    rb.style.display='';
-    rb.onclick=()=>resolveInc(incId);
-  } else {rb.style.display='none';}
-  document.getElementById('inc-adjuntos').innerHTML=inc.adjuntos.map(a=>`
-    <div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto('${a.name.replace(/'/g,"\\'")}','${a.icon}','${a.meta}')">
-      <span>${a.icon}</span>
-      <div style="font-size:12px"><div style="font-weight:500">${a.name}</div><div style="color:var(--muted)">${a.meta}</div></div>
-      ${a.visible?'<div class="badge bb" style="margin-left:auto">Ver →</div>':'<div class="badge bgr" style="margin-left:auto">Solo despacho</div>'}
-    </div>`).join('');
-  renderStatusBtns(incId);
-  if(!skipNav){
-    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-    NIs().forEach(n=>n.classList.remove('active'));
-    NIs()[2].classList.add('active');
-  }
-  document.getElementById('screen-inc-detalle').classList.add('active');
-  window.scrollTo(0,0);
+  if(inc.status==='En curso'||inc.status==='Pendiente de proveedor'||inc.status==='Pendiente de comunidad'){ rb.style.display=''; rb.onclick=function(){ resolveInc(incId); }; } else { rb.style.display='none'; }
+  document.getElementById('inc-adjuntos').innerHTML=(inc.adjuntos||[]).map(function(a){ normalizeAdjunto(a); return '<div style="display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto(\''+a.id+'\')"><span>'+a.icon+'</span><div style="font-size:12px"><div style="font-weight:500">'+escapeHtml(a.name)+'</div><div style="color:var(--muted)">'+escapeHtml(a.meta||'')+(a.visible?' · visible presidente':' · interno')+'</div></div><div class="badge '+(a.visible?'bg':'bb')+'" style="margin-left:auto">Ver</div></div>'; }).join('') || '<div style="font-size:13px;color:var(--muted)">Sin adjuntos todavía.</div>';
+  if(!skipNav){ document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');}); NIs().forEach(function(n){n.classList.remove('active');}); NIs()[2].classList.add('active'); }
+  showScreen('inc-detalle');
 }
 
 function renderStepper(status){
@@ -1346,37 +1376,15 @@ function confirmChangeStatus(incId, newStatus, oldStatus){
 }
 
 // Adjunto preview modal (for both inc and presidente views)
-function downloadAdjunto(name){
-  const txt=`DOCUMENTO: ${name}\nDespacho García & Asociados\nFecha: ${new Date().toLocaleDateString('es-ES')}\n\n[Contenido del documento — en la versión real se descarga el archivo original adjunto a la incidencia]\n`;
-  const blob=new Blob([txt],{type:'text/plain'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=name.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/g,'_')+'.txt';
-  a.click();
+function downloadAdjunto(attId){
+  var found=findAttachmentById(attId); if(!found||!found.att)return; var att=normalizeAdjunto(found.att);
+  if(att.dataUrl){ downloadBlob(att.dataUrl, att.name||'adjunto'); return; }
+  var blob=new Blob(['Documento: '+(att.name||'Adjunto')],{type:'text/plain'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(att.name||'adjunto')+'.txt'; a.click();
 }
-function openAdjunto(name, icon, meta){
-  const isImg=meta.toLowerCase().includes('jpg')||meta.toLowerCase().includes('jpeg')||meta.toLowerCase().includes('png');
-  const previewContent=isImg
-    ? `<div style="background:#1a1a2e;border-radius:10px;width:100%;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:30px">
-        <div style="font-size:64px">📸</div>
-        <div style="color:#94a3b8;font-size:12px;text-align:center">${name}<br><span style="font-size:11px">${meta}</span></div>
-       </div>`
-    : `<div style="background:#fff;border:1px solid #e2e4ea;border-radius:10px;width:100%;padding:20px 22px;font-size:12px;color:#3a3d4a;line-height:1.8">
-        <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8b8fa8;border-bottom:1px solid #e2e4ea;padding-bottom:8px;margin-bottom:12px">DESPACHO GARCÍA &amp; ASOCIADOS · MADRID</div>
-        <p><strong>Documento:</strong> ${name}</p>
-        <p><strong>Tamaño:</strong> ${meta.split('·')[1]?.trim()||meta}</p>
-        <p><strong>Fecha:</strong> ${new Date().toLocaleDateString('es-ES')}</p>
-        <div style="background:#f4f5f7;border-radius:6px;padding:10px 12px;margin-top:10px;color:#8b8fa8">Este documento está adjunto a la incidencia. En la versión completa se visualiza el PDF directamente.</div>
-       </div>`;
-  document.getElementById('modal-title').textContent=name;
-  document.getElementById('modal-body').innerHTML=`
-    <div style="display:flex;flex-direction:column;gap:14px">
-      ${previewContent}
-      <div style="display:flex;justify-content:flex-end;gap:8px">
-        <button class="btn bs" onclick="closeModal()">Cerrar</button>
-        <button class="btn bp" onclick="downloadAdjunto('${name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">📥 Descargar</button>
-      </div>
-    </div>`;
+function openAdjunto(attId){
+  var found=findAttachmentById(attId); if(!found||!found.att)return; var att=normalizeAdjunto(found.att);
+  document.getElementById('modal-title').textContent=att.name;
+  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:14px">'+attachmentPreviewMarkup(att)+'<div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cerrar</button><button class="btn bp" onclick="downloadAdjunto(\''+att.id+'\')">📥 Descargar</button></div></div>';
   document.getElementById('modal').style.display='flex';
 }
 
@@ -1469,6 +1477,8 @@ function exportActaPDF(){
   if(win){setTimeout(()=>{win.print();},600);}
 }
 
+function downloadDocFile(docId){ var d=DOCS.find(function(x){return x.id===docId;}); if(!d)return; if(d.dataUrl){ downloadBlob(d.dataUrl,d.name); return; } var blob=new Blob(['Documento: '+d.name+'\nComunidad: '+d.comm+'\nFecha: '+d.fecha],{type:'text/plain'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(d.name||'documento')+'.txt'; a.click(); }
+
 function openProvModal(nombre, categoria, contacto, comunidad, notas, importe){
   document.getElementById('modal-title').textContent=nombre;
   document.getElementById('modal-body').innerHTML=`
@@ -1492,19 +1502,10 @@ function openProvModal(nombre, categoria, contacto, comunidad, notas, importe){
 // INCIDENCIAS — render + presidente
 // ══════════════════════════════════════════════
 function renderAllIncs(){
-  var el=document.getElementById('all-incs-list');
-  if(!el)return;
-  refreshDashboard();
-  var allIncs=Object.values(INCIDENCIAS);
-  var visible=el._filter?allIncs.filter(function(i){return el._filter==='todas'||i.priority.toLowerCase()===el._filter||i.status.toLowerCase().replace(/ /g,'-')===el._filter;}):allIncs;
-  el.innerHTML=visible.map(function(inc){
-    var oc='openInc('+JSON.stringify(inc.commId)+','+JSON.stringify(inc.id)+')';
-    return '<div class="ir" onclick="'+oc+'">'
-      +'<div class="idot '+statusDot(inc.status)+'"></div>'
-      +'<div style="flex:1"><div class="itl">'+inc.title+'</div><div class="imt">'+COMUNIDADES[inc.commId].short+' · '+inc.ref+' · '+inc.status+'</div></div>'
-      +'<div class="irr"><div class="badge '+statusBadge(inc.priority)+'">'+inc.priority+'</div></div>'
-      +'</div>';
-  }).join('');
+  var el=document.getElementById('all-incs-list'); if(!el)return; refreshDashboard();
+  var allIncs=Object.values(INCIDENCIAS); var f=el._filter||'todas';
+  var visible=allIncs.filter(function(i){ if(f==='todas') return true; if(f==='urgente') return i.priority==='Urgente'; if(f==='en-curso') return i.status==='En curso'; if(f==='pendiente') return i.status==='Pendiente de proveedor'||i.status==='Pendiente de comunidad'||i.status==='Nueva'||i.status==='Revisando'; return true;});
+  el.innerHTML=visible.map(function(inc){ var oc='openInc('+JSON.stringify(inc.commId)+','+JSON.stringify(inc.id)+')'; return '<div class="ir" onclick="'+oc+'"><div class="idot '+statusDot(inc.status)+'"></div><div style="flex:1"><div class="itl">'+escapeHtml(inc.title)+'</div><div class="imt">'+escapeHtml(COMUNIDADES[inc.commId].short)+' · '+escapeHtml(inc.ref)+' · '+escapeHtml(inc.status)+'</div></div><div class="irr"><div class="badge '+statusBadge(inc.priority)+'">'+escapeHtml(inc.priority)+'</div></div></div>'; }).join('') || '<div style="padding:16px;font-size:13px;color:var(--muted)">Sin incidencias para este filtro.</div>';
 }
 function filterIncs(f,btn){
   document.querySelectorAll('#screen-incidencias .filterbtn').forEach(function(b){b.classList.remove('active');});
@@ -1515,33 +1516,19 @@ function filterIncs(f,btn){
 }
 
 function openPresidente(){
-  var inc=INCIDENCIAS[currentIncId];
-  var comm=COMUNIDADES[inc.commId];
+  var inc=INCIDENCIAS[currentIncId]; var comm=COMUNIDADES[inc.commId];
   document.getElementById('pres-title').textContent=inc.title;
   document.getElementById('pres-comm').textContent=comm.name+' · '+inc.ref;
   document.getElementById('pres-icon').textContent=inc.icon;
   document.getElementById('pres-badge').innerHTML='<div class="badge '+priorityBadgeFromStatus(inc.status)+'">'+inc.status+'</div>';
   document.getElementById('pres-since').textContent='Abierta: '+inc.apertura+(inc.estimada?' · Resolución est.: '+inc.estimada:'');
-  document.getElementById('pres-next').textContent=inc.nextAction;
-  document.getElementById('pres-desc').textContent=inc.desc;
-  document.getElementById('pres-details').innerHTML=
-    '<div class="mf"><span class="mk">Proveedor</span><span class="mv">'+inc.proveedor+'</span></div>'
-    +'<div class="mf"><span class="mk">Categoría</span><span class="mv">'+inc.category+'</span></div>'
-    +'<div class="mf"><span class="mk">Gestor</span><span class="mv">'+inc.gestor+'</span></div>'
-    +'<div class="mf"><span class="mk">Apertura</span><span class="mv">'+inc.apertura+'</span></div>'
-    +(inc.estimada?'<div class="mf"><span class="mk">Est. resolución</span><span class="mv">'+inc.estimada+'</span></div>':'');
-  var visibleEvents=inc.timeline.filter(function(e){return e.type==='visible'||e.type==='event';});
-  document.getElementById('pres-timeline').innerHTML=visibleEvents.length?visibleEvents.map(function(e){
-    return '<div class="tli"><div class="tld">'+e.icon+'</div><div><div class="tlt">'+e.title+'</div><div class="tltx">'+e.text+'</div><div class="tlts">'+e.ts+'</div></div></div>';
-  }).join(''):'<div style="font-size:13px;color:var(--muted)">Sin actualizaciones todavía.</div>';
-  var visibleAdj=inc.adjuntos.filter(function(a){return a.visible;});
-  document.getElementById('pres-adjuntos').innerHTML=visibleAdj.length?visibleAdj.map(function(a){
-    return '<div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto(\''+a.name.replace(/'/g,"\\'")+'\'  ,\''+a.icon+'\',\''+a.meta+'\')">'
-      +'<span>'+a.icon+'</span>'
-      +'<div style="font-size:12px"><div style="font-weight:500">'+a.name+'</div><div style="color:var(--muted)">'+a.meta+'</div></div>'
-      +'<div class="badge bb" style="margin-left:auto">Ver →</div>'
-      +'</div>';
-  }).join(''):'<div style="padding:12px 16px;font-size:13px;color:var(--muted)">Sin documentos adjuntos visibles.</div>';
+  document.getElementById('pres-next').textContent=inc.nextAction||'—';
+  document.getElementById('pres-desc').textContent=inc.desc||'—';
+  document.getElementById('pres-details').innerHTML='<div class="mf"><span class="mk">Proveedor</span><span class="mv">'+(inc.proveedor||'Sin asignar')+'</span></div><div class="mf"><span class="mk">Categoría</span><span class="mv">'+(inc.category||'—')+'</span></div><div class="mf"><span class="mk">Gestor</span><span class="mv">'+(inc.gestor||'—')+'</span></div><div class="mf"><span class="mk">Apertura</span><span class="mv">'+(inc.apertura||'—')+'</span></div>'+(inc.estimada?'<div class="mf"><span class="mk">Est. resolución</span><span class="mv">'+inc.estimada+'</span></div>':'');
+  var visibleEvents=(inc.timeline||[]).filter(function(e){return e.type==='visible'||e.type==='event';});
+  document.getElementById('pres-timeline').innerHTML=visibleEvents.length?visibleEvents.map(function(e){return '<div class="tli"><div class="tld">'+e.icon+'</div><div><div class="tlt">'+e.title+'</div><div class="tltx">'+e.text+'</div><div class="tlts">'+e.ts+'</div></div></div>';}).join(''):'<div style="font-size:13px;color:var(--muted)">Sin actualizaciones todavía.</div>';
+  var visibleAdj=(inc.adjuntos||[]).filter(function(a){return a.visible;});
+  document.getElementById('pres-adjuntos').innerHTML=visibleAdj.length?visibleAdj.map(function(a){ normalizeAdjunto(a); return '<div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto(\''+a.id+'\')"><span>'+a.icon+'</span><div style="font-size:12px"><div style="font-weight:500">'+escapeHtml(a.name)+'</div><div style="color:var(--muted)">'+escapeHtml(a.meta||'')+'</div></div><div class="badge bb" style="margin-left:auto">Ver →</div></div>'; }).join(''):'<div style="padding:12px 16px;font-size:13px;color:var(--muted)">Sin documentos adjuntos visibles.</div>';
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById('screen-presidente').classList.add('active');
   window.scrollTo(0,0);
@@ -1559,26 +1546,11 @@ function closePresidente(){
 
 function renderDocs(){
   var search=(document.getElementById('doc-search')?document.getElementById('doc-search').value:'').toLowerCase();
-  var filtered=DOCS.filter(function(d){
-    var matchType=docTypeFilter==='todos'||d.type===docTypeFilter;
-    var matchComm=docCommFilter==='todas'||d.commId===docCommFilter;
-    var matchSearch=!search||d.name.toLowerCase().includes(search)||d.comm.toLowerCase().includes(search)||(d.meta||'').toLowerCase().includes(search);
-    return matchType&&matchComm&&matchSearch;
-  });
-  var tbody=document.getElementById('docs-tbody');
-  if(!tbody)return;
-  tbody.innerHTML=filtered.map(function(d){
-    var st=d.status?'<div class="badge '+d.status.cls+'">'+d.status.txt+'</div>':d.statusVb?'<div class="vb '+d.statusVb.cls+'">'+d.statusVb.txt+'</div>':'';
-    return '<tr class="drow" onclick="openDoc('+JSON.stringify(d.id)+')">'
-      +'<td><span style="font-size:14px;margin-right:7px">'+d.icon+'</span><span class="dn">'+d.name+'</span><span class="ds">'+d.meta+'</span></td>'
-      +'<td style="color:var(--muted);font-size:12px">'+d.comm+'</td>'
-      +'<td><div class="badge bgr">'+d.type.charAt(0).toUpperCase()+d.type.slice(1)+'</div></td>'
-      +'<td style="color:var(--muted);font-size:12px">'+d.fecha+'</td>'
-      +'<td>'+st+'</td>'
-      +'</tr>';
-  }).join('');
-  var cnt=document.getElementById('docs-count');
-  if(cnt) cnt.textContent=filtered.length+' documento'+(filtered.length!==1?'s':'')+' mostrado'+(filtered.length!==1?'s':'');
+  var filtered=DOCS.filter(function(d){ var matchType=docTypeFilter==='todos'||d.type===docTypeFilter; var matchComm=docCommFilter==='todas'||d.commId===docCommFilter; var matchSearch=!search||d.name.toLowerCase().includes(search)||d.comm.toLowerCase().includes(search)||(d.meta||'').toLowerCase().includes(search); return matchType&&matchComm&&matchSearch; });
+  var tbody=document.getElementById('docs-tbody'); if(!tbody)return;
+  tbody.innerHTML=filtered.map(function(d){ var st=d.status?'<div class="badge '+d.status.cls+'">'+d.status.txt+'</div>':d.statusVb?'<div class="vb '+d.statusVb.cls+'">'+d.statusVb.txt+'</div>':''; return '<tr class="drow" onclick="openDoc('+JSON.stringify(d.id)+')"><td><span style="font-size:14px;margin-right:7px">'+d.icon+'</span><span class="dn">'+escapeHtml(d.name)+'</span><span class="ds">'+escapeHtml(d.meta||'')+'</span></td><td style="color:var(--muted);font-size:12px">'+escapeHtml(d.comm)+'</td><td><div class="badge bgr">'+d.type.charAt(0).toUpperCase()+d.type.slice(1)+'</div></td><td style="color:var(--muted);font-size:12px">'+escapeHtml(d.fecha)+'</td><td>'+st+'</td></tr>'; }).join('');
+  var cnt=document.getElementById('docs-count'); if(cnt) cnt.textContent=filtered.length+' documento'+(filtered.length!==1?'s':'')+' mostrado'+(filtered.length!==1?'s':'');
+  refreshDocsSummary();
 }
 function filterDocs(){renderDocs();}
 
@@ -1597,22 +1569,10 @@ function filterDocsComm(c,btn){
 }
 
 function openDoc(docId){
-  var d=DOCS.find(function(x){return x.id===docId;});
-  if(!d)return;
-  var content=DOC_CONTENT[d.content]||null;
+  var d=DOCS.find(function(x){return x.id===docId;}); if(!d)return;
+  var content=DOC_CONTENT[d.content]||null; if(!content && (d.dataUrl||d.mime)) content={body:attachmentPreviewMarkup({name:d.name,meta:d.meta,mime:d.mime,dataUrl:d.dataUrl})};
   document.getElementById('modal-title').textContent=d.name;
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:14px">'
-    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">'
-    +'<div class="card" style="padding:9px 12px"><div style="color:var(--muted);font-weight:600;font-size:10px;margin-bottom:2px">COMUNIDAD</div><div style="font-weight:600">'+d.comm+'</div></div>'
-    +'<div class="card" style="padding:9px 12px"><div style="color:var(--muted);font-weight:600;font-size:10px;margin-bottom:2px">TIPO</div><div class="badge bgr">'+d.type.charAt(0).toUpperCase()+d.type.slice(1)+'</div></div>'
-    +'<div class="card" style="padding:9px 12px"><div style="color:var(--muted);font-weight:600;font-size:10px;margin-bottom:2px">FECHA</div><div style="font-weight:600">'+d.fecha+'</div></div>'
-    +'</div>'
-    +(content?content.body:'<div style="background:var(--bg);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:13px">'+d.icon+' Vista previa no disponible para este documento.</div>')
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="closeModal()">Cerrar</button>'
-    +'<button class="btn bp" onclick="downloadAdjunto(\''+d.name.replace(/'/g,"\\'")+'\')">📥 Descargar</button>'
-    +'</div></div>';
+  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:14px"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px"><div class="card" style="padding:9px 12px"><div style="color:var(--muted);font-weight:600;font-size:10px;margin-bottom:2px">COMUNIDAD</div><div style="font-weight:600">'+escapeHtml(d.comm)+'</div></div><div class="card" style="padding:9px 12px"><div style="color:var(--muted);font-weight:600;font-size:10px;margin-bottom:2px">TIPO</div><div class="badge bgr">'+d.type.charAt(0).toUpperCase()+d.type.slice(1)+'</div></div><div class="card" style="padding:9px 12px"><div style="color:var(--muted);font-weight:600;font-size:10px;margin-bottom:2px">FECHA</div><div style="font-weight:600">'+escapeHtml(d.fecha)+'</div></div></div>'+(content?content.body:'<div style="background:var(--bg);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:13px">'+d.icon+' Vista previa no disponible para este documento.</div>')+'<div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cerrar</button><button class="btn bp" onclick="downloadDocFile(\''+d.id+'\')">📥 Descargar</button></div></div>';
   document.getElementById('modal').style.display='flex';
 }
 
@@ -1711,29 +1671,7 @@ function saveEditProv(id){
 
 function openNewProvModal(){
   document.getElementById('modal-title').textContent='Nuevo proveedor';
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:11px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div>'
-    +'<input id="np-nombre" placeholder="Ej: Reformas Madrid S.L." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div>'
-    +'<select id="np-cat" onchange="handleCatChange(this)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +getCatOptions('')
-    +'</select></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD</div>'
-    +'<select id="np-comm" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option>Goya 47</option><option>Pza. España 3</option><option>Velázquez 12</option><option>Todas</option>'
-    +'</select></div>'
-    +'</div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CONTACTO (tel · email)</div>'
-    +'<input id="np-contacto" placeholder="91 000 00 00 · email@empresa.es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">IMPORTE / CONTRATO</div>'
-    +'<input id="np-importe" placeholder="Ej: 180 €/mes  ó  Por obra" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div id="np-err" style="display:none;font-size:12px;color:var(--red)">El nombre es obligatorio.</div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
-    +'<button class="btn bp" onclick="saveNewProv()">✅ Guardar proveedor</button>'
-    +'</div></div>';
+  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div><input id="np-nombre" placeholder="Ej: Reformas Madrid S.L." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div><select id="np-cat" onchange="handleCatChange(this)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'+getCatOptions('')+'</select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD</div><select id="np-comm" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'+getCommOptions()+'<option value="Todas">Todas</option></select></div></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CONTACTO (tel · email)</div><input id="np-contacto" placeholder="91 000 00 00 · email@empresa.es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">IMPORTE / CONTRATO</div><input id="np-importe" placeholder="Ej: 180 €/mes  ó  Por obra" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div id="np-err" style="display:none;font-size:12px;color:var(--red)">El nombre es obligatorio.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveNewProv()">✅ Guardar proveedor</button></div></div>';
   document.getElementById('modal').style.display='flex';
 }
 
@@ -1741,11 +1679,12 @@ function saveNewProv(){
   var nombre=(document.getElementById('np-nombre').value||'').trim();
   if(!nombre){document.getElementById('np-err').style.display='';return;}
   var cat=document.getElementById('np-cat').value;
-  var comm=document.getElementById('np-comm').value;
-  var contacto=document.getElementById('np-contacto').value.trim()||'—';
-  var importe=document.getElementById('np-importe').value.trim()||'—';
+  var commValue=document.getElementById('np-comm').value;
+  var contacto=(document.getElementById('np-contacto').value||'').trim()||'—';
+  var importe=(document.getElementById('np-importe').value||'').trim()||'—';
+  var comm=(COMUNIDADES[commValue]&&COMUNIDADES[commValue].short)||commValue||'Todas';
   var id='p'+Date.now();
-  PROVEEDORES.push({id:id,nombre:nombre,cat:cat,contacto:contacto,comm:comm,notas:'Añadido hoy.',importe:importe,badge:'bg',badgeTxt:'Activo',warn:'',color:'#f0fdf4',tc:'#16a34a'});
+  PROVEEDORES.push({id:id,nombre:nombre,cat:cat,contacto:contacto,comm:comm,commId:COMUNIDADES[commValue]?commValue:'',notas:'Añadido hoy.',importe:importe,badge:'bg',badgeTxt:'Activo',warn:'',color:'#f0fdf4',tc:'#16a34a'});
   closeModal();
   renderProveedores();
 }
@@ -1806,13 +1745,13 @@ function previewNiFile(input){
   if(!input.files||!input.files[0])return;
   var f=input.files[0];
   var icon=f.type.includes('image')?'📸':f.type.includes('pdf')?'📄':'📋';
-  var size=(f.size/1024).toFixed(0)+' KB';
+  var size=humanFileSize(f.size);
   document.getElementById('ni-adj-icon').textContent=icon;
   document.getElementById('ni-adj-name').textContent=f.name;
   document.getElementById('ni-adj-size').textContent=size;
   document.getElementById('ni-adj-preview').style.display='flex';
   document.getElementById('ni-adj-zone').style.display='none';
-  _niFileData={icon:icon,name:f.name,meta:f.type.split('/')[1].toUpperCase()+' · '+size,visible:true};
+  readFileData(f,function(res){ _niFileData=normalizeAdjunto({id:makeUid('att'),icon:icon,name:f.name,meta:(f.name.split('.').pop()||'FILE').toUpperCase()+' · '+size,visible:true,mime:(res&&res.mime)||f.type||'application/octet-stream',dataUrl:(res&&res.dataUrl)||''}); });
 }
 
 function saveNewInc(){
@@ -1923,25 +1862,9 @@ function saveNewComm(){
   var cif=document.getElementById('nc-cif').value||'—';
   var id='comm_'+Date.now();
   var ini=nombre.charAt(0).toUpperCase();
-  var colors=['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff','#fef9c3'];
-  var tcs=['#2563eb','#16a34a','#ea580c','#7c3aed','#ca8a04'];
-  var ci=Object.keys(COMUNIDADES).length%5;
-  COMUNIDADES[id]={
-    id:id, initial:ini, short:nombre, name:nombre,
-    sub:'Madrid · '+vec+' vecinos',
-    avStyle:'background:'+colors[ci]+';color:'+tcs[ci],
-    presidente:pres, president:pres,
-    cuota:cuota||'—', cif:cif||'—', morosos:'0',
-    badges:[{cls:'bg',txt:'Sin incidencias'}],
-    incIds:[], docIds:[],
-    juntas:[],
-    info:{vecinos:vec,plantas:'—',cp:'—'}
-  };
-  closeModal();
-  refreshDashboard();
-  refreshDocCommFilter();
-  // Re-render comunidades list
-  renderCommList();
+  var colors=['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff','#fef9c3']; var tcs=['#2563eb','#16a34a','#ea580c','#7c3aed','#ca8a04']; var ci=Object.keys(COMUNIDADES).length%5;
+  COMUNIDADES[id]={id:id,initial:ini,short:nombre,name:'Comunidad '+nombre,sub:'Madrid · '+vec+' vecinos',avStyle:'background:'+colors[ci]+';color:'+tcs[ci],presidente:pres,cuota:cuota,cif:cif,morosos:'0 vecinos',badges:[{cls:'bg',txt:'Sin incidencias'}],incIds:[],docIds:[],juntas:[],info:{vecinos:vec,plantas:'—',cp:'—'}};
+  closeModal(); syncCommunityRelations(); refreshDashboard(); refreshIncCommSelect(); renderDocs(); openComm(id);
 }
 
 // ══════════════════════════════════════════════
@@ -2031,6 +1954,7 @@ function openUserModal(id){
     +'<div class="card" style="padding:12px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px">PERMISOS</div>'
     +'<div style="font-size:13px;color:var(--ink2)">'+u.permisos+'</div></div>'
     +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="deleteUser(\''+u.id+'\')" style="background:#fef2f2;color:var(--red);border-color:#fca5a5">🗑 Borrar</button>'
     +'<button class="btn bs" onclick="closeModal()">Cerrar</button>'
     +'<button class="btn bp" onclick="openEditUserModal(\''+u.id+'\')">✏️ Editar</button>'
     +'</div></div>';
@@ -2067,12 +1991,14 @@ function saveEditUser(id){
   var u=USUARIOS.find(function(x){return x.id===id;});
   u.nombre=document.getElementById('eu-nombre').value.trim()||u.nombre;
   u.tipo=document.getElementById('eu-tipo').value;
+  u.rol=u.tipo==='Admin'?'Administrador principal':u.tipo==='Gestor'?'Gestora':'Solo lectura';
   u.email=document.getElementById('eu-email').value.trim()||u.email;
   u.tel=document.getElementById('eu-tel').value.trim()||u.tel;
   u.ini=u.nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
   closeModal();
   renderUsuarios();
 }
+function deleteUser(id){ USUARIOS=USUARIOS.filter(function(u){return u.id!==id;}); closeModal(); renderUsuarios(); }
 
 function openCreateUserModal(){
   document.getElementById('modal-title').textContent='Crear usuario';
@@ -2165,32 +2091,25 @@ function openCalendarioModal(){
 }
 
 function openNuevaJuntaModal(){
+  _juntaUploadData=null;
   document.getElementById('modal-title').textContent='Nueva junta';
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:11px">'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div>'
-    +'<select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option>C/ Goya 47</option><option>Pza. España 3</option><option>C/ Velázquez 12</option>'
-    +'</select></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div>'
-    +'<select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option>Ordinaria</option><option>Extraordinaria</option>'
-    +'</select></div>'
-    +'</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA *</div>'
-    +'<input type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">HORA</div>'
-    +'<input type="time" value="19:00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'</div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">LUGAR</div>'
-    +'<input placeholder="Sala comunitaria / Videoconferencia..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
-    +'<button class="btn bp" onclick="closeModal()">📅 Crear junta</button>'
-    +'</div></div>';
+  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div><select id="nj-comm" class="comm-dyn-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'+getCommOptions(currentCommId||Object.keys(COMUNIDADES)[0])+'</select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select id="nj-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Ordinaria</option><option>Extraordinaria</option></select></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA *</div><input id="nj-date" type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">HORA</div><input id="nj-time" type="time" value="19:00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">LUGAR</div><input id="nj-place" placeholder="Sala comunitaria / Videoconferencia..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ORDEN DEL DÍA / NOTAS</div><textarea id="nj-notes" rows="3" placeholder="Puntos principales de la junta..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical"></textarea></div><div id="nj-zone" style="border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer" onclick="document.getElementById(\'nj-file\').click()">Adjuntar convocatoria/acta<input type="file" id="nj-file" style="display:none" onchange="previewJuntaUploadFile(this)"></div><div id="nj-file-preview" style="display:none;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg)"><span>📎</span><div><div id="nj-file-name" style="font-weight:600"></div><div id="nj-file-meta" style="font-size:11px;color:var(--muted)"></div></div></div><div id="nj-err" style="display:none;font-size:12px;color:var(--red)">Comunidad y fecha son obligatorias.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveNuevaJunta()">📅 Crear junta</button></div></div>';
   document.getElementById('modal').style.display='flex';
+}
+
+var _juntaUploadData=null;
+function previewJuntaUploadFile(input){
+  if(!input.files||!input.files[0]) return;
+  var f=input.files[0]; var size=humanFileSize(f.size); document.getElementById('nj-file-preview').style.display='flex'; document.getElementById('nj-file-name').textContent=f.name; document.getElementById('nj-file-meta').textContent=(f.name.split('.').pop()||'FILE').toUpperCase()+' · '+size;
+  readFileData(f,function(res){ _juntaUploadData={name:f.name,meta:(f.name.split('.').pop()||'FILE').toUpperCase()+' · '+size,icon:f.type.includes('pdf')?'📄':'📋',mime:(res&&res.mime)||f.type||'application/octet-stream',dataUrl:(res&&res.dataUrl)||''}; });
+}
+function saveNuevaJunta(){
+  var commId=document.getElementById('nj-comm').value; var tipo=document.getElementById('nj-type').value; var dateVal=document.getElementById('nj-date').value;
+  if(!commId||!dateVal){document.getElementById('nj-err').style.display='';return;}
+  var d=new Date(dateVal+'T00:00:00'); var meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  COMUNIDADES[commId].juntas.unshift({mes:meses[d.getMonth()],dia:String(d.getDate()).padStart(2,'0'),name:tipo,hora:(document.getElementById('nj-time').value||'19:00')+'h · '+((document.getElementById('nj-place').value||'Sala comunitaria').trim()),badge:{cls:'bb',txt:'Convocada'},notes:(document.getElementById('nj-notes').value||'').trim()});
+  if(_juntaUploadData){ var docId=makeUid('doc'); var docName=_juntaUploadData.name||('Convocatoria '+tipo+' '+COMUNIDADES[commId].short); DOC_CONTENT[docId]={title:docName,body:attachmentPreviewMarkup({name:docName,meta:_juntaUploadData.meta,mime:_juntaUploadData.mime,dataUrl:_juntaUploadData.dataUrl})}; DOCS.unshift({id:docId,commId:commId,comm:COMUNIDADES[commId].short,icon:_juntaUploadData.icon||'📄',name:docName,meta:_juntaUploadData.meta,type:'acta',fecha:formatInputDate(dateVal),status:{cls:'by',txt:'Convocada'},content:docId,dataUrl:_juntaUploadData.dataUrl,mime:_juntaUploadData.mime}); }
+  _juntaUploadData=null; closeModal(); renderDocs(); refreshDashboard(); if(currentCommId===commId) showCommTab('juntas',null,true);
 }
 
 // ══════════════════════════════════════════════
@@ -2206,32 +2125,27 @@ function exportarDocs(){
   a.click();
 }
 
-function subirDocModal(){
+function subirDocModal(prefillCommId){
+  var selected=prefillCommId||currentCommId||Object.keys(COMUNIDADES)[0]; _docUploadData=null;
   document.getElementById('modal-title').textContent='Subir documento';
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:11px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div>'
-    +'<select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option>C/ Goya 47</option><option>Pza. España 3</option><option>C/ Velázquez 12</option>'
-    +'</select></div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div>'
-    +'<select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option>Acta</option><option>Contrato</option><option>Póliza</option><option>Factura</option><option>Presupuesto</option><option>Otro</option>'
-    +'</select></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA</div>'
-    +'<input type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'</div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div>'
-    +'<input placeholder="Ej: Acta junta ordinaria mar 2026" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div style="border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer">'
-    +'Clic para seleccionar archivo — máx. 50 MB'
-    +'</div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
-    +'<button class="btn bp" onclick="closeModal()">📤 Subir</button>'
-    +'</div></div>';
+  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div><select id="nd-comm" class="comm-dyn-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'+getCommOptions(selected)+'</select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select id="nd-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option value="acta">Acta</option><option value="contrato">Contrato</option><option value="poliza">Póliza</option><option value="factura">Factura</option><option value="presupuesto">Presupuesto</option><option value="otro">Otro</option></select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA</div><input id="nd-date" type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div><input id="nd-name" placeholder="Ej: Acta junta ordinaria mar 2026" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div id="nd-zone" style="border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer" onclick="document.getElementById(\'nd-file\').click()">Clic para seleccionar archivo — máx. 50 MB<input type="file" id="nd-file" style="display:none" onchange="previewDocUploadFile(this)"></div><div id="nd-file-preview" style="display:none;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg)"><span>📎</span><div><div id="nd-file-name" style="font-weight:600"></div><div id="nd-file-meta" style="font-size:11px;color:var(--muted)"></div></div></div><div id="nd-err" style="display:none;font-size:12px;color:var(--red)">Comunidad, nombre y archivo son obligatorios.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveUploadedDoc()">📤 Subir</button></div></div>';
   document.getElementById('modal').style.display='flex';
+}
+
+var _docUploadData=null;
+function previewDocUploadFile(input){
+  if(!input.files||!input.files[0]) return;
+  var f=input.files[0]; var icon=f.type.includes('image')?'📸':f.type.includes('pdf')?'📄':'📋'; var size=humanFileSize(f.size);
+  document.getElementById('nd-file-preview').style.display='flex'; document.getElementById('nd-file-name').textContent=f.name; document.getElementById('nd-file-meta').textContent=(f.name.split('.').pop()||'FILE').toUpperCase()+' · '+size;
+  readFileData(f,function(res){ _docUploadData={name:f.name,meta:(f.name.split('.').pop()||'FILE').toUpperCase()+' · '+size,icon:icon,mime:(res&&res.mime)||f.type||'application/octet-stream',dataUrl:(res&&res.dataUrl)||''}; });
+}
+function saveUploadedDoc(){
+  var commId=document.getElementById('nd-comm').value; var type=document.getElementById('nd-type').value; var fecha=formatInputDate(document.getElementById('nd-date').value); var name=(document.getElementById('nd-name').value||'').trim();
+  if(!commId||!name||!_docUploadData){document.getElementById('nd-err').style.display='';return;}
+  var comm=COMUNIDADES[commId]; var id=makeUid('doc');
+  DOC_CONTENT[id]={title:name,body:attachmentPreviewMarkup({name:name,meta:_docUploadData.meta,mime:_docUploadData.mime,dataUrl:_docUploadData.dataUrl})};
+  DOCS.unshift({id:id,commId:commId,comm:comm.short,icon:_docUploadData.icon||'📄',name:name,meta:_docUploadData.meta,type:type,fecha:fecha,status:{cls:'bg',txt:'Subido'},content:id,dataUrl:_docUploadData.dataUrl,mime:_docUploadData.mime});
+  _docUploadData=null; closeModal(); renderDocs(); refreshDashboard(); if(currentCommId===commId) showCommTab('documentos',null,true);
 }
 
 // ══════════════════════════════════════════════
@@ -2350,9 +2264,9 @@ function previewAadjFile(input){
   if(!input.files||!input.files[0])return;
   var f=input.files[0];
   var icon=f.type.includes('image')?'📸':f.type.includes('pdf')?'📄':'📋';
-  var size=(f.size/1024).toFixed(0)+' KB';
+  var size=humanFileSize(f.size);
   var ext=(f.name.split('.').pop()||'').toUpperCase();
-  _adjFileData={icon:icon,name:f.name,meta:ext+' · '+size,visible:true,isImage:f.type.includes('image')};
+  readFileData(f,function(res){ _adjFileData=normalizeAdjunto({id:makeUid('att'),icon:icon,name:f.name,meta:ext+' · '+size,visible:true,mime:(res&&res.mime)||f.type||'application/octet-stream',dataUrl:(res&&res.dataUrl)||''}); });
   document.getElementById('aadj-icon').textContent=icon;
   document.getElementById('aadj-name').textContent=f.name;
   document.getElementById('aadj-size').textContent=ext+' · '+size;
@@ -2365,16 +2279,12 @@ function saveAdjunto(){
   var vis=document.getElementById('aadj-visible').checked;
   _adjFileData.visible=vis;
   var inc=INCIDENCIAS[currentIncId];
-  inc.adjuntos.push(_adjFileData);
-  inc.timeline.push({
-    type:vis?'visible':'internal',
-    icon:'📎',
-    title:'Archivo adjunto: '+_adjFileData.name,
-    text:(vis?'Visible para el presidente.':'Solo visible para el despacho.'),
-    ts:'Ahora mismo'
-  });
+  inc.adjuntos.push(normalizeAdjunto(_adjFileData));
+  inc.timeline.push({type:vis?'visible':'internal',icon:'📎',title:'Archivo adjunto: '+_adjFileData.name,text:(vis?'Visible para el presidente.':'Solo visible para el despacho.'),ts:'Ahora mismo'});
   _adjFileData=null;
   closeModal();
+  renderDocs();
+  refreshDashboard();
   openInc(inc.commId,currentIncId,true);
 }
 
@@ -2447,19 +2357,11 @@ function refreshFilterCounts(){
 }
 
 function refreshDashboard(){
-  var allIncs=Object.values(INCIDENCIAS);
-  var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';});
-  var urgent=open.filter(function(i){return i.priority==='Urgente';});
-  var commsCount=Object.keys(COMUNIDADES).length;
-  var dbComms=document.getElementById('db-comms');
-  var dbIncs=document.getElementById('db-incs');
-  var dbUrg=document.getElementById('db-urg');
-  if(dbComms) dbComms.textContent=commsCount;
-  if(dbIncs) dbIncs.textContent=open.length;
-  if(dbUrg) dbUrg.textContent=urgent.length+' urgente'+(urgent.length!==1?'s':'');
-  renderDashIncs();
-  renderCommList();
-  refreshFilterCounts();
+  syncCommunityRelations();
+  var allIncs=Object.values(INCIDENCIAS); var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';}); var urgent=open.filter(function(i){return i.priority==='Urgente';});
+  var dbComms=document.getElementById('db-comms'); var dbIncs=document.getElementById('db-incs'); var dbUrg=document.getElementById('db-urg');
+  if(dbComms) dbComms.textContent=Object.keys(COMUNIDADES).length; if(dbIncs) dbIncs.textContent=open.length; if(dbUrg) dbUrg.textContent=urgent.length+' urgente'+(urgent.length!==1?'s':'');
+  renderDashIncs(); renderCommList(); refreshFilterCounts(); refreshSidebarBadges(); refreshDocCommFilter(); refreshDocsSummary();
 }
 
 // ══════════════════════════════════════════════
@@ -2475,34 +2377,12 @@ function getCommOptions(selectedId){
 function refreshDocCommFilter(){
   var filterBar=document.getElementById('docs-comm-filter');
   if(!filterBar)return;
-  var fixed=['goya','espana','velazquez'];
-  Object.keys(COMUNIDADES).forEach(function(id){
-    if(fixed.indexOf(id)>=0)return;
-    var already=filterBar.querySelector('[data-commid="'+id+'"]');
-    if(!already){
-      var c=COMUNIDADES[id];
-      var btn=document.createElement('button');
-      btn.className='filterbtn';
-      btn.setAttribute('data-commid',id);
-      btn.textContent=c.short;
-      btn.addEventListener('click',function(){
-        document.querySelectorAll('#screen-documentos .filterbtn').forEach(function(b){b.classList.remove('active');});
-        btn.classList.add('active');
-        docCommFilter=id;
-        renderDocs();
-      });
-      filterBar.appendChild(btn);
-    }
-  });
+  var html='<button class="filterbtn'+(docCommFilter==='todas'?' active':'')+'" onclick="filterDocsComm(\'todas\',this)">Todas</button>';
+  html+=Object.keys(COMUNIDADES).map(function(id){ var c=COMUNIDADES[id]; return '<button class="filterbtn'+(docCommFilter===id?' active':'')+'" data-commid="'+id+'" onclick="filterDocsComm(\''+id+'\',this)">'+escapeHtml(c.short)+'</button>'; }).join('');
+  filterBar.innerHTML=html;
 }
 
-function refreshIncCommSelect(){
-  // Refresh community selectors in open modals — called after saveNewComm
-  var sel=document.getElementById('ni-comm');
-  if(sel) sel.innerHTML=getCommOptions(sel.value);
-  var sel2=document.getElementById('nc-comm');
-  if(sel2) sel2.innerHTML=getCommOptions(sel2.value);
-}
+function refreshIncCommSelect(){ refreshAllCommunitySelectors(); }
 
 // ══════════════════════════════════════════════
 // CATEGORY MANAGEMENT for proveedores
@@ -2531,13 +2411,16 @@ function handleCatChange(sel){
 }
 
 
+syncCommunityRelations();
 renderProveedores();
 renderUsuarios();
 renderDocs();
 renderAllIncs();
 refreshDashboard();
 refreshDocCommFilter();
+refreshIncCommSelect();
 setNoteType('interna');
+openComm(currentCommId,true);
 </script>
 </body>
 </html>
