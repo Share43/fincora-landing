@@ -1155,22 +1155,22 @@ function goBack(){goNav(prevScreen==='inc-detalle'?'incidencias':prevScreen);}
 // COMUNIDAD
 // ══════════════════════════════════════════════
 function openComm(cid, skipNav){
+  var c=ensureCommunityShape(COMUNIDADES[cid]);
+  if(!c) return;
   currentCommId=cid;
-  const c=COMUNIDADES[cid];
-  document.getElementById('comm-bc').textContent=c.short;
-  document.getElementById('comm-name').textContent=c.name;
-  document.getElementById('comm-sub').textContent=c.sub;
-  const av=document.getElementById('comm-av');
-  av.textContent=c.initial||c.short.charAt(0);
-  av.style.cssText=c.avStyle;
-  document.getElementById('comm-badges').innerHTML=(c.badges||[]).map(b=>`<div class="badge ${b.cls}">${b.txt}</div>`).join('');
-  // Reset to first tab
-  document.querySelectorAll('#screen-comunidad .tab').forEach((t,i)=>{t.classList.toggle('active',i===0);});
+  document.getElementById('comm-bc').textContent=c.short||c.name||cid;
+  document.getElementById('comm-name').textContent=c.name||('Comunidad '+(c.short||cid));
+  document.getElementById('comm-sub').textContent=c.sub||'Madrid · — vecinos';
+  var av=document.getElementById('comm-av');
+  av.textContent=c.initial || (c.short||cid).charAt(0).toUpperCase();
+  av.style.cssText=(c.avStyle||'background:#eff6ff;color:#2563eb');
+  document.getElementById('comm-badges').innerHTML=(Array.isArray(c.badges)?c.badges:[]).map(function(b){ return '<div class="badge '+(b.cls||'bb')+'">'+escapeHtml(b.txt||'')+'</div>'; }).join('');
+  document.querySelectorAll('#screen-comunidad .tab').forEach(function(t,i){ t.classList.toggle('active',i===0); });
   showCommTab('incidencias', null, true);
   if(!skipNav){
-    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-    NIs().forEach(n=>n.classList.remove('active'));
-    NIs()[1].classList.add('active');
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    NIs().forEach(function(n){ n.classList.remove('active'); });
+    if(NIs()[1]) NIs()[1].classList.add('active');
   }
   document.getElementById('screen-comunidad').classList.add('active');
   window.scrollTo(0,0);
@@ -1178,48 +1178,53 @@ function openComm(cid, skipNav){
 
 function showCommTab(tab, btn, noToggle){
   if(!noToggle && btn){
-    document.querySelectorAll('#screen-comunidad .tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('#screen-comunidad .tab').forEach(function(t){ t.classList.remove('active'); });
     btn.classList.add('active');
   }
-  ['incidencias','documentos','juntas','info'].forEach(t=>{
+  ['incidencias','documentos','juntas','info'].forEach(function(t){
     document.getElementById('comm-tab-'+t).style.display=t===tab?'':'none';
   });
-  const c=COMUNIDADES[currentCommId];
+  var c=ensureCommunityShape(COMUNIDADES[currentCommId]);
+  if(!c) return;
   if(tab==='incidencias'){
-    const el=document.getElementById('comm-incs');
-    const incs=c.incIds.map(id=>INCIDENCIAS[id]).filter(Boolean);
-    el.innerHTML=(incs.length?incs.map(inc=>`
-      <div class="ir" onclick="openInc('${inc.commId}','${inc.id}')">
-        <div class="idot ${statusDot(inc.status)}"></div>
-        <div><div class="itl">${inc.title}</div><div class="imt">${inc.ref} · ${inc.status}</div></div>
-        <div class="irr"><div class="badge ${statusBadge(inc.status)}">${inc.priority}</div></div>
-      </div>`).join(''):'<div style="padding:16px;font-size:13px;color:var(--muted)">Sin incidencias activas.</div>');
+    var el=document.getElementById('comm-incs');
+    var incs=(c.incIds||[]).map(function(id){return INCIDENCIAS[id];}).filter(Boolean);
+    el.innerHTML=(incs.length?incs.map(function(inc){
+      return '<div class="ir" data-open-inc="'+inc.id+'" data-comm-id="'+inc.commId+'" style="cursor:pointer">'
+        +'<div class="idot '+statusDot(inc.status)+'"></div>'
+        +'<div><div class="itl">'+escapeHtml(inc.title||'Incidencia')+'</div><div class="imt">'+escapeHtml(inc.ref||'—')+' · '+escapeHtml(inc.status||'Nueva')+'</div></div>'
+        +'<div class="irr"><div class="badge '+statusBadge(inc.priority||'Normal')+'">'+escapeHtml(inc.priority||'Normal')+'</div></div>'
+        +'</div>';
+    }).join(''):'<div style="padding:16px;font-size:13px;color:var(--muted)">Sin incidencias activas.</div>');
   } else if(tab==='documentos'){
-    const el=document.getElementById('comm-docs-list');
-    const docs=DOCS.filter(d=>d.commId===currentCommId);
-    el.innerHTML=docs.map(d=>`
-      <div class="ir" onclick="openDoc('${d.id}')">
-        <div style="font-size:16px">${d.icon}</div>
-        <div><div class="itl">${d.name}</div><div class="imt">${d.meta}</div></div>
-        <div class="irr">${d.status?`<div class="badge ${d.status.cls}">${d.status.txt}</div>`:d.statusVb?`<div class="vb ${d.statusVb.cls}">${d.statusVb.txt}</div>`:''}</div>
-      </div>`).join('');
+    var el=document.getElementById('comm-docs-list');
+    var docs=DOCS.filter(function(d){return d.commId===currentCommId;});
+    el.innerHTML=docs.length?docs.map(function(d){
+      var st=d.status?'<div class="badge '+d.status.cls+'">'+d.status.txt+'</div>':d.statusVb?'<div class="vb '+d.statusVb.cls+'">'+d.statusVb.txt+'</div>':'';
+      return '<div class="ir" data-open-doc="'+d.id+'" style="cursor:pointer">'
+        +'<div style="font-size:16px">'+(d.icon||'📄')+'</div>'
+        +'<div><div class="itl">'+escapeHtml(d.name||'Documento')+'</div><div class="imt">'+escapeHtml(d.meta||'')+'</div></div>'
+        +'<div class="irr">'+st+'</div>'
+        +'</div>';
+    }).join(''):'<div style="padding:16px;font-size:13px;color:var(--muted)">Sin documentos registrados.</div>';
   } else if(tab==='juntas'){
-    const el=document.getElementById('comm-juntas-list');
-    const juntas=c.juntas||[];
-    el.innerHTML=juntas.length?juntas.map(j=>`
-      <div class="jr">
-        <div class="jdb"><div class="jday">${j.dia}</div><div class="jmon">${j.mes}</div></div>
-        <div><div style="font-size:13px;font-weight:600">${j.name}</div><div style="font-size:11px;color:var(--muted)">${j.hora}</div></div>
-        <div class="badge ${j.badge.cls}" style="margin-left:auto">${j.badge.txt}</div>
-      </div>`).join(''):'<div style="padding:16px;font-size:13px;color:var(--muted)">Sin juntas registradas.</div>';
+    var el=document.getElementById('comm-juntas-list');
+    var juntas=c.juntas||[];
+    el.innerHTML=juntas.length?juntas.map(function(j){
+      return '<div class="jr">'
+        +'<div class="jdb"><div class="jday">'+escapeHtml(j.dia||'—')+'</div><div class="jmon">'+escapeHtml(j.mes||'—')+'</div></div>'
+        +'<div><div style="font-size:13px;font-weight:600">'+escapeHtml(j.name||'Junta')+'</div><div style="font-size:11px;color:var(--muted)">'+escapeHtml(j.hora||'')+'</div></div>'
+        +'<div class="badge '+((j.badge&&j.badge.cls)||'bb')+'" style="margin-left:auto">'+escapeHtml((j.badge&&j.badge.txt)||'Programada')+'</div>'
+        +'</div>';
+    }).join(''):'<div style="padding:16px;font-size:13px;color:var(--muted)">Sin juntas registradas.</div>';
   } else if(tab==='info'){
-    const el=document.getElementById('comm-info-fields');
-    el.innerHTML=`
-      <div class="mf"><span class="mk">Presidente</span><span class="mv">${c.presidente}</span></div>
-      <div class="mf"><span class="mk">Cuota mensual</span><span class="mv">${c.cuota}</span></div>
-      <div class="mf"><span class="mk">CIF</span><span class="mv">${c.cif}</span></div>
-      <div class="mf"><span class="mk">Morosos</span><span class="mv" style="color:var(--red)">${c.morosos}</span></div>
-      <div class="mf"><span class="mk">Administrador</span><span class="mv">Miguel García</span></div>`;
+    var el=document.getElementById('comm-info-fields');
+    el.innerHTML=''
+      +'<div class="mf"><span class="mk">Presidente</span><span class="mv">'+escapeHtml(c.presidente||'Sin designar')+'</span></div>'
+      +'<div class="mf"><span class="mk">Cuota mensual</span><span class="mv">'+escapeHtml(c.cuota||'—')+'</span></div>'
+      +'<div class="mf"><span class="mk">CIF</span><span class="mv">'+escapeHtml(c.cif||'—')+'</span></div>'
+      +'<div class="mf"><span class="mk">Morosos</span><span class="mv" style="color:var(--red)">'+escapeHtml(c.morosos||'0 vecinos')+'</span></div>'
+      +'<div class="mf"><span class="mk">Administrador</span><span class="mv">Miguel García</span></div>';
   }
 }
 
@@ -1233,21 +1238,37 @@ function priorityBadgeFromStatus(s){return s==='Urgente'?'br':s==='En curso'?'bo
 function openInc(commId, incId, skipNav){
   prevScreen=currentCommId?'comunidad':'incidencias';
   currentCommId=commId; currentIncId=incId;
-  const inc=INCIDENCIAS[incId]; if(!inc) return;
-  document.getElementById('inc-bc').textContent=inc.title;
-  document.getElementById('inc-title-h').textContent=inc.title;
+  var inc=INCIDENCIAS[incId]; if(!inc) return;
+  ensureCommunityShape(COMUNIDADES[commId]);
+  if(!Array.isArray(inc.timeline)) inc.timeline=[];
+  if(!Array.isArray(inc.adjuntos)) inc.adjuntos=[];
+  document.getElementById('inc-bc').textContent=inc.title||'Incidencia';
+  document.getElementById('inc-title-h').textContent=inc.title||'Incidencia';
   document.getElementById('inc-icon').textContent=inc.icon||'⚠️';
   document.getElementById('inc-desc').textContent=inc.desc||'—';
-  document.getElementById('inc-badges').innerHTML='<div class="badge '+statusBadge(inc.priority)+'">'+inc.priority+'</div><div class="badge '+priorityBadgeFromStatus(inc.status)+'">'+inc.status+'</div><div class="badge bb">'+inc.category+'</div><span style="font-size:11px;color:var(--muted);margin-left:4px">'+inc.ref+'</span>';
-  renderStepper(inc.status);
+  document.getElementById('inc-badges').innerHTML=''
+    +'<div class="badge '+statusBadge(inc.priority||'Normal')+'">'+escapeHtml(inc.priority||'Normal')+'</div>'
+    +'<div class="badge '+priorityBadgeFromStatus(inc.status||'Nueva')+'">'+escapeHtml(inc.status||'Nueva')+'</div>'
+    +'<div class="badge bb">'+escapeHtml(inc.category||'General')+'</div>'
+    +'<span style="font-size:11px;color:var(--muted);margin-left:4px">'+escapeHtml(inc.ref||'—')+'</span>';
+  renderStepper(inc.status||'Nueva');
   renderTimeline(incId);
-  document.getElementById('inc-meta-fields').innerHTML='<div class="mf"><span class="mk">Comunidad</span><span class="mv" style="color:var(--accent);cursor:pointer" onclick="openComm(\''+commId+'\')">'+COMUNIDADES[commId].short+'</span></div><div class="mf"><span class="mk">Prioridad</span><span class="mv"><div class="badge '+statusBadge(inc.priority)+'">'+inc.priority+'</div></span></div><div class="mf"><span class="mk">Proveedor</span><span class="mv">'+(inc.proveedor||'Sin asignar')+'</span></div><div class="mf"><span class="mk">Gestor</span><span class="mv">'+(inc.gestor||'—')+'</span></div><div class="mf"><span class="mk">Apertura</span><span class="mv">'+(inc.apertura||'—')+'</span></div><div class="mf"><span class="mk">Est. resolución</span><span class="mv">'+(inc.estimada||'—')+'</span></div><div class="mf"><span class="mk">Próxima acción</span><span class="mv" style="font-size:11px;color:var(--muted);text-align:right;max-width:160px">'+(inc.nextAction||'—')+'</span></div>';
+  renderStatusBtns(incId);
+  var comm=COMUNIDADES[commId]||{short:commId};
+  document.getElementById('inc-meta-fields').innerHTML=''
+    +'<div class="mf"><span class="mk">Comunidad</span><span class="mv" style="color:var(--accent);cursor:pointer" data-open-comm="'+escapeHtml(commId)+'">'+escapeHtml(comm.short||comm.name||commId)+'</span></div>'
+    +'<div class="mf"><span class="mk">Prioridad</span><span class="mv"><div class="badge '+statusBadge(inc.priority||'Normal')+'">'+escapeHtml(inc.priority||'Normal')+'</div></span></div>'
+    +'<div class="mf"><span class="mk">Proveedor</span><span class="mv">'+escapeHtml(inc.proveedor||'Sin asignar')+'</span></div>'
+    +'<div class="mf"><span class="mk">Gestor</span><span class="mv">'+escapeHtml(inc.gestor||'—')+'</span></div>'
+    +'<div class="mf"><span class="mk">Apertura</span><span class="mv">'+escapeHtml(inc.apertura||'—')+'</span></div>'
+    +'<div class="mf"><span class="mk">Est. resolución</span><span class="mv">'+escapeHtml(inc.estimada||'—')+'</span></div>'
+    +'<div class="mf"><span class="mk">Próxima acción</span><span class="mv" style="font-size:11px;color:var(--muted);text-align:right;max-width:160px">'+escapeHtml(inc.nextAction||'—')+'</span></div>';
   document.getElementById('pv-estado').textContent=inc.status||'—';
   document.getElementById('pv-prov').textContent=inc.proveedor||'Sin asignar';
-  const rb=document.getElementById('inc-resolve-btn');
+  var rb=document.getElementById('inc-resolve-btn');
   if(inc.status==='En curso'||inc.status==='Pendiente de proveedor'||inc.status==='Pendiente de comunidad'){ rb.style.display=''; rb.onclick=function(){ resolveInc(incId); }; } else { rb.style.display='none'; }
-  document.getElementById('inc-adjuntos').innerHTML=(inc.adjuntos||[]).map(function(a){ normalizeAdjunto(a); return '<div style="display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto(\''+a.id+'\')"><span>'+a.icon+'</span><div style="font-size:12px"><div style="font-weight:500">'+escapeHtml(a.name)+'</div><div style="color:var(--muted)">'+escapeHtml(a.meta||'')+(a.visible?' · visible presidente':' · interno')+'</div></div><div class="badge '+(a.visible?'bg':'bb')+'" style="margin-left:auto">Ver</div></div>'; }).join('') || '<div style="font-size:13px;color:var(--muted)">Sin adjuntos todavía.</div>';
-  if(!skipNav){ document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');}); NIs().forEach(function(n){n.classList.remove('active');}); NIs()[2].classList.add('active'); }
+  document.getElementById('inc-adjuntos').innerHTML=(inc.adjuntos||[]).map(function(a){ normalizeAdjunto(a); return '<div style="display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" data-open-adjunto="'+a.id+'"><span>'+a.icon+'</span><div style="font-size:12px"><div style="font-weight:500">'+escapeHtml(a.name)+'</div><div style="color:var(--muted)">'+escapeHtml(a.meta||'')+(a.visible?' · visible presidente':' · interno')+'</div></div><div class="badge '+(a.visible?'bg':'bb')+'" style="margin-left:auto">Ver</div></div>'; }).join('') || '<div style="font-size:13px;color:var(--muted)">Sin adjuntos todavía.</div>';
+  if(!skipNav){ document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');}); NIs().forEach(function(n){n.classList.remove('active');}); if(NIs()[2]) NIs()[2].classList.add('active'); }
   showScreen('inc-detalle');
 }
 
@@ -1505,7 +1526,13 @@ function renderAllIncs(){
   var el=document.getElementById('all-incs-list'); if(!el)return; refreshDashboard();
   var allIncs=Object.values(INCIDENCIAS); var f=el._filter||'todas';
   var visible=allIncs.filter(function(i){ if(f==='todas') return true; if(f==='urgente') return i.priority==='Urgente'; if(f==='en-curso') return i.status==='En curso'; if(f==='pendiente') return i.status==='Pendiente de proveedor'||i.status==='Pendiente de comunidad'||i.status==='Nueva'||i.status==='Revisando'; return true;});
-  el.innerHTML=visible.map(function(inc){ var oc='openInc('+JSON.stringify(inc.commId)+','+JSON.stringify(inc.id)+')'; return '<div class="ir" onclick="'+oc+'"><div class="idot '+statusDot(inc.status)+'"></div><div style="flex:1"><div class="itl">'+escapeHtml(inc.title)+'</div><div class="imt">'+escapeHtml(COMUNIDADES[inc.commId].short)+' · '+escapeHtml(inc.ref)+' · '+escapeHtml(inc.status)+'</div></div><div class="irr"><div class="badge '+statusBadge(inc.priority)+'">'+escapeHtml(inc.priority)+'</div></div></div>'; }).join('') || '<div style="padding:16px;font-size:13px;color:var(--muted)">Sin incidencias para este filtro.</div>';
+  el.innerHTML=visible.map(function(inc){
+    return '<div class="ir" data-open-inc="'+inc.id+'" data-comm-id="'+inc.commId+'" style="cursor:pointer">'
+      +'<div class="idot '+statusDot(inc.status)+'"></div>'
+      +'<div style="flex:1"><div class="itl">'+escapeHtml(inc.title||'Incidencia')+'</div><div class="imt">'+escapeHtml((COMUNIDADES[inc.commId]&&COMUNIDADES[inc.commId].short)||inc.commId)+' · '+escapeHtml(inc.ref||'—')+' · '+escapeHtml(inc.status||'Nueva')+'</div></div>'
+      +'<div class="irr"><div class="badge '+statusBadge(inc.priority||'Normal')+'">'+escapeHtml(inc.priority||'Normal')+'</div></div>'
+      +'</div>';
+  }).join('') || '<div style="padding:16px;font-size:13px;color:var(--muted)">Sin incidencias para este filtro.</div>';
 }
 function filterIncs(f,btn){
   document.querySelectorAll('#screen-incidencias .filterbtn').forEach(function(b){b.classList.remove('active');});
@@ -1784,6 +1811,8 @@ function saveNewInc(){
   comm.badges=[{cls:openCount>0?'bo':'bg',txt:openCount+' incidencia'+(openCount!==1?'s':'')}];
   comm.sub=(comm.info&&comm.info.vecinos?comm.info.vecinos:comm.sub.split('·')[0].trim())+' · '+openCount+' incidencia'+(openCount!==1?'s':'');
   closeModal();
+  syncCommunityRelations();
+  refreshAllCommunitySelectors();
   renderAllIncs();
   refreshDashboard();
   if(currentCommId===commId){showCommTab('incidencias',null,true);}
@@ -1864,7 +1893,7 @@ function saveNewComm(){
   var ini=nombre.charAt(0).toUpperCase();
   var colors=['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff','#fef9c3']; var tcs=['#2563eb','#16a34a','#ea580c','#7c3aed','#ca8a04']; var ci=Object.keys(COMUNIDADES).length%5;
   COMUNIDADES[id]={id:id,initial:ini,short:nombre,name:'Comunidad '+nombre,sub:'Madrid · '+vec+' vecinos',avStyle:'background:'+colors[ci]+';color:'+tcs[ci],presidente:pres,cuota:cuota,cif:cif,morosos:'0 vecinos',badges:[{cls:'bg',txt:'Sin incidencias'}],incIds:[],docIds:[],juntas:[],info:{vecinos:vec,plantas:'—',cp:'—'}};
-  closeModal(); syncCommunityRelations(); refreshDashboard(); refreshIncCommSelect(); renderDocs(); openComm(id);
+  closeModal(); syncCommunityRelations(); refreshDashboard(); refreshIncCommSelect(); refreshAllCommunitySelectors(); renderDocs(); openComm(id);
 }
 
 // ══════════════════════════════════════════════
@@ -2300,18 +2329,20 @@ function renderCommList(){
   var palTc=['#2563eb','#16a34a','#ea580c','#7c3aed','#ca8a04'];
   var keys=Object.keys(COMUNIDADES);
   el.innerHTML=keys.map(function(id,i){
-    var c=COMUNIDADES[id];
-    var openIncs=c.incIds.filter(function(iid){return INCIDENCIAS[iid]&&INCIDENCIAS[iid].status!=='Resuelta'&&INCIDENCIAS[iid].status!=='Cerrada';}).length;
+    var c=ensureCommunityShape(COMUNIDADES[id]);
+    var openIncs=(c.incIds||[]).filter(function(iid){return INCIDENCIAS[iid]&&INCIDENCIAS[iid].status!=='Resuelta'&&INCIDENCIAS[iid].status!=='Cerrada';}).length;
     var avStyle=commColors[id]||(c.avStyle||('background:'+palBg[i%5]+';color:'+palTc[i%5]));
-    var ini=commInits[id]||(c.initial||c.short.charAt(0));
+    var ini=commInits[id]||(c.initial||(c.short||id).charAt(0).toUpperCase());
     var badgeHtml=openIncs>0?'<div class="badge bo">'+openIncs+' incidencia'+(openIncs!==1?'s':'')+'</div>':'<div class="badge bg">Sin incidencias</div>';
-    return '<div class="cr" onclick="openComm('+JSON.stringify(id)+')" style="padding:14px 16px">'
-      +'<div class="cav" style="width:40px;height:40px;font-size:15px;'+avStyle+'">'+ini+'</div>'
-      +'<div style="flex:1"><div class="cn" style="font-size:14px">'+c.name+'</div>'
-      +'<div class="csb">'+c.sub+'</div></div>'
+    return '<div class="cr" data-open-comm="'+id+'" style="padding:14px 16px;cursor:pointer">'
+      +'<div class="cav" style="width:40px;height:40px;font-size:15px;'+avStyle+'">'+escapeHtml(ini)+'</div>'
+      +'<div style="flex:1"><div class="cn" style="font-size:14px">'+escapeHtml(c.name||id)+'</div>'
+      +'<div class="csb">'+escapeHtml(c.sub||'—')+'</div></div>'
       +'<div class="cbdg">'+badgeHtml+'</div>'
       +'</div>';
   }).join('');
+  var t=document.querySelector('#screen-comunidades .ptitle');
+  if(t) t.textContent='Tus '+keys.length+' comunidades';
 }
 
 function renderDashIncs(){
@@ -2319,22 +2350,15 @@ function renderDashIncs(){
   if(!el)return;
   var allIncs=Object.values(INCIDENCIAS);
   var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';});
-  // Sort: urgente first, then by status
-  open.sort(function(a,b){
-    var pri={Urgente:0,Alta:1,Normal:2};
-    return (pri[a.priority]||2)-(pri[b.priority]||2);
-  });
+  open.sort(function(a,b){ var pri={Urgente:0,Alta:1,Normal:2}; return (pri[a.priority]||2)-(pri[b.priority]||2); });
   var shown=open.slice(0,6);
   el.innerHTML=shown.map(function(inc){
-    var oc='openInc('+JSON.stringify(inc.commId)+','+JSON.stringify(inc.id)+')';
-    var dot=statusDot(inc.status);
-    var bdg=statusBadge(inc.priority);
     var commShort=(COMUNIDADES[inc.commId]&&COMUNIDADES[inc.commId].short)||inc.commId;
-    return '<div class="ir" onclick="'+oc+'">'
-      +'<div class="idot '+dot+'"></div>'
-      +'<div><div class="itl">'+inc.title+'</div>'
-      +'<div class="imt">'+commShort+' · '+inc.ref+' · '+inc.status+'</div></div>'
-      +'<div class="irr"><div class="badge '+bdg+'">'+inc.priority+'</div></div>'
+    return '<div class="ir" data-open-inc="'+inc.id+'" data-comm-id="'+inc.commId+'" style="cursor:pointer">'
+      +'<div class="idot '+statusDot(inc.status)+'"></div>'
+      +'<div><div class="itl">'+escapeHtml(inc.title||'Incidencia')+'</div>'
+      +'<div class="imt">'+escapeHtml(commShort)+' · '+escapeHtml(inc.ref||'—')+' · '+escapeHtml(inc.status||'Nueva')+'</div></div>'
+      +'<div class="irr"><div class="badge '+statusBadge(inc.priority||'Normal')+'">'+escapeHtml(inc.priority||'Normal')+'</div></div>'
       +'</div>';
   }).join('') || '<div style="padding:16px;font-size:13px;color:var(--muted)">Sin incidencias activas.</div>';
 }
