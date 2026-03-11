@@ -578,6 +578,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
             </div>
           </div>
           <div class="card">
+            <div class="ch"><div class="ct">Cambiar estado</div></div>
+            <div style="padding:10px 16px;display:flex;gap:7px;flex-wrap:wrap" id="status-btns"></div>
+          </div>
+          <div class="card">
             <div class="ch"><div class="ct">Documentos adjuntos</div></div>
             <div id="inc-adjuntos"></div>
           </div>
@@ -724,7 +728,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
       <div class="card">
         <div class="ch">
           <div class="ct">✨ Borrador — Junta ordinaria Goya 47 (15 mar 2026)</div>
-          <div style="display:flex;gap:7px"><button class="btn bs" style="font-size:11px;padding:4px 9px">✏️ Editar</button><button class="btn bp" style="font-size:11px;padding:4px 9px">📥 Exportar PDF</button></div>
+          <div style="display:flex;gap:7px"><button class="btn bs" style="font-size:11px;padding:4px 9px" onclick="openActaEditor()">✏️ Editar</button><button class="btn bp" style="font-size:11px;padding:4px 9px" onclick="exportActaPDF()">📥 Exportar PDF</button></div>
         </div>
         <div style="padding:16px">
           <div class="acta-ai">✨ Borrador asistido — propuesta inicial a partir de notas y acuerdos · El administrador revisa antes de firmar</div>
@@ -751,29 +755,75 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   </div>
 
   <!-- ══════════════════════════════
-       PROVEEDORES (placeholder)
+       PROVEEDORES
   ══════════════════════════════ -->
   <div id="screen-proveedores" class="screen">
-    <div class="topbar"><div class="tbt">Proveedores</div></div>
+    <div class="topbar"><div class="tbt">Proveedores</div><div class="tbact"><button class="btn bp" onclick="openNewProvModal()">+ Añadir proveedor</button></div></div>
     <div class="content">
-      <div class="placeholder-screen">
-        <div class="ph-icon">🔧</div>
-        <div class="ph-title">Módulo de proveedores</div>
-        <div class="ph-sub">Directorio de empresas y autónomos por comunidad — disponible en la Fase 2 del producto.</div>
+      <div class="ptitle">Directorio de proveedores</div>
+      <div class="psub">Empresas y autónomos asignados a tus comunidades</div>
+      <div class="card">
+        <div class="ch"><div class="ct">Proveedores activos</div></div>
+        <div class="cr" onclick="openProvModal('Thyssenkrupp Elevadores S.L.','Ascensores','📞 91 234 56 78 · carlos.fernandez@thyssenkrupp.com','Goya 47','Contrato vigente hasta dic 2026')">
+          <div class="cav" style="background:#eff6ff;color:#2563eb">T</div>
+          <div><div class="cn">Thyssenkrupp Elevadores S.L.</div><div class="csb">Ascensores · C/ Goya 47</div></div>
+          <div class="cbdg"><div class="badge bg">Activo</div><div class="badge bb">🔗 INC-047</div></div>
+        </div>
+        <div class="cr" onclick="openProvModal('Fontanería López S.L.','Fontanería','📞 91 345 67 89 · lopez.fontaneria@gmail.com','Pza. España 3','Colaborador habitual · Sin contrato fijo')">
+          <div class="cav" style="background:#eff6ff;color:#2563eb">F</div>
+          <div><div class="cn">Fontanería López S.L.</div><div class="csb">Fontanería · Pza. España 3</div></div>
+          <div class="cbdg"><div class="badge bo">En obra</div><div class="badge bb">🔗 INC-031</div></div>
+        </div>
+        <div class="cr" onclick="openProvModal('Electricidad Martín S.L.','Electricidad','📞 91 456 78 90 · martin@electricidadmartin.es','Velázquez 12','Contrato mantenimiento eléctrico — vigente feb 2027')">
+          <div class="cav" style="background:#eff6ff;color:#2563eb">E</div>
+          <div><div class="cn">Electricidad Martín S.L.</div><div class="csb">Electricidad · Velázquez 12</div></div>
+          <div class="cbdg"><div class="badge bg">Activo</div><div class="badge bb">🔗 INC-048</div></div>
+        </div>
+        <div class="cr" onclick="openProvModal('Limpiezas García S.L.','Limpieza','📞 91 567 89 01 · info@limpiezasgarcia.com','Velázquez 12','Contrato limpieza — vence 15 abr 2026')">
+          <div class="cav" style="background:#fff7ed;color:#ea580c">L</div>
+          <div><div class="cn">Limpiezas García S.L.</div><div class="csb">Limpieza · Velázquez 12</div></div>
+          <div class="cbdg"><div class="vb urg">⚠ Contrato vence abr</div></div>
+        </div>
+        <div class="cr" onclick="openProvModal('Cubiertas Madrid S.L.','Estructura / Tejados','📞 91 678 90 12 · info@cubiertasmadrid.com','Goya 47','Presupuesto en proceso · Visita sem. 18 mar')">
+          <div class="cav" style="background:#f0fdf4;color:#16a34a">C</div>
+          <div><div class="cn">Cubiertas Madrid S.L.</div><div class="csb">Tejados · Goya 47</div></div>
+          <div class="cbdg"><div class="badge by">Pendiente visita</div></div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ══════════════════════════════
-       CONFIGURACIÓN (placeholder)
+       CONFIGURACIÓN
   ══════════════════════════════ -->
   <div id="screen-configuracion" class="screen">
     <div class="topbar"><div class="tbt">Configuración</div></div>
     <div class="content">
-      <div class="placeholder-screen">
-        <div class="ph-icon">⚙️</div>
-        <div class="ph-title">Configuración del despacho</div>
-        <div class="ph-sub">Gestión de usuarios, permisos y preferencias — disponible próximamente.</div>
+      <div class="ptitle">Configuración del despacho</div>
+      <div class="psub">Ajustes de la cuenta y del despacho</div>
+      <div class="twocol" style="max-width:680px">
+        <div class="card">
+          <div class="ch"><div class="ct">Despacho</div></div>
+          <div class="mf"><span class="mk">Nombre</span><span class="mv">García &amp; Asociados</span></div>
+          <div class="mf"><span class="mk">CIF</span><span class="mv">B-28123456</span></div>
+          <div class="mf"><span class="mk">Teléfono</span><span class="mv">91 123 45 67</span></div>
+          <div class="mf"><span class="mk">Email</span><span class="mv">info@garciaasociados.es</span></div>
+          <div class="mf"><span class="mk">Dirección</span><span class="mv">C/ Serrano 44, Madrid</span></div>
+          <div style="padding:12px 16px"><button class="btn bs" style="font-size:12px">✏️ Editar datos</button></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card">
+            <div class="ch"><div class="ct">Usuarios</div><button class="clk">+ Invitar</button></div>
+            <div class="cr" style="cursor:default"><div class="uav" style="width:28px;height:28px;font-size:12px">MG</div><div><div class="cn" style="font-size:13px">Miguel García</div><div class="csb">Administrador principal</div></div><div class="badge bg" style="margin-left:auto">Admin</div></div>
+            <div class="cr" style="cursor:default"><div class="uav" style="width:28px;height:28px;font-size:12px;background:#7c3aed">LS</div><div><div class="cn" style="font-size:13px">Laura Sáez</div><div class="csb">Gestora</div></div><div class="badge bb" style="margin-left:auto">Gestor</div></div>
+          </div>
+          <div class="card">
+            <div class="ch"><div class="ct">Notificaciones</div></div>
+            <div class="mf"><span class="mk">Email nuevas incidencias</span><span class="mv" style="color:var(--green)">✅ Activo</span></div>
+            <div class="mf"><span class="mk">Resumen semanal</span><span class="mv" style="color:var(--green)">✅ Activo</span></div>
+            <div class="mf"><span class="mk">Alertas vencimiento docs</span><span class="mv" style="color:var(--green)">✅ Activo</span></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1194,11 +1244,12 @@ function openInc(commId, incId, skipNav){
     rb.onclick=()=>resolveInc(incId);
   } else {rb.style.display='none';}
   document.getElementById('inc-adjuntos').innerHTML=inc.adjuntos.map(a=>`
-    <div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer">
+    <div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto('${a.name.replace(/'/g,"\\'")}','${a.icon}','${a.meta}')">
       <span>${a.icon}</span>
       <div style="font-size:12px"><div style="font-weight:500">${a.name}</div><div style="color:var(--muted)">${a.meta}</div></div>
-      ${a.visible?'<div class="badge bb" style="margin-left:auto">Ver</div>':'<div class="badge bgr" style="margin-left:auto">Solo despacho</div>'}
+      ${a.visible?'<div class="badge bb" style="margin-left:auto">Ver →</div>':'<div class="badge bgr" style="margin-left:auto">Solo despacho</div>'}
     </div>`).join('');
+  renderStatusBtns(incId);
   if(!skipNav){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     NIs().forEach(n=>n.classList.remove('active'));
@@ -1220,18 +1271,243 @@ function renderStepper(status){
 
 function renderTimeline(incId){
   const inc=INCIDENCIAS[incId];
-  document.getElementById('inc-timeline').innerHTML=inc.timeline.map(e=>`
-    <div class="tli ${e.type==='internal'?'internal':e.type==='visible'?'visible':''}">
+  document.getElementById('inc-timeline').innerHTML=inc.timeline.map((e,i)=>{
+    const canEdit=e.type==='internal'||e.type==='visible';
+    const editBtns=canEdit?`<div style="display:flex;gap:5px;margin-top:4px">
+      <button onclick="editNote('${incId}',${i})" style="font-size:10px;padding:2px 7px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-family:inherit">✏️ Editar</button>
+      <button onclick="deleteNote('${incId}',${i})" style="font-size:10px;padding:2px 7px;border-radius:5px;border:1px solid #fca5a5;background:#fef2f2;color:var(--red);cursor:pointer;font-family:inherit">🗑 Borrar</button>
+    </div>`:'';
+    return `<div class="tli ${e.type==='internal'?'internal':e.type==='visible'?'visible':''}">
       <div class="tld">${e.icon}</div>
-      <div>
+      <div style="flex:1">
         <div class="tlt">${e.title}</div>
         <div class="tltx">${e.text}</div>
         <div class="tlts">${e.ts}</div>
+        ${editBtns}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
-let noteTypeVal='interna';
+function editNote(incId, idx){
+  const inc=INCIDENCIAS[incId];
+  const e=inc.timeline[idx];
+  document.getElementById('modal-title').textContent='Editar nota';
+  document.getElementById('modal-body').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:12px;color:var(--muted)">${e.type==='internal'?'🔒 Nota interna':'👁 Actualización visible al presidente'}</div>
+      <textarea id="edit-note-text" rows="4" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical">${e.text}</textarea>
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn bs" onclick="closeModal()">Cancelar</button>
+        <button class="btn bp" onclick="saveEditNote('${incId}',${idx})">Guardar cambio</button>
+      </div>
+    </div>`;
+  document.getElementById('modal').style.display='flex';
+}
+
+function saveEditNote(incId, idx){
+  const inc=INCIDENCIAS[incId];
+  const newText=document.getElementById('edit-note-text').value.trim();
+  if(!newText)return;
+  inc.timeline[idx].text=newText;
+  inc.timeline[idx].ts+=' (editado)';
+  closeModal();
+  renderTimeline(incId);
+}
+
+function deleteNote(incId, idx){
+  const inc=INCIDENCIAS[incId];
+  inc.timeline.splice(idx,1);
+  renderTimeline(incId);
+}
+
+function renderStatusBtns(incId){
+  const inc=INCIDENCIAS[incId];
+  const ESTADOS=[
+    {label:'Nueva',cls:'bgr'},
+    {label:'Revisando',cls:'bb'},
+    {label:'En curso',cls:'bo'},
+    {label:'Pendiente de proveedor',cls:'by'},
+    {label:'Pendiente de comunidad',cls:'bpu'},
+    {label:'Resuelta',cls:'bg'},
+    {label:'Cerrada',cls:'bgr'},
+  ];
+  const el=document.getElementById('status-btns');
+  if(!el)return;
+  el.innerHTML=ESTADOS.map(s=>`
+    <button onclick="changeStatus('${incId}','${s.label}')" 
+      style="padding:5px 11px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:2px solid ${inc.status===s.label?'var(--accent)':'var(--border)'};background:${inc.status===s.label?'var(--al)':'var(--white)'};color:${inc.status===s.label?'var(--accent)':'var(--ink2)'};transition:all .12s">
+      ${s.label}
+    </button>`).join('');
+}
+
+function changeStatus(incId, newStatus){
+  const inc=INCIDENCIAS[incId];
+  const oldStatus=inc.status;
+  if(oldStatus===newStatus)return;
+  inc.status=newStatus;
+  inc.timeline.push({type:'event',icon:'🔄',title:`Estado cambiado a "${newStatus}"`,text:`Anterior: ${oldStatus}`,ts:'Ahora mismo'});
+  renderTimeline(incId);
+  renderStepper(newStatus);
+  renderStatusBtns(incId);
+  document.getElementById('pv-estado').textContent=newStatus;
+  if(newStatus==='Resuelta'){
+    document.getElementById('inc-resolve-btn').style.display='none';
+  } else {
+    document.getElementById('inc-resolve-btn').style.display='';
+  }
+  document.getElementById('inc-badges').innerHTML=`
+    <div class="badge ${statusBadge(inc.priority)}">${inc.priority}</div>
+    <div class="badge bo">${newStatus}</div>
+    <div class="badge bb">${inc.category}</div>
+    <span style="font-size:11px;color:var(--muted);margin-left:4px">${inc.ref}</span>`;
+}
+
+// Adjunto preview modal (for both inc and presidente views)
+function openAdjunto(name, icon, meta){
+  document.getElementById('modal-title').textContent=name;
+  document.getElementById('modal-body').innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:10px 0">
+      <div style="font-size:64px">${icon}</div>
+      <div style="text-align:center">
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px">${name}</div>
+        <div style="font-size:12px;color:var(--muted)">${meta}</div>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;width:100%;padding:40px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:160px">
+        <div style="font-size:32px">${icon}</div>
+        <div style="font-size:13px;color:var(--muted);text-align:center">Vista previa del documento<br><span style="font-size:11px">(En la versión real, el PDF o imagen se muestra aquí)</span></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn bs" onclick="closeModal()">Cerrar</button>
+        <button class="btn bp">📥 Descargar</button>
+      </div>
+    </div>`;
+  document.getElementById('modal').style.display='flex';
+}
+
+// Acta editor modal
+function openActaEditor(){
+  document.getElementById('modal-title').textContent='✏️ Editar borrador de acta';
+  document.getElementById('modal-body').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:12px;color:var(--muted)">Edita el texto del acta. Los cambios se guardan automáticamente al cerrar.</div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PUNTO 1 — APROBACIÓN ACTA ANTERIOR</div>
+        <textarea rows="2" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical">Se da lectura al acta de diciembre 2025. Aprobada por unanimidad.</textarea>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PUNTO 2 — INCIDENCIA ASCENSOR</div>
+        <textarea rows="3" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical">Motor de tracción averiado, pieza en pedido, est. resolución 13/03. Se acuerda acceso alternativo para vecina 4ºB. Aprobado por unanimidad.</textarea>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PUNTO 3 — PRESUPUESTO PINTURA</div>
+        <textarea rows="2" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical">Adjudicado a Reformas Madrid S.L. (3.850€). Aprobado por mayoría (28 favor, 2 abstenciones).</textarea>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px">
+        <button class="btn bs" onclick="closeModal()">Cancelar</button>
+        <button class="btn bp" onclick="closeModal()">💾 Guardar cambios</button>
+      </div>
+    </div>`;
+  document.getElementById('modal').style.display='flex';
+}
+
+function exportActaPDF(){
+  const actaHTML=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+  <title>Acta Junta Ordinaria — Goya 47 — 15 mar 2026</title>
+  <style>
+    body{font-family:Georgia,serif;max-width:680px;margin:40px auto;color:#1a1a1a;font-size:14px;line-height:1.7;}
+    h1{font-size:18px;text-align:center;margin-bottom:4px;}
+    h2{font-size:13px;text-align:center;font-weight:400;color:#555;margin-bottom:20px;}
+    h3{font-size:13px;font-weight:700;margin:18px 0 4px;text-transform:uppercase;letter-spacing:.5px;}
+    p{margin-bottom:8px;}
+    .meta{border-top:1px solid #ddd;border-bottom:1px solid #ddd;padding:10px 0;margin-bottom:18px;font-size:13px;}
+    .firmas{display:flex;gap:60px;margin-top:50px;}
+    .firma-box{flex:1;}
+    .firma-line{border-top:1px solid #333;margin-top:40px;padding-top:6px;font-size:12px;color:#555;}
+    .badge{display:inline-block;background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:4px;padding:1px 8px;font-size:11px;font-family:sans-serif;}
+    @media print{body{margin:20px;}}
+  </style></head><body>
+  <h1>ACTA DE JUNTA ORDINARIA DE PROPIETARIOS</h1>
+  <h2>Comunidad C/ Goya nº 47 · Madrid · 28001</h2>
+  <div class="meta">
+    <strong>Fecha:</strong> 15 de marzo de 2026 &nbsp;&nbsp;
+    <strong>Hora:</strong> 19:00h &nbsp;&nbsp;
+    <strong>Lugar:</strong> Sala comunitaria &nbsp;&nbsp;
+    <strong>Asistentes:</strong> 28 de 32 propietarios (87,5%) &nbsp;&nbsp;
+    <span class="badge">Quórum suficiente</span>
+  </div>
+  <p><strong>Presidente:</strong> D. Antonio Ruiz Moreno</p>
+  <p><strong>Secretario / Administrador:</strong> D. Miguel García · Despacho García &amp; Asociados</p>
+  <h3>Orden del día</h3>
+  <p>1. Lectura y aprobación del acta anterior.<br>
+  2. Estado de la incidencia del ascensor (INC-2026-047).<br>
+  3. Aprobación presupuesto pintura zonas comunes.<br>
+  4. Renovación contrato de limpieza 2026-2027.<br>
+  5. Ruegos y preguntas.</p>
+  <h3>Punto 1 — Aprobación del acta anterior</h3>
+  <p>Se da lectura al acta de la junta ordinaria de diciembre de 2025. Sometida a votación, resulta <strong>aprobada por unanimidad</strong> sin observaciones.</p>
+  <h3>Punto 2 — Incidencia ascensor</h3>
+  <p>El administrador informa del estado de la incidencia INC-2026-047: motor de tracción averiado, pieza en pedido urgente a Thyssenkrupp. Resolución estimada el 13/03/2026. Se acuerda gestionar acceso alternativo para la vecina del 4ºB (movilidad reducida) en caso de demora. <strong>Aprobado por unanimidad.</strong></p>
+  <h3>Punto 3 — Presupuesto pintura zonas comunes</h3>
+  <p>Se presentan dos presupuestos: Pinturas Castellana (4.200€) y Reformas Madrid S.L. (3.850€). La junta acuerda adjudicar los trabajos a <strong>Reformas Madrid S.L. por importe de 3.850€</strong>, con cargo al presupuesto ordinario 2026. <strong>Aprobado por mayoría: 28 votos a favor, 2 abstenciones.</strong></p>
+  <h3>Punto 4 — Renovación contrato limpieza</h3>
+  <p>Se propone la renovación del contrato con Limpiezas García S.L. por un año adicional (2026-2027) en las mismas condiciones (180€/mes). <strong>Aprobado por unanimidad.</strong></p>
+  <h3>Punto 5 — Ruegos y preguntas</h3>
+  <p>D.ª Elena Fernández (3ºA) pregunta por el estado del tejado. El administrador informa que la inspección de Cubiertas Madrid está prevista para la semana del 18/03. Sin más asuntos, se levanta la sesión a las 20:15h.</p>
+  <div class="firmas">
+    <div class="firma-box">
+      <p><strong>El Presidente:</strong></p>
+      <p>D. Antonio Ruiz Moreno</p>
+      <div class="firma-line">Firma</div>
+    </div>
+    <div class="firma-box">
+      <p><strong>El Secretario / Administrador:</strong></p>
+      <p>D. Miguel García</p>
+      <div class="firma-line">Firma</div>
+    </div>
+  </div>
+  <p style="margin-top:30px;font-size:11px;color:#888;text-align:center">Generado por Fincora · fincora.app · ${new Date().toLocaleDateString('es-ES')}</p>
+  </body></html>`;
+  const blob=new Blob([actaHTML],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const win=window.open(url,'_blank');
+  if(win){setTimeout(()=>{win.print();},600);}
+}
+
+function openProvModal(nombre, categoria, contacto, comunidad, notas){
+  document.getElementById('modal-title').textContent=nombre;
+  document.getElementById('modal-body').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">CATEGORÍA</div><div style="font-weight:600">${categoria}</div></div>
+        <div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">COMUNIDAD</div><div style="font-weight:600">${comunidad}</div></div>
+      </div>
+      <div class="card" style="padding:12px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px">CONTACTO</div><div style="font-size:13px">${contacto}</div></div>
+      <div class="card" style="padding:12px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px">NOTAS</div><div style="font-size:13px;color:var(--ink2)">${notas}</div></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px">
+        <button class="btn bs" onclick="closeModal()">Cerrar</button>
+        <button class="btn bp" onclick="closeModal()">✏️ Editar</button>
+      </div>
+    </div>`;
+  document.getElementById('modal').style.display='flex';
+}
+function openNewProvModal(){
+  document.getElementById('modal-title').textContent='Añadir proveedor';
+  document.getElementById('modal-body').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:11px">
+      <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div><input placeholder="Ej: Reformas Madrid S.L." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div><select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Fontanería</option><option>Electricidad</option><option>Ascensores</option><option>Limpieza</option><option>Pintura</option><option>Estructura</option><option>Otros</option></select></div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD</div><select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Todas</option><option>C/ Goya 47</option><option>Pza. España 3</option><option>C/ Velázquez 12</option></select></div>
+      </div>
+      <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TELÉFONO / EMAIL</div><input placeholder="91 000 00 00 · email@empresa.es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px">
+        <button class="btn bs" onclick="closeModal()">Cancelar</button>
+        <button class="btn bp" onclick="closeModal()">✅ Guardar proveedor</button>
+      </div>
+    </div>`;
+  document.getElementById('modal').style.display='flex';
+}
 function setNoteType(t){
   noteTypeVal=t;
   document.getElementById('tb-int').classList.toggle('active',t==='interna');
@@ -1264,17 +1540,7 @@ function addNote(){
 }
 
 function resolveInc(incId){
-  const inc=INCIDENCIAS[incId];
-  inc.status='Resuelta';
-  inc.timeline.push({type:'event',icon:'✅',title:'Incidencia resuelta',text:'Marcada como resuelta por Miguel García.',ts:'Ahora mismo'});
-  renderTimeline(incId);
-  renderStepper('Resuelta');
-  document.getElementById('pv-estado').textContent='Resuelta';
-  document.getElementById('inc-resolve-btn').style.display='none';
-  document.getElementById('inc-badges').innerHTML=`
-    <div class="badge bg">Resuelta</div>
-    <div class="badge bb">${inc.category}</div>
-    <span style="font-size:11px;color:var(--muted);margin-left:4px">${inc.ref}</span>`;
+  changeStatus(incId,'Resuelta');
 }
 
 function renderAllIncs(){
@@ -1324,10 +1590,10 @@ function openPresidente(){
     </div>`).join(''):'<div style="font-size:13px;color:var(--muted)">Sin actualizaciones todavía.</div>';
   const visibleAdj=inc.adjuntos.filter(a=>a.visible);
   document.getElementById('pres-adjuntos').innerHTML=visibleAdj.length?visibleAdj.map(a=>`
-    <div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdjunto('${a.name.replace(/'/g,"\\'")}','${a.icon}','${a.meta}')">
       <span>${a.icon}</span>
       <div style="font-size:12px"><div style="font-weight:500">${a.name}</div><div style="color:var(--muted)">${a.meta}</div></div>
-      <div class="badge bb" style="margin-left:auto">Ver</div>
+      <div class="badge bb" style="margin-left:auto">Ver →</div>
     </div>`).join(''):'<div style="padding:12px 16px;font-size:13px;color:var(--muted)">Sin documentos adjuntos visibles.</div>';
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-presidente').classList.add('active');
