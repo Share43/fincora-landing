@@ -387,8 +387,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     <div class="content">
       <div class="callout cb">📌 Estado de las 3 comunidades en un vistazo — sin abrir Excel ni hacer llamadas.</div>
       <div class="sr">
-        <div class="sc"><div class="slb">Comunidades</div><div class="sv">3</div><div class="ssb">Madrid</div></div>
-        <div class="sc urg"><div class="slb">Incidencias abiertas</div><div class="sv">5</div><div class="ssb">2 urgentes hoy</div></div>
+        <div class="sc"><div class="slb">Comunidades</div><div class="sv" id="db-comms">3</div><div class="ssb">Madrid</div></div>
+        <div class="sc urg"><div class="slb">Incidencias abiertas</div><div class="sv" id="db-incs">5</div><div class="ssb" id="db-urg">2 urgentes hoy</div></div>
         <div class="sc"><div class="slb">Juntas este mes</div><div class="sv">3</div><div class="ssb">Próxima: 15 mar</div></div>
         <div class="sc ok"><div class="slb">Docs por revisar</div><div class="sv">7</div><div class="ssb">2 vencen pronto</div></div>
       </div>
@@ -587,7 +587,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
             <div style="padding:10px 16px;display:flex;gap:7px;flex-wrap:wrap" id="status-btns"></div>
           </div>
           <div class="card">
-            <div class="ch"><div class="ct">Documentos adjuntos</div></div>
+            <div class="ch"><div class="ct">Documentos adjuntos</div><button class="clk" onclick="openAddAdjuntoModal()">+ Añadir</button></div>
             <div id="inc-adjuntos"></div>
           </div>
         </div>
@@ -665,10 +665,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
           </div>
           <div class="filterrow">
             <span style="font-size:12px;color:var(--muted)">Comunidad:</span>
-            <button class="filterbtn active" onclick="filterDocsComm('todas',this)">Todas</button>
+            <div id="docs-comm-filter" style="display:contents"><button class="filterbtn active" onclick="filterDocsComm('todas',this)">Todas</button>
             <button class="filterbtn" onclick="filterDocsComm('goya',this)">Goya 47</button>
             <button class="filterbtn" onclick="filterDocsComm('espana',this)">Pza. España 3</button>
-            <button class="filterbtn" onclick="filterDocsComm('velazquez',this)">Velázquez 12</button>
+            <button class="filterbtn" onclick="filterDocsComm('velazquez',this)">Velázquez 12</button></div>
           </div>
           <div class="card">
             <table class="dtable" id="docs-table">
@@ -1126,9 +1126,9 @@ function openComm(cid, skipNav){
   document.getElementById('comm-name').textContent=c.name;
   document.getElementById('comm-sub').textContent=c.sub;
   const av=document.getElementById('comm-av');
-  av.textContent=c.initial;
+  av.textContent=c.initial||c.short.charAt(0);
   av.style.cssText=c.avStyle;
-  document.getElementById('comm-badges').innerHTML=c.badges.map(b=>`<div class="badge ${b.cls}">${b.txt}</div>`).join('');
+  document.getElementById('comm-badges').innerHTML=(c.badges||[]).map(b=>`<div class="badge ${b.cls}">${b.txt}</div>`).join('');
   // Reset to first tab
   document.querySelectorAll('#screen-comunidad .tab').forEach((t,i)=>{t.classList.toggle('active',i===0);});
   showCommTab('incidencias', null, true);
@@ -1152,13 +1152,13 @@ function showCommTab(tab, btn, noToggle){
   const c=COMUNIDADES[currentCommId];
   if(tab==='incidencias'){
     const el=document.getElementById('comm-incs');
-    const incs=c.incIds.map(id=>INCIDENCIAS[id]);
-    el.innerHTML=incs.map(inc=>`
+    const incs=c.incIds.map(id=>INCIDENCIAS[id]).filter(Boolean);
+    el.innerHTML=(incs.length?incs.map(inc=>`
       <div class="ir" onclick="openInc('${inc.commId}','${inc.id}')">
         <div class="idot ${statusDot(inc.status)}"></div>
         <div><div class="itl">${inc.title}</div><div class="imt">${inc.ref} · ${inc.status}</div></div>
         <div class="irr"><div class="badge ${statusBadge(inc.status)}">${inc.priority}</div></div>
-      </div>`).join('')+'<div class="ir" style="cursor:default"><div class="idot dg"></div><div><div class="itl">Interfonos — revisión general</div><div class="imt">Resuelta hace 4 días · Electro Madrid</div></div><div class="irr"><div class="badge bg">Resuelta</div></div></div>';
+      </div>`).join(''):'<div style="padding:16px;font-size:13px;color:var(--muted)">Sin incidencias activas.</div>');
   } else if(tab==='documentos'){
     const el=document.getElementById('comm-docs-list');
     const docs=DOCS.filter(d=>d.commId===currentCommId);
@@ -1170,12 +1170,13 @@ function showCommTab(tab, btn, noToggle){
       </div>`).join('');
   } else if(tab==='juntas'){
     const el=document.getElementById('comm-juntas-list');
-    el.innerHTML=c.juntas.map(j=>`
+    const juntas=c.juntas||[];
+    el.innerHTML=juntas.length?juntas.map(j=>`
       <div class="jr">
         <div class="jdb"><div class="jday">${j.dia}</div><div class="jmon">${j.mes}</div></div>
         <div><div style="font-size:13px;font-weight:600">${j.name}</div><div style="font-size:11px;color:var(--muted)">${j.hora}</div></div>
         <div class="badge ${j.badge.cls}" style="margin-left:auto">${j.badge.txt}</div>
-      </div>`).join('');
+      </div>`).join(''):'<div style="padding:16px;font-size:13px;color:var(--muted)">Sin juntas registradas.</div>';
   } else if(tab==='info'){
     const el=document.getElementById('comm-info-fields');
     el.innerHTML=`
@@ -1511,6 +1512,7 @@ function openProvModal(nombre, categoria, contacto, comunidad, notas, importe){
 function renderAllIncs(){
   var el=document.getElementById('all-incs-list');
   if(!el)return;
+  refreshDashboard();
   var allIncs=Object.values(INCIDENCIAS);
   var visible=el._filter?allIncs.filter(function(i){return el._filter==='todas'||i.priority.toLowerCase()===el._filter||i.status.toLowerCase().replace(/ /g,'-')===el._filter;}):allIncs;
   el.innerHTML=visible.map(function(inc){
@@ -1733,8 +1735,8 @@ function openNewProvModal(){
     +'<input id="np-nombre" placeholder="Ej: Reformas Madrid S.L." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
     +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div>'
-    +'<select id="np-cat" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option>Fontanería</option><option>Electricidad</option><option>Ascensores</option><option>Limpieza</option><option>Pintura</option><option>Estructura</option><option>Tejados</option><option>Otros</option>'
+    +'<select id="np-cat" onchange="handleCatChange(this)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+    +getCatOptions('')
     +'</select></div>'
     +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD</div>'
     +'<select id="np-comm" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
@@ -1777,7 +1779,7 @@ function openNewIncModal(){
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
     +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div>'
     +'<select id="ni-comm" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option value="goya">C/ Goya 47</option><option value="espana">Pza. España 3</option><option value="velazquez">C/ Velázquez 12</option>'
+    +getCommOptions('')
     +'</select></div>'
     +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PRIORIDAD *</div>'
     +'<select id="ni-prior" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
@@ -1855,8 +1857,14 @@ function saveNewInc(){
     adjuntos:adjuntos
   };
   COMUNIDADES[commId].incIds.push(newId);
+  // Update community badge count
+  var comm=COMUNIDADES[commId];
+  var openCount=comm.incIds.filter(function(id){return INCIDENCIAS[id]&&INCIDENCIAS[id].status!=='Resuelta'&&INCIDENCIAS[id].status!=='Cerrada';}).length;
+  comm.badges=[{cls:openCount>0?'bo':'bg',txt:openCount+' incidencia'+(openCount!==1?'s':'')}];
+  comm.sub=(comm.info&&comm.info.vecinos?comm.info.vecinos:comm.sub.split('·')[0].trim())+' · '+openCount+' incidencia'+(openCount!==1?'s':'');
   closeModal();
   renderAllIncs();
+  refreshDashboard();
   if(currentCommId===commId){showCommTab('incidencias',null,true);}
   openInc(commId,newId);
 }
@@ -1933,19 +1941,29 @@ function openNewCommModal(){
 function saveNewComm(){
   var nombre=(document.getElementById('nc-nombre').value||'').trim();
   if(!nombre){document.getElementById('nc-err').style.display='';return;}
-  var vec=document.getElementById('nc-vec').value||'—';
+  var vec=document.getElementById('nc-vec').value||'0';
   var cuota=document.getElementById('nc-cuota').value||'—';
   var pres=document.getElementById('nc-pres').value||'Sin designar';
   var cif=document.getElementById('nc-cif').value||'—';
   var id='comm_'+Date.now();
+  var ini=nombre.charAt(0).toUpperCase();
+  var colors=['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff','#fef9c3'];
+  var tcs=['#2563eb','#16a34a','#ea580c','#7c3aed','#ca8a04'];
+  var ci=Object.keys(COMUNIDADES).length%5;
   COMUNIDADES[id]={
-    short:nombre,name:nombre,
-    sub:vec+' vecinos · 0 incidencias',
-    inc:0,incUrgent:false,
-    president:pres,cuota:cuota,cif:cif,morosos:'0',
-    presidente:pres,incIds:[],docIds:[]
+    id:id, initial:ini, short:nombre, name:nombre,
+    sub:'Madrid · '+vec+' vecinos',
+    avStyle:'background:'+colors[ci]+';color:'+tcs[ci],
+    presidente:pres, president:pres,
+    cuota:cuota||'—', cif:cif||'—', morosos:'0',
+    badges:[{cls:'bg',txt:'Sin incidencias'}],
+    incIds:[], docIds:[],
+    juntas:[],
+    info:{vecinos:vec,plantas:'—',cp:'—'}
   };
   closeModal();
+  refreshDashboard();
+  refreshDocCommFilter();
   // Re-render comunidades list
   var el=document.getElementById('comm-list');
   if(el){
@@ -2293,10 +2311,199 @@ document.addEventListener('keydown',function(e){
 // ══════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════
+
+// ══════════════════════════════════════════════
+// NOTE TYPE STATE + addNote (missing functions restored)
+// ══════════════════════════════════════════════
+var noteTypeVal='interna';
+
+function setNoteType(t){
+  noteTypeVal=t;
+  var btnInt=document.getElementById('tb-int');
+  var btnVis=document.getElementById('tb-vis');
+  if(btnInt) btnInt.classList.toggle('active',t==='interna');
+  if(btnVis) btnVis.classList.toggle('active',t==='visible');
+  var inp=document.getElementById('note-input');
+  if(inp) inp.placeholder=t==='interna'?'Nota interna (solo el despacho la ve)...':'Actualización visible para el presidente...';
+}
+
+function addNote(){
+  var input=document.getElementById('note-input');
+  if(!input)return;
+  var text=input.value.trim();
+  if(!text)return;
+  var inc=INCIDENCIAS[currentIncId];
+  if(!inc)return;
+  var isVisible=noteTypeVal==='visible';
+  var entry={
+    type:isVisible?'visible':'internal',
+    icon:isVisible?'💬':'📝',
+    title:isVisible?'Actualización para el presidente':'Nota interna',
+    text:text,
+    ts:'Ahora mismo',
+    editable:true
+  };
+  inc.timeline.push(entry);
+  renderTimeline(currentIncId);
+  input.value='';
+  var tl=document.getElementById('inc-timeline');
+  if(tl) tl.scrollTop=tl.scrollHeight;
+}
+
+// ══════════════════════════════════════════════
+// ADD ADJUNTO TO EXISTING INC
+// ══════════════════════════════════════════════
+function openAddAdjuntoModal(){
+  document.getElementById('modal-title').textContent='Añadir adjunto';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ARCHIVO *</div>'
+    +'<div id="aadj-zone" style="border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;font-size:13px;color:var(--muted);cursor:pointer" onclick="document.getElementById(\'aadj-file\').click()">'
+    +'📎 Clic para seleccionar archivo'
+    +'<input type="file" id="aadj-file" style="display:none" onchange="previewAadjFile(this)">'
+    +'</div>'
+    +'<div id="aadj-preview" style="display:none;margin-top:6px;padding:9px 12px;background:var(--bg);border-radius:8px;font-size:13px;display:flex;align-items:center;gap:9px">'
+    +'<span id="aadj-icon" style="font-size:18px">📄</span>'
+    +'<div><div id="aadj-name" style="font-weight:500"></div><div id="aadj-size" style="font-size:11px;color:var(--muted)"></div></div>'
+    +'</div>'
+    +'</div>'
+    +'<div style="display:flex;align-items:center;gap:8px">'
+    +'<input type="checkbox" id="aadj-visible" checked> '
+    +'<label for="aadj-visible" style="font-size:13px;cursor:pointer">Visible para el presidente</label>'
+    +'</div>'
+    +'<div id="aadj-err" style="display:none;font-size:12px;color:var(--red)">Selecciona un archivo primero.</div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
+    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
+    +'<button class="btn bp" onclick="saveAdjunto()">✅ Guardar adjunto</button>'
+    +'</div></div>';
+  document.getElementById('modal').style.display='flex';
+  _adjFileData=null;
+}
+
+var _adjFileData=null;
+function previewAadjFile(input){
+  if(!input.files||!input.files[0])return;
+  var f=input.files[0];
+  var icon=f.type.includes('image')?'📸':f.type.includes('pdf')?'📄':'📋';
+  var size=(f.size/1024).toFixed(0)+' KB';
+  var ext=(f.name.split('.').pop()||'').toUpperCase();
+  _adjFileData={icon:icon,name:f.name,meta:ext+' · '+size,visible:true,isImage:f.type.includes('image')};
+  document.getElementById('aadj-icon').textContent=icon;
+  document.getElementById('aadj-name').textContent=f.name;
+  document.getElementById('aadj-size').textContent=ext+' · '+size;
+  document.getElementById('aadj-preview').style.display='flex';
+  document.getElementById('aadj-zone').style.display='none';
+}
+
+function saveAdjunto(){
+  if(!_adjFileData){document.getElementById('aadj-err').style.display='';return;}
+  var vis=document.getElementById('aadj-visible').checked;
+  _adjFileData.visible=vis;
+  var inc=INCIDENCIAS[currentIncId];
+  inc.adjuntos.push(_adjFileData);
+  inc.timeline.push({
+    type:vis?'visible':'internal',
+    icon:'📎',
+    title:'Archivo adjunto: '+_adjFileData.name,
+    text:(vis?'Visible para el presidente.':'Solo visible para el despacho.'),
+    ts:'Ahora mismo'
+  });
+  _adjFileData=null;
+  closeModal();
+  openInc(inc.commId,currentIncId,true);
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD REFRESH
+// ══════════════════════════════════════════════
+function refreshDashboard(){
+  var allIncs=Object.values(INCIDENCIAS);
+  var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';});
+  var urgent=open.filter(function(i){return i.priority==='Urgente';});
+  var commsCount=Object.keys(COMUNIDADES).length;
+  var dbComms=document.getElementById('db-comms');
+  var dbIncs=document.getElementById('db-incs');
+  var dbUrg=document.getElementById('db-urg');
+  if(dbComms) dbComms.textContent=commsCount;
+  if(dbIncs) dbIncs.textContent=open.length;
+  if(dbUrg) dbUrg.textContent=urgent.length+' urgente'+(urgent.length!==1?'s':'');
+}
+
+// ══════════════════════════════════════════════
+// COMUNIDADES: full structure + dynamic selectors
+// ══════════════════════════════════════════════
+function getCommOptions(selectedId){
+  return Object.keys(COMUNIDADES).map(function(id){
+    var c=COMUNIDADES[id];
+    return '<option value="'+id+'"'+(selectedId===id?' selected':'')+'>'+c.short+'</option>';
+  }).join('');
+}
+
+function refreshDocCommFilter(){
+  var filterBar=document.getElementById('docs-comm-filter');
+  if(!filterBar)return;
+  var fixed=['goya','espana','velazquez'];
+  Object.keys(COMUNIDADES).forEach(function(id){
+    if(fixed.indexOf(id)>=0)return;
+    var already=filterBar.querySelector('[data-commid="'+id+'"]');
+    if(!already){
+      var c=COMUNIDADES[id];
+      var btn=document.createElement('button');
+      btn.className='filterbtn';
+      btn.setAttribute('data-commid',id);
+      btn.textContent=c.short;
+      btn.addEventListener('click',function(){
+        document.querySelectorAll('#screen-documentos .filterbtn').forEach(function(b){b.classList.remove('active');});
+        btn.classList.add('active');
+        docCommFilter=id;
+        renderDocs();
+      });
+      filterBar.appendChild(btn);
+    }
+  });
+}
+
+function refreshIncCommSelect(){
+  // Refresh community selectors in open modals — called after saveNewComm
+  var sel=document.getElementById('ni-comm');
+  if(sel) sel.innerHTML=getCommOptions(sel.value);
+  var sel2=document.getElementById('nc-comm');
+  if(sel2) sel2.innerHTML=getCommOptions(sel2.value);
+}
+
+// ══════════════════════════════════════════════
+// CATEGORY MANAGEMENT for proveedores
+// ══════════════════════════════════════────────
+var PROV_CATS=['Fontanería','Electricidad','Ascensores','Limpieza','Pintura','Estructura','Tejados','Cerrajería','Otros'];
+
+function getCatOptions(selected){
+  var opts=PROV_CATS.map(function(c){return '<option'+(c===selected?' selected':'')+'>'+c+'</option>';}).join('');
+  opts+='<option value="__new__">+ Nueva categoría...</option>';
+  return opts;
+}
+
+function handleCatChange(sel){
+  if(sel.value==='__new__'){
+    var name=(prompt('Nombre de la nueva categoría:','') || '').trim();
+    if(name&&PROV_CATS.indexOf(name)<0){
+      PROV_CATS.push(name);
+      var opt=document.createElement('option');
+      opt.value=name; opt.textContent=name; opt.selected=true;
+      sel.insertBefore(opt,sel.lastChild);
+      sel.value=name;
+    } else {
+      sel.value=PROV_CATS[0];
+    }
+  }
+}
+
+
 renderProveedores();
 renderUsuarios();
 renderDocs();
 renderAllIncs();
+refreshDashboard();
+refreshDocCommFilter();
 </script>
 </body>
 </html>
