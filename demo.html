@@ -1764,7 +1764,11 @@ function renderProveedores(){
       var st=String(i.status||'').trim();
       if(st==='Cerrada' || st==='Resuelta') return false;
       var iName=_normProvName(i.proveedor||'');
-      return !!pName && !!iName && (iName===pName || iName.indexOf(pName)!==-1 || pName.indexOf(iName)!==-1);
+      var nextTxt=_normProvName(i.nextAction||'');
+      return !!pName && (
+        (!!iName && (iName===pName || iName.indexOf(pName)!==-1 || pName.indexOf(iName)!==-1)) ||
+        (!!nextTxt && nextTxt.indexOf(pName)!==-1)
+      );
     });
     var linkedBadge = activeLinked ? ('🔗 '+(activeLinked.ref||activeLinked.id||'')) : '';
     var warnHtml='';
@@ -1774,7 +1778,7 @@ function renderProveedores(){
     if(p.warn && !(linkedBadge && _provWarnRef(p.warn||'')===_provWarnRef(linkedBadge))){
       warnHtml += '<div class="'+(p.warn.startsWith('⚠')?'vb urg':'badge bb')+'">'+p.warn+'</div>';
     }
-    return '<div class="cr" onclick="openProvModal(\''+p.id+'\')">'
+    return '<div class="cr" onclick="openProvModal(''+p.id+'')">'
       +'<div class="cav" style="background:'+p.color+';color:'+p.tc+'">'+ini+'</div>'
       +'<div><div class="cn">'+p.nombre+'</div><div class="csb">'+p.cat+' · '+p.comm+' · '+p.importe+'</div></div>'
       +'<div class="cbdg">'+(p.badge?'<div class="badge '+p.badge+'">'+p.badgeTxt+'</div>':'')+warnHtml+'</div>'
@@ -2006,6 +2010,7 @@ function saveAssignProv(incId){
   inc.timeline.push({type:'event',icon:'🔧',title:'Proveedor asignado: '+prov,text:old&&old!=='Sin asignar'?'Anterior: '+old+(nota?' · '+nota:nota):(nota||''),ts:'Ahora mismo'});
   if(prov&&prov!=='Sin asignar') inc.nextAction='Contactar con '+prov+' para visita';
   closeModal();
+  renderProveedores();
   openInc(inc.commId,incId,true);
 }
 
