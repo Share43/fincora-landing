@@ -2762,7 +2762,7 @@ function renderInlineDatePicker(targetId){
   pop.style.top=Math.min(window.innerHeight-20,r.bottom+8)+'px';
   var m=datePickerState.month, y=datePickerState.year;
   var first=new Date(y,m,1), jsStart=(first.getDay()+6)%7, days=new Date(y,m+1,0).getDate();
-  var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><button class="btn bs" type="button" onclick="datePickerState.month--; if(datePickerState.month<0){datePickerState.month=11;datePickerState.year--;} renderInlineDatePicker()">←</button><div style="font-weight:700">'+getMonthLong(m)+' '+y+'</div><button class="btn bs" type="button" onclick="datePickerState.month++; if(datePickerState.month>11){datePickerState.month=0;datePickerState.year++;} renderInlineDatePicker()">→</button></div>';
+  var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><button class="btn bs" type="button" onclick="prevDatePickerMonth(event); return false;">←</button><div style="font-weight:700">'+getMonthLong(m)+' '+y+'</div><button class="btn bs" type="button" onclick="nextDatePickerMonth(event); return false;">→</button></div>';
   html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px;line-height:2.2">';
   ['L','M','X','J','V','S','D'].forEach(function(d){ html+='<div style="font-weight:700;color:var(--muted)">'+d+'</div>'; });
   for(var i=0;i<jsStart;i++) html+='<div></div>';
@@ -2775,6 +2775,8 @@ function renderInlineDatePicker(targetId){
   pop.style.display='block';
 }
 function selectDatePicker(val){ var inp=document.getElementById(datePickerState.target); if(inp){ inp.value=val; inp.dispatchEvent(new Event('change')); } closeInlineDatePicker(); }
+function prevDatePickerMonth(ev){ if(ev&&ev.preventDefault) ev.preventDefault(); if(ev&&ev.stopPropagation) ev.stopPropagation(); datePickerState.month--; if(datePickerState.month<0){ datePickerState.month=11; datePickerState.year--; } renderInlineDatePicker(); }
+function nextDatePickerMonth(ev){ if(ev&&ev.preventDefault) ev.preventDefault(); if(ev&&ev.stopPropagation) ev.stopPropagation(); datePickerState.month++; if(datePickerState.month>11){ datePickerState.month=0; datePickerState.year++; } renderInlineDatePicker(); }
 
 function parseJuntaDate(j){ if(j.fecha) return parseDateFlexible(j.fecha); var monthMap={ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11}; var mm=monthMap[String(j.mes||'').slice(0,3).toLowerCase()]; if(mm==null) mm=(new Date()).getMonth(); var yy=j.year || 2026; if(!j.year && /completada/i.test(String(j.name||'')) && mm>2) yy=2025; return new Date(yy,mm,parseInt(j.dia||'1',10)); }
 function normalizeJuntasData(){ Object.keys(COMUNIDADES).forEach(function(cid){ var c=ensureCommunityShape(COMUNIDADES[cid]); c.juntas=(c.juntas||[]).map(function(j){ var dj=parseJuntaDate(j); var today=new Date(); today.setHours(0,0,0,0); var badge=j.badge||{cls:'bb',txt:'Convocada'}; if(j.name&&/completada/i.test(j.name)){ badge={cls:'bg',txt:'Completada'}; }
