@@ -389,7 +389,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
       <div class="sr">
         <div class="sc"><div class="slb">Comunidades</div><div class="sv" id="db-comms">3</div><div class="ssb">Madrid</div></div>
         <div class="sc urg"><div class="slb">Incidencias abiertas</div><div class="sv" id="db-incs">5</div><div class="ssb" id="db-urg">2 urgentes hoy</div></div>
-        <div class="sc"><div class="slb">Juntas este mes</div><div class="sv">3</div><div class="ssb">Próxima: 15 mar</div></div>
+        <div class="sc"><div class="slb">Juntas este mes</div><div class="sv" id="db-juntas">3</div><div class="ssb" id="db-next-junta">Próxima: 15 mar</div></div>
         <div class="sc ok"><div class="slb">Docs por revisar</div><div class="sv">7</div><div class="ssb">2 vencen pronto</div></div>
       </div>
       <div class="twocol">
@@ -399,9 +399,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="card">
-            <div class="ch"><div class="ct">📅 Próximas juntas</div><button class="clk" onclick="goNav('juntas')">Ver →</button></div>
-            <div class="jr"><div class="jdb"><div class="jday">15</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Ordinaria — C/ Goya 47</div><div style="font-size:11px;color:var(--muted)">19:00h · Sala comunitaria</div></div><div class="badge bb" style="margin-left:auto">Convocada</div></div>
-            <div class="jr"><div class="jdb"><div class="jday">22</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Extraordinaria — Pza. España 3</div><div style="font-size:11px;color:var(--muted)">18:30h · Videoconferencia</div></div><div class="badge by" style="margin-left:auto">Borrador</div></div>
+            <div class="ch"><div class="ct">📅 Próximas juntas</div><button class="clk" onclick="openCalendarioModal()">Ver todas →</button></div>
+            <div id="dashboard-juntas-list"></div>
           </div>
           <div class="card">
             <div class="ch"><div class="ct">🕐 Actividad reciente</div></div>
@@ -694,10 +693,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
       <div class="callout cp">✍️ Fincora genera una propuesta inicial a partir de tus notas — tú revisas, ajustas y firmas.</div>
       <div class="twocol" style="margin-bottom:12px">
         <div class="card">
-          <div class="ch"><div class="ct">📅 Próximas juntas</div></div>
-          <div class="jr"><div class="jdb"><div class="jday">15</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Ordinaria — C/ Goya 47</div><div style="font-size:11px;color:var(--muted)">19:00h · 32 vecinos</div></div><div class="badge bb" style="margin-left:auto">Convocada</div></div>
-          <div class="jr"><div class="jdb"><div class="jday">22</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Extraordinaria — Pza. España 3</div><div style="font-size:11px;color:var(--muted)">18:30h · Videoconferencia</div></div><div class="badge by" style="margin-left:auto">Borrador</div></div>
-          <div class="jr"><div class="jdb"><div class="jday">29</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Ordinaria — Velázquez 12</div><div style="font-size:11px;color:var(--muted)">18:00h · Sala comunitaria</div></div><div class="badge bgr" style="margin-left:auto">Sin convoca</div></div>
+          <div class="ch"><div class="ct">📅 Próximas juntas</div><button class="clk" onclick="openCalendarioModal()">Ver todas →</button></div>
+          <div id="juntas-summary-list"></div>
         </div>
         <div class="card">
           <div class="ch"><div class="ct">✅ Últimas actas</div></div>
@@ -985,7 +982,39 @@ let currentJuntasDraft={};
 function makeUid(prefix){return prefix+'_'+Date.now()+'_'+Math.floor(Math.random()*1000);} 
 function escapeHtml(str){return String(str||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
 function humanFileSize(bytes){return !bytes?'0 KB':(bytes/1024>=1024?((bytes/1024/1024).toFixed(1)+' MB'):Math.max(1,Math.round(bytes/1024))+' KB');}
-function formatInputDate(val){if(!val)return new Date().toLocaleDateString('es-ES'); var d=new Date(val+'T00:00:00'); return isNaN(d)?val:d.toLocaleDateString('es-ES');}
+function pad2(n){ return String(n).padStart(2,'0'); }
+function parseEsOrIsoDate(val){
+  if(!val) return null;
+  if(val instanceof Date) return isNaN(val)?null:val;
+  var s=String(val).trim();
+  var m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(m){ var d1=new Date(Number(m[3]), Number(m[2])-1, Number(m[1])); return isNaN(d1)?null:d1; }
+  var iso=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(iso){ var d2=new Date(Number(iso[1]), Number(iso[2])-1, Number(iso[3])); return isNaN(d2)?null:d2; }
+  var d3=new Date(s);
+  return isNaN(d3)?null:d3;
+}
+function formatInputDate(val){
+  if(!val) return new Date().toLocaleDateString('es-ES');
+  var d=parseEsOrIsoDate(val);
+  return d ? (pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'/'+d.getFullYear()) : String(val);
+}
+function toIsoDate(val){
+  var d=parseEsOrIsoDate(val);
+  return d ? (d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())) : '';
+}
+function normalizeTime24(val){
+  var s=String(val||'').trim();
+  if(!s) return '19:00';
+  var ampm=s.match(/^(\d{1,2}):(\d{2})\s*([AaPp][Mm])$/);
+  if(ampm){
+    var h=Number(ampm[1])%12; if(/pm/i.test(ampm[3])) h+=12;
+    return pad2(h)+':'+ampm[2];
+  }
+  var m=s.match(/^(\d{1,2}):(\d{2})$/);
+  if(m){ return pad2(Math.min(23, Number(m[1])))+':'+m[2]; }
+  return s;
+}
 function downloadBlob(url,name){var a=document.createElement('a'); a.href=url; a.download=name||'descarga'; a.rel='noopener'; a.style.display='none'; document.body.appendChild(a); a.click(); setTimeout(function(){ if(a.parentNode) a.parentNode.removeChild(a); if(String(url||'').indexOf('blob:')===0) try{URL.revokeObjectURL(url);}catch(e){} }, 200);}
 function readFileData(file, cb){ if(!file){cb(null);return;} var r=new FileReader(); r.onload=function(e){cb({dataUrl:e.target.result,mime:file.type||'application/octet-stream'});}; r.onerror=function(){cb({dataUrl:'',mime:file.type||'application/octet-stream'});}; r.readAsDataURL(file); }
 function makeImagePlaceholderDataUrl(att){
@@ -1329,8 +1358,47 @@ function showCommTab(tab, btn, noToggle){
       +'<div class="mf"><span class="mk">Cuota mensual</span><span class="mv">'+escapeHtml(c.cuota||'—')+'</span></div>'
       +'<div class="mf"><span class="mk">CIF</span><span class="mv">'+escapeHtml(c.cif||'—')+'</span></div>'
       +'<div class="mf"><span class="mk">Morosos</span><span class="mv" style="color:var(--red)">'+escapeHtml(c.morosos||'0 vecinos')+'</span></div>'
-      +'<div class="mf"><span class="mk">Administrador</span><span class="mv">Miguel García</span></div>';
+      +'<div class="mf"><span class="mk">Administrador</span><span class="mv">Miguel García</span></div>'
+      +'<div style="padding:12px 16px"><button class="btn bs" style="font-size:12px" onclick="openEditCommunityInfoModal()">✏️ Editar datos</button></div>';
   }
+}
+
+function openEditCommunityInfoModal(){
+  var c=ensureCommunityShape(COMUNIDADES[currentCommId]);
+  if(!c) return;
+  var vecinos=((c.info&&c.info.vecinos)||String(c.sub||'').match(/(\d+)/)||['','0'])[1] || '0';
+  var morosos=parseInt(c.morosos,10)||0;
+  document.getElementById('modal-title').textContent='Editar datos de la comunidad';
+  document.getElementById('modal-body').innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:11px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PRESIDENTE</div><input id="eci-pres" value="'+escapeHtml(c.presidente||'')+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">Nº VECINOS</div><input id="eci-vec" type="number" min="0" value="'+String(vecinos)+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">Nº MOROSOS</div><input id="eci-mor" type="number" min="0" value="'+String(morosos)+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CUOTA MENSUAL</div><input id="eci-cuota" value="'+escapeHtml(c.cuota||'')+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CIF</div><input id="eci-cif" value="'+escapeHtml(c.cif||'')+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveCommunityInfo()">💾 Guardar</button></div>'
+    +'</div>';
+  document.getElementById('modal').style.display='flex';
+}
+function saveCommunityInfo(){
+  var c=ensureCommunityShape(COMUNIDADES[currentCommId]);
+  if(!c) return;
+  var vecinos=document.getElementById('eci-vec').value||'0';
+  var morosos=document.getElementById('eci-mor').value||'0';
+  c.presidente=(document.getElementById('eci-pres').value||'').trim()||c.presidente;
+  c.cuota=(document.getElementById('eci-cuota').value||'').trim()||c.cuota;
+  c.cif=(document.getElementById('eci-cif').value||'').trim()||c.cif;
+  c.info=c.info||{};
+  c.info.vecinos=vecinos;
+  c.sub='Madrid · '+vecinos+' vecinos';
+  c.morosos=(Number(morosos)===1?'1 vecino':String(Number(morosos)||0)+' vecinos');
+  closeModal();
+  refreshDashboard();
+  showCommTab('info', null, true);
 }
 
 // ══════════════════════════════════════════════
@@ -2005,6 +2073,8 @@ function openNewCommModal(){
     +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CUOTA MENSUAL</div>'
     +'<input id="nc-cuota" placeholder="Ej: 85 €/mes" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
     +'</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">Nº MOROSOS</div>'
+    +'<input id="nc-morosos" type="number" min="0" placeholder="Ej: 2" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
     +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PRESIDENTE</div>'
     +'<input id="nc-pres" placeholder="Nombre del presidente" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
     +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CIF COMUNIDAD</div>'
@@ -2022,12 +2092,13 @@ function saveNewComm(){
   if(!nombre){document.getElementById('nc-err').style.display='';return;}
   var vec=document.getElementById('nc-vec').value||'0';
   var cuota=document.getElementById('nc-cuota').value||'—';
+  var mor=document.getElementById('nc-morosos').value||'0';
   var pres=document.getElementById('nc-pres').value||'Sin designar';
   var cif=document.getElementById('nc-cif').value||'—';
   var id='comm_'+Date.now();
   var ini=nombre.charAt(0).toUpperCase();
   var colors=['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff','#fef9c3']; var tcs=['#2563eb','#16a34a','#ea580c','#7c3aed','#ca8a04']; var ci=Object.keys(COMUNIDADES).length%5;
-  COMUNIDADES[id]={id:id,initial:ini,short:nombre,name:'Comunidad '+nombre,sub:'Madrid · '+vec+' vecinos',avStyle:'background:'+colors[ci]+';color:'+tcs[ci],presidente:pres,cuota:cuota,cif:cif,morosos:'0 vecinos',badges:[{cls:'bg',txt:'Sin incidencias'}],incIds:[],docIds:[],juntas:[],info:{vecinos:vec,plantas:'—',cp:'—'}};
+  COMUNIDADES[id]={id:id,initial:ini,short:nombre,name:'Comunidad '+nombre,sub:'Madrid · '+vec+' vecinos',avStyle:'background:'+colors[ci]+';color:'+tcs[ci],presidente:pres,cuota:cuota,cif:cif,morosos:(Number(mor)===1?'1 vecino':String(Number(mor)||0)+' vecinos'),badges:[{cls:'bg',txt:'Sin incidencias'}],incIds:[],docIds:[],juntas:[],info:{vecinos:vec,plantas:'—',cp:'—'}};
   closeModal(); syncCommunityRelations(); refreshDashboard(); refreshIncCommSelect(); refreshAllCommunitySelectors(); renderDocs(); openComm(id);
 }
 
@@ -2226,38 +2297,97 @@ function openInviteUserModal(){
 // ══════════════════════════════════════════════
 // JUNTAS MODALS
 // ══════════════════════════════════════════════
-function openCalendarioModal(){
+var CALENDAR_VIEW_DATE=new Date(2026,2,1);
+function monthNameEs(d){ return ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][d.getMonth()]+' '+d.getFullYear(); }
+function inferJuntaDate(j){
+  if(j.dateIso){ var d=parseEsOrIsoDate(j.dateIso); if(d) return d; }
+  if(j.dateEs){ var d2=parseEsOrIsoDate(j.dateEs); if(d2) return d2; }
+  var map={Ene:0,Feb:1,Mar:2,Abr:3,May:4,Jun:5,Jul:6,Ago:7,Sep:8,Oct:9,Nov:10,Dic:11};
+  var mon=(map[j.mes]!==undefined?map[j.mes]:0), day=parseInt(j.dia,10)||1;
+  return new Date(2026, mon, day);
+}
+function getAllJuntas(){
+  var out=[];
+  Object.keys(COMUNIDADES).forEach(function(cid){
+    var c=ensureCommunityShape(COMUNIDADES[cid]);
+    (c.juntas||[]).forEach(function(j,idx){
+      var date=inferJuntaDate(j);
+      out.push({id:(j.id||cid+'_j_'+idx), commId:cid, comm:c.short||cid, date:date, dia:pad2(date.getDate()), mes:['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][date.getMonth()], name:j.name||'Junta', hora:j.hora||'', badge:j.badge||{cls:'bb',txt:'Programada'}, notes:j.notes||''});
+    });
+  });
+  out.sort(function(a,b){ return a.date - b.date; });
+  return out;
+}
+function renderDashboardJuntas(){
+  var list=document.getElementById('dashboard-juntas-list');
+  var dbJ=document.getElementById('db-juntas');
+  var dbNext=document.getElementById('db-next-junta');
+  var all=getAllJuntas();
+  var now=new Date(2026,2,10);
+  var monthCount=all.filter(function(j){ return j.date.getMonth()===now.getMonth() && j.date.getFullYear()===now.getFullYear(); }).length;
+  var upcoming=all.filter(function(j){ return j.date >= now; });
+  if(dbJ) dbJ.textContent=monthCount;
+  if(dbNext) dbNext.textContent=upcoming.length ? ('Próxima: '+upcoming[0].dia+' '+upcoming[0].mes.toLowerCase()) : 'Sin próximas juntas';
+  if(list){
+    list.innerHTML=upcoming.slice(0,3).map(function(j){
+      return '<div class="jr"><div class="jdb"><div class="jday">'+j.dia+'</div><div class="jmon">'+j.mes+'</div></div><div><div style="font-size:13px;font-weight:600">'+escapeHtml(j.name)+' — '+escapeHtml(j.comm)+'</div><div style="font-size:11px;color:var(--muted)">'+escapeHtml(j.hora)+'</div></div><div class="badge '+((j.badge&&j.badge.cls)||'bb')+'" style="margin-left:auto">'+escapeHtml((j.badge&&j.badge.txt)||'Programada')+'</div></div>';
+    }).join('') || '<div style="padding:16px;font-size:13px;color:var(--muted)">Sin juntas próximas.</div>';
+  }
+  var main=document.getElementById('juntas-summary-list');
+  if(main){
+    main.innerHTML=upcoming.slice(0,4).map(function(j){
+      return '<div class="jr"><div class="jdb"><div class="jday">'+j.dia+'</div><div class="jmon">'+j.mes+'</div></div><div><div style="font-size:13px;font-weight:600">'+escapeHtml(j.name)+' — '+escapeHtml(j.comm)+'</div><div style="font-size:11px;color:var(--muted)">'+escapeHtml(j.hora)+'</div></div><div class="badge '+((j.badge&&j.badge.cls)||'bb')+'" style="margin-left:auto">'+escapeHtml((j.badge&&j.badge.txt)||'Programada')+'</div></div>';
+    }).join('') || '<div style="padding:16px;font-size:13px;color:var(--muted)">Sin juntas próximas.</div>';
+  }
+}
+function renderCalendarioModal(){
+  var current=CALENDAR_VIEW_DATE || new Date(2026,2,1);
+  var year=current.getFullYear(), month=current.getMonth();
+  var all=getAllJuntas().filter(function(j){ return j.date.getFullYear()===year && j.date.getMonth()===month; });
+  var first=new Date(year, month, 1);
+  var lastDay=new Date(year, month+1, 0).getDate();
+  var offset=(first.getDay()+6)%7;
+  var cells=[];
+  for(var i=0;i<offset;i++) cells.push('<div></div>');
+  for(var day=1; day<=lastDay; day++){
+    var dayEvents=all.filter(function(j){ return j.date.getDate()===day; });
+    if(dayEvents.length){
+      var color=dayEvents[0].badge && dayEvents[0].badge.cls==='by' ? '#ea580c' : dayEvents[0].badge && dayEvents[0].badge.cls==='bgr' ? '#8b8fa8' : '#2563eb';
+      cells.push('<div><span style="background:'+color+';color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">'+day+'</span></div>');
+    } else cells.push('<div>'+day+'</div>');
+  }
+  var legend=all.length ? all.map(function(j){
+    var color=j.badge && j.badge.cls==='by' ? '#ea580c' : j.badge && j.badge.cls==='bgr' ? '#8b8fa8' : '#2563eb';
+    return '<div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:'+color+';flex-shrink:0"></div><div><strong>'+j.dia+' '+j.mes.toLowerCase()+'</strong> '+escapeHtml(j.name)+' '+escapeHtml(j.comm)+' · '+escapeHtml(j.hora)+'</div></div>';
+  }).join('') : '<div style="font-size:13px;color:var(--muted)">No hay juntas en este mes.</div>';
   document.getElementById('modal-title').textContent='Calendario de juntas';
   document.getElementById('modal-body').innerHTML=
     '<div style="display:flex;flex-direction:column;gap:14px">'
     +'<div style="background:var(--bg);border-radius:10px;padding:16px">'
-    +'<div style="font-weight:700;text-align:center;margin-bottom:12px">Marzo 2026</div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><button class="btn bs" style="font-size:12px;padding:4px 9px" onclick="shiftCalendarioMonth(-1)">← Mes anterior</button><div style="font-weight:700;text-align:center">'+monthNameEs(current)+'</div><button class="btn bs" style="font-size:12px;padding:4px 9px" onclick="shiftCalendarioMonth(1)">Mes siguiente →</button></div>'
     +'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px;line-height:2.2">'
     +'<div style="font-weight:700;color:var(--muted)">L</div><div style="font-weight:700;color:var(--muted)">M</div><div style="font-weight:700;color:var(--muted)">X</div><div style="font-weight:700;color:var(--muted)">J</div><div style="font-weight:700;color:var(--muted)">V</div><div style="font-weight:700;color:var(--muted)">S</div><div style="font-weight:700;color:var(--muted)">D</div>'
-    +'<div></div><div></div><div></div><div></div><div></div><div>1</div><div>2</div>'
-    +'<div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div>'
-    +'<div>10</div><div>11</div><div>12</div><div>13</div><div>14</div>'
-    +'<div><span style="background:#2563eb;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">15</span></div>'
-    +'<div>16</div><div>17</div><div>18</div><div>19</div><div>20</div><div>21</div>'
-    +'<div><span style="background:#ea580c;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">22</span></div>'
-    +'<div>23</div><div>24</div><div>25</div><div>26</div><div>27</div><div>28</div>'
-    +'<div><span style="background:#8b8fa8;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">29</span></div>'
-    +'<div>30</div><div>31</div>'
+    +cells.join('')
     +'</div></div>'
-    +'<div style="display:flex;flex-direction:column;gap:8px;font-size:13px">'
-    +'<div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#2563eb;flex-shrink:0"></div><div><strong>15 mar</strong> Ordinaria Goya 47 · 19:00h · Sala comunitaria</div></div>'
-    +'<div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#ea580c;flex-shrink:0"></div><div><strong>22 mar</strong> Extraordinaria Pza. España 3 · 18:30h · Videoconferencia</div></div>'
-    +'<div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#8b8fa8;flex-shrink:0"></div><div><strong>29 mar</strong> Ordinaria Velázquez 12 · 18:00h · Sala comunitaria</div></div>'
-    +'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;font-size:13px">'+legend+'</div>'
     +'<div style="display:flex;justify-content:flex-end"><button class="btn bs" onclick="closeModal()">Cerrar</button></div>'
     +'</div>';
   document.getElementById('modal').style.display='flex';
+}
+function shiftCalendarioMonth(offset){
+  CALENDAR_VIEW_DATE=new Date(CALENDAR_VIEW_DATE.getFullYear(), CALENDAR_VIEW_DATE.getMonth()+offset, 1);
+  renderCalendarioModal();
+}
+function openCalendarioModal(){
+  var upcoming=getAllJuntas().filter(function(j){ return j.date >= new Date(2026,2,10); });
+  CALENDAR_VIEW_DATE=upcoming.length ? new Date(upcoming[0].date.getFullYear(), upcoming[0].date.getMonth(), 1) : new Date(2026,2,1);
+  renderCalendarioModal();
 }
 
 function openNuevaJuntaModal(){
   _juntaUploadData=null;
   document.getElementById('modal-title').textContent='Nueva junta';
-  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div><select id="nj-comm" class="comm-dyn-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'+getCommOptions(currentCommId||Object.keys(COMUNIDADES)[0])+'</select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select id="nj-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Ordinaria</option><option>Extraordinaria</option></select></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA *</div><input id="nj-date" type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">HORA</div><input id="nj-time" type="time" value="19:00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">LUGAR</div><input id="nj-place" placeholder="Sala comunitaria / Videoconferencia..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ORDEN DEL DÍA / NOTAS</div><textarea id="nj-notes" rows="3" placeholder="Puntos principales de la junta..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical"></textarea></div><div id="nj-zone" style="border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer" onclick="document.getElementById(\'nj-file\').click()">Adjuntar convocatoria/acta<input type="file" id="nj-file" style="display:none" onchange="previewJuntaUploadFile(this)"></div><div id="nj-file-preview" style="display:none;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg)"><span>📎</span><div><div id="nj-file-name" style="font-weight:600"></div><div id="nj-file-meta" style="font-size:11px;color:var(--muted)"></div></div></div><div id="nj-err" style="display:none;font-size:12px;color:var(--red)">Comunidad y fecha son obligatorias.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveNuevaJunta()">📅 Crear junta</button></div></div>';
+  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div><select id="nj-comm" class="comm-dyn-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'+getCommOptions(currentCommId||Object.keys(COMUNIDADES)[0])+'</select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select id="nj-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Ordinaria</option><option>Extraordinaria</option></select></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA *</div><input id="nj-date" type="text" placeholder="dd/mm/aaaa" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">HORA</div><input id="nj-time" type="text" value="19:00" placeholder="19:00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">LUGAR</div><input id="nj-place" placeholder="Sala comunitaria / Videoconferencia..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ORDEN DEL DÍA / NOTAS</div><textarea id="nj-notes" rows="3" placeholder="Puntos principales de la junta..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical"></textarea></div><div id="nj-zone" style="border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer" onclick="document.getElementById(\'nj-file\').click()">Adjuntar convocatoria/acta<input type="file" id="nj-file" style="display:none" onchange="previewJuntaUploadFile(this)"></div><div id="nj-file-preview" style="display:none;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg)"><span>📎</span><div><div id="nj-file-name" style="font-weight:600"></div><div id="nj-file-meta" style="font-size:11px;color:var(--muted)"></div></div></div><div id="nj-err" style="display:none;font-size:12px;color:var(--red)">Comunidad y fecha son obligatorias. Usa formato dd/mm/aaaa.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveNuevaJunta()">📅 Crear junta</button></div></div>';
   document.getElementById('modal').style.display='flex';
 }
 
@@ -2268,11 +2398,12 @@ function previewJuntaUploadFile(input){
   readFileData(f,function(res){ _juntaUploadData={name:f.name,meta:(f.name.split('.').pop()||'FILE').toUpperCase()+' · '+size,icon:f.type.includes('pdf')?'📄':'📋',mime:(res&&res.mime)||f.type||'application/octet-stream',dataUrl:(res&&res.dataUrl)||''}; });
 }
 function saveNuevaJunta(){
-  var commId=document.getElementById('nj-comm').value; var tipo=document.getElementById('nj-type').value; var dateVal=document.getElementById('nj-date').value;
-  if(!commId||!dateVal){document.getElementById('nj-err').style.display='';return;}
-  var d=new Date(dateVal+'T00:00:00'); var meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  COMUNIDADES[commId].juntas.unshift({mes:meses[d.getMonth()],dia:String(d.getDate()).padStart(2,'0'),name:tipo,hora:(document.getElementById('nj-time').value||'19:00')+'h · '+((document.getElementById('nj-place').value||'Sala comunitaria').trim()),badge:{cls:'bb',txt:'Convocada'},notes:(document.getElementById('nj-notes').value||'').trim()});
-  if(_juntaUploadData){ var docId=makeUid('doc'); var docName=_juntaUploadData.name||('Convocatoria '+tipo+' '+COMUNIDADES[commId].short); DOC_CONTENT[docId]={title:docName,body:attachmentPreviewMarkup({name:docName,meta:_juntaUploadData.meta,mime:_juntaUploadData.mime,dataUrl:_juntaUploadData.dataUrl})}; DOCS.unshift({id:docId,commId:commId,comm:COMUNIDADES[commId].short,icon:_juntaUploadData.icon||'📄',name:docName,meta:_juntaUploadData.meta,type:'acta',fecha:formatInputDate(dateVal),status:{cls:'by',txt:'Convocada'},content:docId,dataUrl:_juntaUploadData.dataUrl,mime:_juntaUploadData.mime}); }
+  var commId=document.getElementById('nj-comm').value; var tipo=document.getElementById('nj-type').value; var dateVal=(document.getElementById('nj-date').value||'').trim(); var dateIso=toIsoDate(dateVal);
+  if(!commId||!dateIso){document.getElementById('nj-err').style.display='';return;}
+  var d=parseEsOrIsoDate(dateIso); var meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var hora=normalizeTime24(document.getElementById('nj-time').value||'19:00');
+  COMUNIDADES[commId].juntas.unshift({id:makeUid('junta'),dateIso:dateIso,dateEs:formatInputDate(dateIso),mes:meses[d.getMonth()],dia:String(d.getDate()).padStart(2,'0'),name:tipo,hora:hora+' · '+((document.getElementById('nj-place').value||'Sala comunitaria').trim()),badge:{cls:'bb',txt:'Convocada'},notes:(document.getElementById('nj-notes').value||'').trim()});
+  if(_juntaUploadData){ var docId=makeUid('doc'); var docName=_juntaUploadData.name||('Convocatoria '+tipo+' '+COMUNIDADES[commId].short); DOC_CONTENT[docId]={title:docName,body:attachmentPreviewMarkup({name:docName,meta:_juntaUploadData.meta,mime:_juntaUploadData.mime,dataUrl:_juntaUploadData.dataUrl})}; DOCS.unshift({id:docId,commId:commId,comm:COMUNIDADES[commId].short,icon:_juntaUploadData.icon||'📄',name:docName,meta:_juntaUploadData.meta,type:'acta',fecha:formatInputDate(dateIso),status:{cls:'by',txt:'Convocada'},content:docId,dataUrl:_juntaUploadData.dataUrl,mime:_juntaUploadData.mime}); }
   _juntaUploadData=null; syncCommunityRelations(); closeModal(); renderDocs(); refreshDashboard(); refreshAllCommunitySelectors(); if(currentCommId===commId){ showCommTab('juntas',null,true); }
 }
 
@@ -2292,7 +2423,7 @@ function exportarDocs(){
 function subirDocModal(prefillCommId){
   var selected=prefillCommId||currentCommId||Object.keys(COMUNIDADES)[0]; _docUploadData=null;
   document.getElementById('modal-title').textContent='Subir documento';
-  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div><select id="nd-comm" class="comm-dyn-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'+getCommOptions(selected)+'</select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select id="nd-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option value="acta">Acta</option><option value="contrato">Contrato</option><option value="poliza">Póliza</option><option value="factura">Factura</option><option value="presupuesto">Presupuesto</option><option value="otro">Otro</option></select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA</div><input id="nd-date" type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ESTADO</div><select id="nd-status" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option value="vigente">Vigente / Activo</option><option value="firmada">Firmada</option><option value="pendiente">Pendiente</option><option value="auto">Automático por vencimiento</option></select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">VENCE (opcional)</div><input id="nd-expiry" type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div style="font-size:11px;color:var(--muted);background:var(--bg);padding:8px 10px;border-radius:8px">Estado: <strong>Vigente/Activo</strong> = documento utilizable. <strong>Pendiente</strong> = falta aprobación o revisión. Si indicas fecha de vencimiento, la demo avisará cuando se acerque el plazo.</div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div><input id="nd-name" placeholder="Ej: Acta junta ordinaria mar 2026" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div id="nd-zone" style="border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer" onclick="document.getElementById(\'nd-file\').click()">Clic para seleccionar archivo — máx. 50 MB<input type="file" id="nd-file" style="display:none" onchange="previewDocUploadFile(this)"></div><div id="nd-file-preview" style="display:none;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg)"><span>📎</span><div><div id="nd-file-name" style="font-weight:600"></div><div id="nd-file-meta" style="font-size:11px;color:var(--muted)"></div></div></div><div id="nd-err" style="display:none;font-size:12px;color:var(--red)">Comunidad, nombre y archivo son obligatorios.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveUploadedDoc()">📤 Subir</button></div></div>';
+  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div><select id="nd-comm" class="comm-dyn-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'+getCommOptions(selected)+'</select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select id="nd-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option value="acta">Acta</option><option value="contrato">Contrato</option><option value="poliza">Póliza</option><option value="factura">Factura</option><option value="presupuesto">Presupuesto</option><option value="otro">Otro</option></select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA</div><input id="nd-date" type="text" placeholder="dd/mm/aaaa" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ESTADO</div><select id="nd-status" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option value="vigente">Vigente / Activo</option><option value="firmada">Firmada</option><option value="pendiente">Pendiente</option><option value="auto">Automático por vencimiento</option></select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">VENCE (opcional)</div><input id="nd-expiry" type="text" placeholder="dd/mm/aaaa" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div style="font-size:11px;color:var(--muted);background:var(--bg);padding:8px 10px;border-radius:8px">Estado: <strong>Vigente/Activo</strong> = documento utilizable. <strong>Pendiente</strong> = falta aprobación o revisión. Si indicas fecha de vencimiento, la demo avisará cuando se acerque el plazo.</div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div><input id="nd-name" placeholder="Ej: Acta junta ordinaria mar 2026" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div id="nd-zone" style="border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer" onclick="document.getElementById(\'nd-file\').click()">Clic para seleccionar archivo — máx. 50 MB<input type="file" id="nd-file" style="display:none" onchange="previewDocUploadFile(this)"></div><div id="nd-file-preview" style="display:none;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg)"><span>📎</span><div><div id="nd-file-name" style="font-weight:600"></div><div id="nd-file-meta" style="font-size:11px;color:var(--muted)"></div></div></div><div id="nd-err" style="display:none;font-size:12px;color:var(--red)">Comunidad, nombre y archivo son obligatorios.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveUploadedDoc()">📤 Subir</button></div></div>';
   document.getElementById('modal').style.display='flex';
 }
 
@@ -2528,7 +2659,7 @@ function refreshDashboard(){
   var allIncs=Object.values(INCIDENCIAS); var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';}); var urgent=open.filter(function(i){return i.priority==='Urgente';});
   var dbComms=document.getElementById('db-comms'); var dbIncs=document.getElementById('db-incs'); var dbUrg=document.getElementById('db-urg');
   if(dbComms) dbComms.textContent=Object.keys(COMUNIDADES).length; if(dbIncs) dbIncs.textContent=open.length; if(dbUrg) dbUrg.textContent=urgent.length+' urgente'+(urgent.length!==1?'s':'');
-  renderDashIncs(); renderCommList(); refreshFilterCounts(); refreshSidebarBadges(); refreshDocCommFilter(); refreshDocsSummary();
+  renderDashIncs(); renderCommList(); refreshFilterCounts(); refreshSidebarBadges(); refreshDocCommFilter(); refreshDocsSummary(); renderDashboardJuntas();
 }
 
 // ══════════════════════════════════════════════
