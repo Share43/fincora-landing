@@ -2723,20 +2723,42 @@ saveEditProv = function(id){
   p.notas=(document.getElementById('ep-notas').value||'').trim()||p.notas;
   closeModal(); renderProveedores(); refreshProvSelect();
 };
+function _normProvName(v){
+  return String(v||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\b(s\.?l\.?u?|s\.?a\.?|s\.?l\.?l\.?|sociedad limitada|sociedad anonima)\b/g,'')
+    .replace(/\belevadores\b/g,'')
+    .replace(/\bservicios\b/g,'')
+    .replace(/\bcerrajerias\b/g,'cerrajeria')
+    .replace(/[^a-z0-9]+/g,' ')
+    .trim();
+}
+function _provWarnRef(v){
+  var m=String(v||'').match(/INC(?:-\d{4})?-?(\d{3,4})/i);
+  return m ? m[1] : '';
+}
 function deleteProv(id){
   var idx=PROVEEDORES.findIndex(function(x){return x.id===id;});
   if(idx<0) return;
   var prov=PROVEEDORES[idx];
+  var pName=_normProvName(prov.nombre||'');
+  var warnRef=_provWarnRef(prov.warn||'');
   var linked=(Object.values(INCIDENCIAS||{})).filter(function(i){
-    return String(i.proveedor||'').trim()===String(prov.nombre||'').trim()
-      && String(i.status||'').trim()!=='Cerrada';
+    var st=String(i.status||'').trim();
+    if(st==='Cerrada' || st==='Resuelta') return false;
+    var iName=_normProvName(i.proveedor||'');
+    var byName = !!pName && !!iName && (iName===pName || iName.indexOf(pName)!==-1 || pName.indexOf(iName)!==-1);
+    var refMatch = String(i.ref||'').match(/(\d{3,4})$/);
+    var byRef = !!warnRef && !!refMatch && refMatch[1]===warnRef;
+    return byName || byRef;
   });
   if(linked.length){
     var refs=linked.slice(0,3).map(function(i){ return i.ref||i.id||i.title||'sin referencia'; }).join(', ');
     var more=linked.length>3 ? (' y '+(linked.length-3)+' más') : '';
     alert(
       'No se puede borrar el proveedor "'+prov.nombre+'" porque tiene '
-      +linked.length+' incidencia'+(linked.length===1?'':'s')+' asignada'+(linked.length===1?'':'s')
+      +linked.length+' incidencia'+(linked.length===1?'':'s')+' activa'+(linked.length===1?'':'s')
       +(refs?': '+refs+more:'.')+'\n\n'
       +'Reasigna o cierra esas incidencias antes de borrarlo.'
     );
@@ -2748,6 +2770,7 @@ function deleteProv(id){
   renderProveedores();
   refreshProvSelect();
 }
+
 openNewProvModal = function(){
   document.getElementById('modal-title').textContent='Nuevo proveedor';
   document.getElementById('modal-body').innerHTML=`<div style="display:flex;flex-direction:column;gap:11px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div><input id="np-nombre" placeholder="Ej: Reformas Madrid S.L." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div><select id="np-cat" onchange="handleCatChange(this)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">${getCatOptions('')}</select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD</div><select id="np-comm" class="comm-dyn-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">${getCommOptions()}<option value="Todas">Todas</option></select></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TELÉFONO</div><input id="np-tel" placeholder="91 000 00 00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">EMAIL</div><input id="np-email" placeholder="email@empresa.es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">IMPORTE / CONTRATO</div><input id="np-importe" placeholder="Ej: 180 €/mes  ó  Por obra" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div id="np-err" style="display:none;font-size:12px;color:var(--red)">El nombre es obligatorio.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveNewProv()">✅ Guardar proveedor</button></div></div>`;
