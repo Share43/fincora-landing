@@ -833,7 +833,7 @@ const COMUNIDADES = {
     badges:[{cls:'bo',txt:'1 incidencia'}],
     incIds:['inc3'],
     docIds:['d6','d9'],
-    juntas:[{mes:'Mar',dia:'29',name:'Ordinaria',hora:'18:00h · Sala comunitaria',badge:{cls:'bgr',txt:'Sin convoca'}},{mes:'Dic',dia:'10',name:'Ordinaria (completada)',hora:'18:00h',badge:{cls:'bg',txt:'Completada'}}],
+    juntas:[{mes:'Mar',dia:'29',name:'Ordinaria',hora:'18:00h · Sala comunitaria',badge:{cls:'bgr',txt:'Sin convoca'}},{mes:'Dic',dia:'10',year:2025,name:'Ordinaria (completada)',hora:'18:00h',badge:{cls:'bg',txt:'Completada'}}],
   }
 };
 
@@ -2732,24 +2732,51 @@ saveNewProv = function(){
   closeModal(); renderProveedores(); refreshProvSelect();
 };
 
-// Date picker
+// Inline date picker (keeps current modal open)
 var datePickerState={target:null,month:null,year:null};
-function openDatePicker(targetId){
-  datePickerState.target=targetId; var inp=document.getElementById(targetId); var cur=parseDateFlexible(inp.value)||new Date(); datePickerState.month=cur.getMonth(); datePickerState.year=cur.getFullYear(); renderDatePickerModal();
+function ensureDatePopover(){
+  var el=document.getElementById('date-popover');
+  if(el) return el;
+  el=document.createElement('div');
+  el.id='date-popover';
+  el.style.cssText='display:none;position:fixed;z-index:4000;background:#fff;border:1px solid var(--border);box-shadow:0 16px 48px rgba(15,23,42,.18);border-radius:12px;padding:12px;min-width:280px';
+  document.body.appendChild(el);
+  return el;
 }
-function renderDatePickerModal(){
-  var m=datePickerState.month, y=datePickerState.year; var first=new Date(y,m,1); var jsStart=(first.getDay()+6)%7; var days=new Date(y,m+1,0).getDate();
-  var html='<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center"><button class="btn bs" onclick="datePickerState.month--; if(datePickerState.month<0){datePickerState.month=11;datePickerState.year--;} renderDatePickerModal()">← Mes anterior</button><div style="font-weight:700">'+getMonthLong(m)+' '+y+'</div><button class="btn bs" onclick="datePickerState.month++; if(datePickerState.month>11){datePickerState.month=0;datePickerState.year++;} renderDatePickerModal()">Mes siguiente →</button></div>';
-  html+='<div style="background:var(--bg);border-radius:10px;padding:16px"><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px;line-height:2.2">';
+function closeInlineDatePicker(){ var el=document.getElementById('date-popover'); if(el) el.style.display='none'; }
+document.addEventListener('click',function(ev){ var pop=document.getElementById('date-popover'); if(!pop||pop.style.display==='none') return; var t=ev.target; if(pop.contains(t)) return; if(t.closest&&t.closest('[data-date-target]')) return; closeInlineDatePicker(); });
+function openDatePicker(targetId){
+  datePickerState.target=targetId;
+  var inp=document.getElementById(targetId);
+  var cur=parseDateFlexible(inp&&inp.value)||new Date();
+  datePickerState.month=cur.getMonth();
+  datePickerState.year=cur.getFullYear();
+  renderInlineDatePicker(targetId);
+}
+function renderInlineDatePicker(targetId){
+  var pop=ensureDatePopover();
+  var inp=document.getElementById(targetId||datePickerState.target);
+  if(!inp) return;
+  var r=inp.getBoundingClientRect();
+  pop.style.left=Math.max(12,Math.min(window.innerWidth-310,r.left))+'px';
+  pop.style.top=Math.min(window.innerHeight-20,r.bottom+8)+'px';
+  var m=datePickerState.month, y=datePickerState.year;
+  var first=new Date(y,m,1), jsStart=(first.getDay()+6)%7, days=new Date(y,m+1,0).getDate();
+  var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><button class="btn bs" type="button" onclick="datePickerState.month--; if(datePickerState.month<0){datePickerState.month=11;datePickerState.year--;} renderInlineDatePicker()">←</button><div style="font-weight:700">'+getMonthLong(m)+' '+y+'</div><button class="btn bs" type="button" onclick="datePickerState.month++; if(datePickerState.month>11){datePickerState.month=0;datePickerState.year++;} renderInlineDatePicker()">→</button></div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px;line-height:2.2">';
   ['L','M','X','J','V','S','D'].forEach(function(d){ html+='<div style="font-weight:700;color:var(--muted)">'+d+'</div>'; });
   for(var i=0;i<jsStart;i++) html+='<div></div>';
-  for(var day=1; day<=days; day++){ var disp=pad2(day)+'/'+pad2(m+1)+'/'+y; html+='<button type="button" onclick="selectDatePicker(\''+disp+'\')" style="border:0;background:#fff;border-radius:50%;width:32px;height:32px;justify-self:center;cursor:pointer">'+day+'</button>'; }
-  html+='</div></div><div style="display:flex;justify-content:flex-end"><button class="btn bs" onclick="closeModal()">Cerrar</button></div></div>';
-  document.getElementById('modal-title').textContent='Seleccionar fecha'; document.getElementById('modal-body').innerHTML=html; document.getElementById('modal').style.display='flex';
+  for(var day=1; day<=days; day++){
+    var disp=pad2(day)+'/'+pad2(m+1)+'/'+y;
+    html+='<button type="button" onclick="selectDatePicker(\''+disp+'\')" style="border:0;background:#fff;border-radius:8px;height:32px;cursor:pointer">'+day+'</button>';
+  }
+  html+='</div>';
+  pop.innerHTML=html;
+  pop.style.display='block';
 }
-function selectDatePicker(val){ var inp=document.getElementById(datePickerState.target); if(inp){ inp.value=val; inp.dispatchEvent(new Event('change')); } closeModal(); }
+function selectDatePicker(val){ var inp=document.getElementById(datePickerState.target); if(inp){ inp.value=val; inp.dispatchEvent(new Event('change')); } closeInlineDatePicker(); }
 
-function parseJuntaDate(j){ if(j.fecha) return parseDateFlexible(j.fecha); var monthMap={ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11}; var mm=monthMap[String(j.mes||'').slice(0,3).toLowerCase()]; if(mm==null) mm=(new Date()).getMonth(); var yy=j.year || 2026; return new Date(yy,mm,parseInt(j.dia||'1',10)); }
+function parseJuntaDate(j){ if(j.fecha) return parseDateFlexible(j.fecha); var monthMap={ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11}; var mm=monthMap[String(j.mes||'').slice(0,3).toLowerCase()]; if(mm==null) mm=(new Date()).getMonth(); var yy=j.year || 2026; if(!j.year && /completada/i.test(String(j.name||'')) && mm>2) yy=2025; return new Date(yy,mm,parseInt(j.dia||'1',10)); }
 function normalizeJuntasData(){ Object.keys(COMUNIDADES).forEach(function(cid){ var c=ensureCommunityShape(COMUNIDADES[cid]); c.juntas=(c.juntas||[]).map(function(j){ var dj=parseJuntaDate(j); var today=new Date(); today.setHours(0,0,0,0); var badge=j.badge||{cls:'bb',txt:'Convocada'}; if(j.name&&/completada/i.test(j.name)){ badge={cls:'bg',txt:'Completada'}; }
       if(dj<today && !/Convocada|Borrador|Sin convoca|Programada/i.test(badge.txt||'') && !/Completada/i.test(badge.txt||'')){ badge={cls:'bg',txt:'Completada'}; }
       if(dj>=today && /Completada/i.test(badge.txt||'')){ badge={cls:'bb',txt:'Convocada'}; }
@@ -2771,7 +2798,7 @@ openNuevaJuntaModal = function(){
         <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select id="nj-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Ordinaria</option><option>Extraordinaria</option></select></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA *</div><input id="nj-date" type="date" lang="es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA *</div><div style="display:flex;gap:6px"><input id="nj-date" readonly placeholder="dd/mm/aaaa" data-date-target="nj-date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;cursor:pointer" onclick="openDatePicker('nj-date')"><button class="btn bs" type="button" data-date-target="nj-date" onclick="openDatePicker('nj-date')">📅</button></div></div>
         <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">HORA</div><input id="nj-time" type="text" inputmode="numeric" placeholder="19:00" value="19:00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
       </div>
       <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">LUGAR</div><input id="nj-place" placeholder="Sala comunitaria / Videoconferencia..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
@@ -2819,11 +2846,11 @@ subirDocModal = function(prefillCommId){
       <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div><select id="nd-comm" class="comm-dyn-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">${getCommOptions(selected)}</select></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select id="nd-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option value="acta">Acta</option><option value="contrato">Contrato</option><option value="poliza">Póliza</option><option value="factura">Factura</option><option value="presupuesto">Presupuesto</option><option value="otro">Otro</option></select></div>
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA</div><div style="display:flex;gap:6px"><input id="nd-date" readonly placeholder="dd/mm/aaaa" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;cursor:pointer" onclick="openDatePicker('nd-date')"><button class="btn bs" type="button" onclick="openDatePicker('nd-date')">📅</button></div></div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA</div><div style="display:flex;gap:6px"><input id="nd-date" readonly placeholder="dd/mm/aaaa" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;cursor:pointer" data-date-target="nd-date" onclick="openDatePicker('nd-date')"><button class="btn bs" type="button" data-date-target="nd-date" data-date-target="nd-date" onclick="openDatePicker('nd-date')">📅</button></div></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ESTADO</div><select id="nd-status" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option value="vigente">Vigente / Activo</option><option value="firmada">Firmada</option><option value="pendiente">Pendiente</option><option value="auto">Automático por vencimiento</option></select></div>
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">VENCE (opcional)</div><div style="display:flex;gap:6px"><input id="nd-expiry" readonly placeholder="dd/mm/aaaa" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;cursor:pointer" onclick="openDatePicker('nd-expiry')"><button class="btn bs" type="button" onclick="openDatePicker('nd-expiry')">📅</button></div></div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">VENCE (opcional)</div><div style="display:flex;gap:6px"><input id="nd-expiry" readonly placeholder="dd/mm/aaaa" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;cursor:pointer" data-date-target="nd-expiry" onclick="openDatePicker('nd-expiry')"><button class="btn bs" type="button" data-date-target="nd-expiry" data-date-target="nd-expiry" onclick="openDatePicker('nd-expiry')">📅</button></div></div>
       </div>
       <div style="font-size:11px;color:var(--muted);background:var(--bg);padding:8px 10px;border-radius:8px">Estado: <strong>Vigente/Activo</strong> = documento utilizable. <strong>Pendiente</strong> = falta aprobación o revisión. Si indicas fecha de vencimiento, la demo avisará cuando se acerque el plazo.</div>
       <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div><input id="nd-name" placeholder="Ej: Acta junta ordinaria mar 2026" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
