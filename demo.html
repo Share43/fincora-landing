@@ -1242,6 +1242,7 @@ function goNav(screen){
     document.getElementById('screen-dashboard').classList.add('active');
     NIs()[0].classList.add('active');
   } else if(screen==='proveedores'){
+    renderProveedores();
     document.getElementById('screen-proveedores').classList.add('active');
     NIs()[5].classList.add('active');
   } else if(screen==='configuracion'){
