@@ -2931,6 +2931,136 @@ Object.keys(COMUNIDADES).forEach(function(cid){
   });
 });
 
+
+// ══════════════════════════════════════════════
+// PATCH v21 — recover incidencias + nueva junta + contador
+// ══════════════════════════════════════════════
+formatTopbarDate = function(d){
+  const mo=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return Number(d.getDate())+' '+mo[d.getMonth()]+' '+d.getFullYear();
+};
+updateLiveDate = function(){ var el=document.getElementById('live-date'); if(el) el.textContent=formatTopbarDate(DEMO_NOW); };
+
+renderAllIncs = function(){
+  var el=document.getElementById('all-incs-list');
+  if(!el) return;
+  try{ syncCommunityRelations(); }catch(e){}
+  try{ refreshFilterCounts(); }catch(e){}
+  try{ refreshSidebarBadges(); }catch(e){}
+  var allIncs = Object.values(INCIDENCIAS||{}).filter(Boolean);
+  var f = el._filter || 'todas';
+  var visible = allIncs.filter(function(i){
+    if(!i) return false;
+    if(f==='todas') return true;
+    if(f==='urgente') return String(i.priority||'')==='Urgente';
+    if(f==='en-curso') return String(i.status||'')==='En curso';
+    if(f==='pendiente') return ['Pendiente de proveedor','Pendiente de comunidad','Nueva','Revisando'].includes(String(i.status||''));
+    return true;
+  });
+  visible.sort(function(a,b){
+    var pri={Urgente:0,Alta:1,Normal:2};
+    return (pri[a.priority]??9)-(pri[b.priority]??9);
+  });
+  el.innerHTML = visible.length ? visible.map(function(inc){
+    var comm = (COMUNIDADES[inc.commId]&&COMUNIDADES[inc.commId].short)||inc.commId||'—';
+    return '<div class="ir" data-open-inc="'+escapeHtml(inc.id||'')+'" data-comm-id="'+escapeHtml(inc.commId||'')+'" onclick="openInc(\''+escapeHtml(inc.commId||'')+'\',\''+escapeHtml(inc.id||'')+'\')" style="cursor:pointer">'
+      +'<div class="idot '+statusDot(inc.status||'Nueva')+'"></div>'
+      +'<div style="flex:1"><div class="itl">'+escapeHtml(inc.title||'Incidencia')+'</div><div class="imt">'+escapeHtml(comm)+' · '+escapeHtml(inc.ref||'—')+' · '+escapeHtml(inc.status||'Nueva')+'</div></div>'
+      +'<div class="irr"><div class="badge '+statusBadge(inc.priority||'Normal')+'">'+escapeHtml(inc.priority||'Normal')+'</div></div>'
+      +'</div>';
+  }).join('') : '<div style="padding:16px;font-size:13px;color:var(--muted)">Sin incidencias para este filtro.</div>';
+};
+
+refreshDashboard = function(){
+  try{ syncCommunityRelations(); }catch(e){}
+  var allIncs=Object.values(INCIDENCIAS||{}).filter(Boolean);
+  var open=allIncs.filter(function(i){ return i && i.status!=='Resuelta' && i.status!=='Cerrada'; });
+  var urgent=open.filter(function(i){ return i.priority==='Urgente'; });
+  var dbComms=document.getElementById('db-comms'); var dbIncs=document.getElementById('db-incs'); var dbUrg=document.getElementById('db-urg');
+  if(dbComms) dbComms.textContent=Object.keys(COMUNIDADES||{}).length;
+  if(dbIncs) dbIncs.textContent=open.length;
+  if(dbUrg) dbUrg.textContent=urgent.length+' urgente'+(urgent.length!==1?'s':'');
+  try{ renderDashIncs(); }catch(e){}
+  try{ renderCommList(); }catch(e){}
+  try{ renderAllIncs(); }catch(e){}
+  try{ refreshFilterCounts(); }catch(e){}
+  try{ refreshSidebarBadges(); }catch(e){}
+  try{ refreshDocCommFilter(); }catch(e){}
+  try{ refreshDocsSummary(); }catch(e){}
+  try{ renderUpcomingMeetings(); }catch(e){}
+  try{ updateLiveDate(); }catch(e){}
+  var t=document.querySelector('#screen-comunidades .ptitle');
+  if(t) t.textContent='Tus '+Object.keys(COMUNIDADES||{}).length+' comunidades';
+};
+
+goNav = function(screen){
+  NIs().forEach(function(n){n.classList.remove('active');});
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  if(screen==='dashboard'){ if(NIs()[0]) NIs()[0].classList.add('active'); showScreen('dashboard'); try{ refreshDashboard(); }catch(e){} }
+  else if(screen==='comunidades'){ if(NIs()[1]) NIs()[1].classList.add('active'); showScreen('comunidades'); try{ renderCommList(); }catch(e){} }
+  else if(screen==='incidencias'){ if(NIs()[2]) NIs()[2].classList.add('active'); showScreen('incidencias'); try{ renderAllIncs(); }catch(e){} }
+  else if(screen==='documentos'){ if(NIs()[3]) NIs()[3].classList.add('active'); showScreen('documentos'); try{ renderDocs(); }catch(e){} }
+  else if(screen==='juntas'){ if(NIs()[4]) NIs()[4].classList.add('active'); showScreen('juntas'); try{ renderUpcomingMeetings(); }catch(e){} }
+  else if(screen==='proveedores'){ if(NIs()[5]) NIs()[5].classList.add('active'); showScreen('proveedores'); try{ renderProveedores(); }catch(e){} }
+  else if(screen==='configuracion'){ if(NIs()[6]) NIs()[6].classList.add('active'); showScreen('configuracion'); try{ renderUsuarios(); }catch(e){} }
+  if(guided) updateBar();
+};
+
+openNuevaJuntaModal = function(){
+  _juntaUploadData=null;
+  document.getElementById('modal-title').textContent='Nueva junta';
+  document.getElementById('modal-body').innerHTML=''
+    +'<div style="display:flex;flex-direction:column;gap:11px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div><select id="nj-comm" class="comm-dyn-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'+getCommOptions(currentCommId||Object.keys(COMUNIDADES)[0])+'</select></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select id="nj-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Ordinaria</option><option>Extraordinaria</option></select></div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA *</div><input id="nj-date" type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">HORA</div><input id="nj-time" type="text" value="19:00" placeholder="19:00" inputmode="numeric" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'</div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">LUGAR</div><input id="nj-place" placeholder="Sala comunitaria / Videoconferencia..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
+    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ORDEN DEL DÍA / NOTAS</div><textarea id="nj-notes" rows="3" placeholder="Puntos principales de la junta..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical"></textarea></div>'
+    +'<div id="nj-zone" style="border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer" onclick="document.getElementById(\'nj-file\').click()">Adjuntar convocatoria/acta<input type="file" id="nj-file" style="display:none" onchange="previewJuntaUploadFile(this)"></div>'
+    +'<div id="nj-file-preview" style="display:none;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg)"><span>📎</span><div><div id="nj-file-name" style="font-weight:600"></div><div id="nj-file-meta" style="font-size:11px;color:var(--muted)"></div></div></div>'
+    +'<div id="nj-err" style="display:none;font-size:12px;color:var(--red)">Comunidad y fecha son obligatorias.</div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveNuevaJunta()">📅 Crear junta</button></div>'
+    +'</div>';
+  document.getElementById('modal').style.display='flex';
+};
+
+saveNuevaJunta = function(){
+  var commId=document.getElementById('nj-comm').value;
+  var tipo=document.getElementById('nj-type').value;
+  var dateVal=document.getElementById('nj-date').value;
+  if(!commId||!dateVal){ var er=document.getElementById('nj-err'); if(er) er.style.display=''; return; }
+  var d=parseDateFlexible(dateVal); if(!d){ var er2=document.getElementById('nj-err'); if(er2) er2.style.display=''; return; }
+  var hora=(document.getElementById('nj-time').value||'19:00').trim();
+  if(!/^\d{1,2}:\d{2}$/.test(hora)) hora='19:00';
+  var hh=hora.split(':')[0], mm=hora.split(':')[1]; hora=String(hh).padStart(2,'0')+':'+mm;
+  ensureCommunityShape(COMUNIDADES[commId]);
+  COMUNIDADES[commId].juntas.unshift({fecha:formatDateES(d),year:d.getFullYear(),mes:getMonthShort(d.getMonth()),dia:pad2(d.getDate()),name:tipo,hora:hora+' · '+((document.getElementById('nj-place').value||'Sala comunitaria').trim()),badge:{cls:'bb',txt:'Convocada'},notes:(document.getElementById('nj-notes').value||'').trim()});
+  if(_juntaUploadData){
+    var docId=makeUid('doc'); var docName=_juntaUploadData.name||('Convocatoria '+tipo+' '+COMUNIDADES[commId].short);
+    DOC_CONTENT[docId]={title:docName,body:attachmentPreviewMarkup({name:docName,meta:_juntaUploadData.meta,mime:_juntaUploadData.mime,dataUrl:_juntaUploadData.dataUrl})};
+    DOCS.unshift({id:docId,commId:commId,comm:COMUNIDADES[commId].short,icon:_juntaUploadData.icon||'📄',name:docName,meta:_juntaUploadData.meta,type:'acta',fecha:formatDateES(d),status:{cls:'by',txt:'Convocada'},content:docId,dataUrl:_juntaUploadData.dataUrl,mime:_juntaUploadData.mime});
+  }
+  _juntaUploadData=null;
+  try{ syncCommunityRelations(); }catch(e){}
+  closeModal();
+  try{ renderDocs(); }catch(e){}
+  try{ refreshDashboard(); }catch(e){}
+  try{ renderUpcomingMeetings(); }catch(e){}
+  try{ refreshAllCommunitySelectors(); }catch(e){}
+  if(currentCommId===commId){ try{ showCommTab('juntas',null,true); }catch(e){} }
+};
+
+setTimeout(function(){
+  try{ refreshDashboard(); }catch(e){}
+  try{ renderAllIncs(); }catch(e){}
+  try{ renderCommList(); }catch(e){}
+}, 0);
+
 </script>
 </body>
 </html>
