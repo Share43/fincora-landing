@@ -1778,7 +1778,7 @@ function renderProveedores(){
     if(p.warn && !(linkedBadge && _provWarnRef(p.warn||'')===_provWarnRef(linkedBadge))){
       warnHtml += '<div class="'+(p.warn.startsWith('⚠')?'vb urg':'badge bb')+'">'+p.warn+'</div>';
     }
-    return '<div class="cr" onclick="openProvModal(''+p.id+'')">'
+    return '<div class="cr" onclick="openProvModal(\''+p.id+'\')">'
       +'<div class="cav" style="background:'+p.color+';color:'+p.tc+'">'+ini+'</div>'
       +'<div><div class="cn">'+p.nombre+'</div><div class="csb">'+p.cat+' · '+p.comm+' · '+p.importe+'</div></div>'
       +'<div class="cbdg">'+(p.badge?'<div class="badge '+p.badge+'">'+p.badgeTxt+'</div>':'')+warnHtml+'</div>'
