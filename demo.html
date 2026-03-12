@@ -1758,13 +1758,27 @@ function renderProveedores(){
   if(!el)return;
   el.innerHTML=PROVEEDORES.map(function(p){
     var ini=p.nombre.charAt(0);
+    var pName=_normProvName(p.nombre||'');
+    var activeLinked=(Object.values(INCIDENCIAS||{})).find(function(i){
+      var st=String(i.status||'').trim();
+      if(st==='Cerrada' || st==='Resuelta') return false;
+      var iName=_normProvName(i.proveedor||'');
+      return !!pName && !!iName && (iName===pName || iName.indexOf(pName)!==-1 || pName.indexOf(iName)!==-1);
+    });
+    var linkedBadge = activeLinked ? ('🔗 '+(activeLinked.ref||activeLinked.id||'')) : '';
+    var warnHtml='';
+    if(linkedBadge){
+      warnHtml += '<div class="badge bb">'+linkedBadge+'</div>';
+    }
+    if(p.warn && !(linkedBadge && _provWarnRef(p.warn||'')===_provWarnRef(linkedBadge))){
+      warnHtml += '<div class="'+(p.warn.startsWith('⚠')?'vb urg':'badge bb')+'">'+p.warn+'</div>';
+    }
     return '<div class="cr" onclick="openProvModal(\''+p.id+'\')">'
       +'<div class="cav" style="background:'+p.color+';color:'+p.tc+'">'+ini+'</div>'
       +'<div><div class="cn">'+p.nombre+'</div><div class="csb">'+p.cat+' · '+p.comm+' · '+p.importe+'</div></div>'
-      +'<div class="cbdg">'+(p.badge?'<div class="badge '+p.badge+'">'+p.badgeTxt+'</div>':'')+(p.warn?'<div class="'+(p.warn.startsWith('⚠')?'vb urg':'badge bb')+'">'+p.warn+'</div>':'')+'</div>'
+      +'<div class="cbdg">'+(p.badge?'<div class="badge '+p.badge+'">'+p.badgeTxt+'</div>':'')+warnHtml+'</div>'
       +'</div>';
   }).join('');
-  // Also refresh proveedor selects in modals if open
   refreshProvSelect();
 }
 
