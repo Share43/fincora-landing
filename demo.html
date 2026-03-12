@@ -2723,7 +2723,31 @@ saveEditProv = function(id){
   p.notas=(document.getElementById('ep-notas').value||'').trim()||p.notas;
   closeModal(); renderProveedores(); refreshProvSelect();
 };
-function deleteProv(id){ if(!confirm('¿Borrar este proveedor?')) return; var idx=PROVEEDORES.findIndex(function(x){return x.id===id;}); if(idx<0) return; PROVEEDORES.splice(idx,1); closeModal(); renderProveedores(); refreshProvSelect(); }
+function deleteProv(id){
+  var idx=PROVEEDORES.findIndex(function(x){return x.id===id;});
+  if(idx<0) return;
+  var prov=PROVEEDORES[idx];
+  var linked=(Object.values(INCIDENCIAS||{})).filter(function(i){
+    return String(i.proveedor||'').trim()===String(prov.nombre||'').trim()
+      && String(i.status||'').trim()!=='Cerrada';
+  });
+  if(linked.length){
+    var refs=linked.slice(0,3).map(function(i){ return i.ref||i.id||i.title||'sin referencia'; }).join(', ');
+    var more=linked.length>3 ? (' y '+(linked.length-3)+' más') : '';
+    alert(
+      'No se puede borrar el proveedor "'+prov.nombre+'" porque tiene '
+      +linked.length+' incidencia'+(linked.length===1?'':'s')+' asignada'+(linked.length===1?'':'s')
+      +(refs?': '+refs+more:'.')+'\n\n'
+      +'Reasigna o cierra esas incidencias antes de borrarlo.'
+    );
+    return;
+  }
+  if(!confirm('¿Borrar este proveedor?')) return;
+  PROVEEDORES.splice(idx,1);
+  closeModal();
+  renderProveedores();
+  refreshProvSelect();
+}
 openNewProvModal = function(){
   document.getElementById('modal-title').textContent='Nuevo proveedor';
   document.getElementById('modal-body').innerHTML=`<div style="display:flex;flex-direction:column;gap:11px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div><input id="np-nombre" placeholder="Ej: Reformas Madrid S.L." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div><select id="np-cat" onchange="handleCatChange(this)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">${getCatOptions('')}</select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD</div><select id="np-comm" class="comm-dyn-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">${getCommOptions()}<option value="Todas">Todas</option></select></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TELÉFONO</div><input id="np-tel" placeholder="91 000 00 00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">EMAIL</div><input id="np-email" placeholder="email@empresa.es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">IMPORTE / CONTRATO</div><input id="np-importe" placeholder="Ej: 180 €/mes  ó  Por obra" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div id="np-err" style="display:none;font-size:12px;color:var(--red)">El nombre es obligatorio.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveNewProv()">✅ Guardar proveedor</button></div></div>`;
