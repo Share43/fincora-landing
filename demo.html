@@ -1380,12 +1380,18 @@ function openInc(commId, incId, skipNav){
 
 function renderStepper(status){
   const states=['Nueva','En curso','Pendiente de proveedor','Verificada','Resuelta'];
-  const curIdx={'Nueva':0,'Revisando':0,'En curso':1,'Pendiente de proveedor':2,'Pendiente de comunidad':2,'Verificada':3,'Resuelta':4}[status]??1;
-  document.getElementById('inc-stepper').innerHTML=states.map((s,i)=>`
-    <div class="step ${i<curIdx?'done':i===curIdx?'cur':''}">
-      <div class="sdot">${i<curIdx?'✓':(i+1)}</div>
+  const map={'Nueva':0,'Revisando':0,'En curso':1,'Pendiente de proveedor':2,'Pendiente de comunidad':2,'Verificada':3,'Resuelta':4,'Cerrada':4};
+  const curIdx=(status in map)?map[status]:1;
+  const terminal=(status==='Resuelta'||status==='Cerrada');
+  document.getElementById('inc-stepper').innerHTML=states.map((s,i)=>{
+    const done=terminal ? true : i<curIdx;
+    const cur=!terminal && i===curIdx;
+    return `
+    <div class="step ${done?'done':cur?'cur':''}">
+      <div class="sdot">${done?'✓':(i+1)}</div>
       <div class="slb2">${s}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function renderTimeline(incId){
