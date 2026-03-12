@@ -1027,7 +1027,7 @@ function normalizeDocStatus(doc){
   if(!doc.fechaVence){ return doc; }
   var due=new Date(doc.fechaVence.split('/').reverse().join('-')+'T00:00:00');
   if(isNaN(due)) return doc;
-  var today=new Date(); today.setHours(0,0,0,0);
+  var today=new Date(DEMO_NOW); today.setHours(0,0,0,0);
   var diff=Math.ceil((due-today)/86400000);
   if(diff < 0){ doc.status={cls:'br',txt:'Expirado'}; delete doc.statusVb; }
   else if(diff <= 45){ doc.statusVb={cls:'urg',txt:'⚠ Vence '+doc.fechaVence}; if(!doc.status) doc.status={cls:'bg',txt:'Vigente'}; }
@@ -2581,14 +2581,14 @@ function handleCatChange(sel){
 // ══════════════════════════════════════════════
 // PATCH v19 — fechas, juntas, contacto y proveedores
 // ══════════════════════════════════════════════
-var DEMO_NOW = new Date();
+var DEMO_NOW = new Date(2026,2,12,12,0,0);
 function pad2(n){ return String(n).padStart(2,'0'); }
 function formatDateES(d){ return pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'/'+d.getFullYear(); }
 function formatTopbarDate(d){ const wd=['dom','lun','mar','mié','jue','vie','sáb']; const mo=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']; return wd[d.getDay()]+' '+pad2(d.getDate())+' '+mo[d.getMonth()]+' '+d.getFullYear(); }
 function parseDateFlexible(val){ if(!val) return null; if(val instanceof Date) return val; val=String(val).trim(); if(/^\d{4}-\d{2}-\d{2}$/.test(val)){ const d=new Date(val+'T00:00:00'); return isNaN(d)?null:d; } const m=val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(m){ const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1])); return isNaN(d)?null:d; } return null; }
 function getMonthShort(i){ return ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][i]; }
 function getMonthLong(i){ return ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][i]; }
-function updateLiveDate(){ var el=document.getElementById('live-date'); if(el) el.textContent=formatTopbarDate(new Date()); }
+function updateLiveDate(){ var el=document.getElementById('live-date'); if(el) el.textContent=formatTopbarDate(DEMO_NOW); }
 
 // community shape with contact fields
 var _origEnsureCommunityShape = ensureCommunityShape;
@@ -2749,16 +2749,16 @@ function renderDatePickerModal(){
 }
 function selectDatePicker(val){ var inp=document.getElementById(datePickerState.target); if(inp){ inp.value=val; inp.dispatchEvent(new Event('change')); } closeModal(); }
 
-function parseJuntaDate(j){ if(j.fecha) return parseDateFlexible(j.fecha); var monthMap={ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11}; var mm=monthMap[String(j.mes||'').slice(0,3).toLowerCase()]; if(mm==null) mm=(new Date()).getMonth(); var yy=j.year || 2026; return new Date(yy,mm,parseInt(j.dia||'1',10)); }
-function normalizeJuntasData(){ Object.keys(COMUNIDADES).forEach(function(cid){ var c=ensureCommunityShape(COMUNIDADES[cid]); c.juntas=(c.juntas||[]).map(function(j){ var dj=parseJuntaDate(j); var today=new Date(); today.setHours(0,0,0,0); var badge=j.badge||{cls:'bb',txt:'Convocada'}; if(j.name&&/completada/i.test(j.name)){ badge={cls:'bg',txt:'Completada'}; }
+function parseJuntaDate(j){ if(j.fecha) return parseDateFlexible(j.fecha); var monthMap={ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11}; var mm=monthMap[String(j.mes||'').slice(0,3).toLowerCase()]; if(mm==null) mm=DEMO_NOW.getMonth(); var yy=j.year || DEMO_NOW.getFullYear(); if(!j.year && /completada/i.test(String(j.name||'')) && mm > DEMO_NOW.getMonth()) yy = DEMO_NOW.getFullYear()-1; return new Date(yy,mm,parseInt(j.dia||'1',10)); }
+function normalizeJuntasData(){ Object.keys(COMUNIDADES).forEach(function(cid){ var c=ensureCommunityShape(COMUNIDADES[cid]); c.juntas=(c.juntas||[]).map(function(j){ var dj=parseJuntaDate(j); var today=new Date(DEMO_NOW); today.setHours(0,0,0,0); var badge=j.badge||{cls:'bb',txt:'Convocada'}; if(j.name&&/completada/i.test(j.name)){ badge={cls:'bg',txt:'Completada'}; }
       if(dj<today && !/Convocada|Borrador|Sin convoca|Programada/i.test(badge.txt||'') && !/Completada/i.test(badge.txt||'')){ badge={cls:'bg',txt:'Completada'}; }
       if(dj>=today && /Completada/i.test(badge.txt||'')){ badge={cls:'bb',txt:'Convocada'}; }
       var hora=(j.hora||'19:00').replace(/h/g,'').trim(); return Object.assign({},j,{fecha:formatDateES(dj),mes:getMonthShort(dj.getMonth()),dia:pad2(dj.getDate()),year:dj.getFullYear(),hora:hora,badge:badge});
     }).sort(function(a,b){ return parseJuntaDate(a)-parseJuntaDate(b); }); }); }
 function collectAllMeetings(){ normalizeJuntasData(); var arr=[]; Object.keys(COMUNIDADES).forEach(function(cid){ var c=COMUNIDADES[cid]; (c.juntas||[]).forEach(function(j){ arr.push({commId:cid,comm:c.short,name:j.name||'Junta',fechaObj:parseJuntaDate(j),fecha:j.fecha||formatDateES(parseJuntaDate(j)),dia:j.dia||pad2(parseJuntaDate(j).getDate()),mes:j.mes||getMonthShort(parseJuntaDate(j).getMonth()),hora:j.hora||'19:00',badge:j.badge||{cls:'bb',txt:'Convocada'}}); }); }); return arr.sort(function(a,b){ return a.fechaObj-b.fechaObj; }); }
-function renderUpcomingMeetings(){ var el=document.getElementById('juntas-upcoming-list'); if(!el) return; var today=new Date(); today.setHours(0,0,0,0); var list=collectAllMeetings().filter(function(j){ return j.fechaObj>=today; }).slice(0,3); el.innerHTML=list.length?list.map(function(j){ return '<div class="jr"><div class="jdb"><div class="jday">'+j.dia+'</div><div class="jmon">'+j.mes+'</div></div><div><div style="font-size:13px;font-weight:600">'+escapeHtml(j.name)+' — '+escapeHtml(j.comm)+'</div><div style="font-size:11px;color:var(--muted)">'+escapeHtml((j.hora||'').replace('h',''))+'</div></div><div class="badge '+(j.badge.cls||'bb')+'" style="margin-left:auto">'+escapeHtml(j.badge.txt||'Programada')+'</div></div>'; }).join('') : '<div style="padding:16px;color:var(--muted);font-size:13px">Sin juntas próximas.</div>'; }
-var calState={month:(new Date()).getMonth(),year:(new Date()).getFullYear()};
-function openCalendarioModal(){ calState.month=(new Date()).getMonth(); calState.year=(new Date()).getFullYear(); renderCalendarioModal(); }
+function renderUpcomingMeetings(){ var el=document.getElementById('juntas-upcoming-list'); if(!el) return; var today=new Date(DEMO_NOW); today.setHours(0,0,0,0); var list=collectAllMeetings().filter(function(j){ return j.fechaObj>=today; }).slice(0,3); el.innerHTML=list.length?list.map(function(j){ return '<div class="jr"><div class="jdb"><div class="jday">'+j.dia+'</div><div class="jmon">'+j.mes+'</div></div><div><div style="font-size:13px;font-weight:600">'+escapeHtml(j.name)+' — '+escapeHtml(j.comm)+'</div><div style="font-size:11px;color:var(--muted)">'+escapeHtml((j.hora||'').replace('h',''))+'</div></div><div class="badge '+(j.badge.cls||'bb')+'" style="margin-left:auto">'+escapeHtml(j.badge.txt||'Programada')+'</div></div>'; }).join('') : '<div style="padding:16px;color:var(--muted);font-size:13px">Sin juntas próximas.</div>'; }
+var calState={month:DEMO_NOW.getMonth(),year:DEMO_NOW.getFullYear()};
+function openCalendarioModal(){ calState.month=DEMO_NOW.getMonth(); calState.year=DEMO_NOW.getFullYear(); renderCalendarioModal(); }
 function renderCalendarioModal(){ var meetings=collectAllMeetings(); var m=calState.month,y=calState.year; var first=new Date(y,m,1), start=(first.getDay()+6)%7, days=new Date(y,m+1,0).getDate(); var html='<div style="display:flex;flex-direction:column;gap:14px"><div style="background:var(--bg);border-radius:10px;padding:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><button class="btn bs" onclick="calState.month--; if(calState.month<0){calState.month=11;calState.year--;} renderCalendarioModal()">← Mes anterior</button><div style="font-weight:700;text-align:center">'+getMonthLong(m)+' '+y+'</div><button class="btn bs" onclick="calState.month++; if(calState.month>11){calState.month=0;calState.year++;} renderCalendarioModal()">Mes siguiente →</button></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px;line-height:2.2">'; ['L','M','X','J','V','S','D'].forEach(function(d){ html+='<div style="font-weight:700;color:var(--muted)">'+d+'</div>';}); for(var i=0;i<start;i++) html+='<div></div>'; for(var day=1; day<=days; day++){ var found=meetings.filter(function(j){ return j.fechaObj.getFullYear()===y && j.fechaObj.getMonth()===m && j.fechaObj.getDate()===day; }); if(found.length){ var color=found[0].badge.cls==='bb'?'#2563eb':found[0].badge.cls==='by'?'#ea580c':found[0].badge.cls==='bg'?'#8b8fa8':'#2563eb'; html+='<div><span style="background:'+color+';color:#fff;border-radius:50%;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center">'+day+'</span></div>'; } else html+='<div>'+day+'</div>'; } html+='</div></div><div style="display:flex;flex-direction:column;gap:8px;font-size:13px">';
   var visible=meetings.filter(function(j){ return j.fechaObj.getFullYear()===y && j.fechaObj.getMonth()===m; }); html += visible.length? visible.map(function(j){ var color=j.badge.cls==='bb'?'#2563eb':j.badge.cls==='by'?'#ea580c':j.badge.cls==='bg'?'#8b8fa8':'#2563eb'; return '<div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:'+color+';flex-shrink:0"></div><div><strong>'+j.dia+' '+String(j.mes).toLowerCase()+'</strong> '+escapeHtml(j.name)+' '+escapeHtml(j.comm)+' · '+escapeHtml((j.hora||'').replace('h',''))+'</div></div>'; }).join('') : '<div style="color:var(--muted)">Sin juntas este mes.</div>'; html += '</div><div style="display:flex;justify-content:flex-end"><button class="btn bs" onclick="closeModal()">Cerrar</button></div></div>'; document.getElementById('modal-title').textContent='Calendario de juntas'; document.getElementById('modal-body').innerHTML=html; document.getElementById('modal').style.display='flex'; }
 openNuevaJuntaModal = function(){
@@ -2771,8 +2771,8 @@ openNuevaJuntaModal = function(){
         <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select id="nj-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Ordinaria</option><option>Extraordinaria</option></select></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA *</div><div style="display:flex;gap:6px"><input id="nj-date" readonly placeholder="dd/mm/aaaa" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;cursor:pointer" onclick="openDatePicker('nj-date')"><button class="btn bs" type="button" onclick="openDatePicker('nj-date')">📅</button></div></div>
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">HORA</div><input id="nj-time" type="time" value="19:00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA *</div><input id="nj-date" type="date" lang="es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff"></div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">HORA</div><input id="nj-time" type="text" value="19:00" placeholder="19:00" inputmode="numeric" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
       </div>
       <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">LUGAR</div><input id="nj-place" placeholder="Sala comunitaria / Videoconferencia..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
       <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ORDEN DEL DÍA / NOTAS</div><textarea id="nj-notes" rows="3" placeholder="Puntos principales de la junta..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical"></textarea></div>
@@ -2783,7 +2783,7 @@ openNuevaJuntaModal = function(){
     </div>`;
   document.getElementById('modal').style.display='flex';
 };
-saveNuevaJunta = function(){ var commId=document.getElementById('nj-comm').value; var tipo=document.getElementById('nj-type').value; var dateVal=document.getElementById('nj-date').value; if(!commId||!dateVal){document.getElementById('nj-err').style.display='';return;} var d=parseDateFlexible(dateVal); if(!d){document.getElementById('nj-err').style.display='';return;} var hora=(document.getElementById('nj-time').value||'19:00'); COMUNIDADES[commId].juntas.unshift({fecha:formatDateES(d),year:d.getFullYear(),mes:getMonthShort(d.getMonth()),dia:pad2(d.getDate()),name:tipo,hora:hora+' · '+((document.getElementById('nj-place').value||'Sala comunitaria').trim()),badge:{cls:'bb',txt:'Convocada'},notes:(document.getElementById('nj-notes').value||'').trim()}); if(_juntaUploadData){ var docId=makeUid('doc'); var docName=_juntaUploadData.name||('Convocatoria '+tipo+' '+COMUNIDADES[commId].short); DOC_CONTENT[docId]={title:docName,body:attachmentPreviewMarkup({name:docName,meta:_juntaUploadData.meta,mime:_juntaUploadData.mime,dataUrl:_juntaUploadData.dataUrl})}; DOCS.unshift({id:docId,commId:commId,comm:COMUNIDADES[commId].short,icon:_juntaUploadData.icon||'📄',name:docName,meta:_juntaUploadData.meta,type:'acta',fecha:formatDateES(d),status:{cls:'by',txt:'Convocada'},content:docId,dataUrl:_juntaUploadData.dataUrl,mime:_juntaUploadData.mime}); } _juntaUploadData=null; syncCommunityRelations(); closeModal(); renderDocs(); refreshDashboard(); renderUpcomingMeetings(); refreshAllCommunitySelectors(); if(currentCommId===commId){ showCommTab('juntas',null,true); } };
+saveNuevaJunta = function(){ var commId=document.getElementById('nj-comm').value; var tipo=document.getElementById('nj-type').value; var dateVal=document.getElementById('nj-date').value; if(!commId||!dateVal){document.getElementById('nj-err').style.display='';return;} var d=parseDateFlexible(dateVal); if(!d){document.getElementById('nj-err').style.display='';return;} var hora=(document.getElementById('nj-time').value||'19:00').trim(); if(!/^\d{1,2}:\d{2}$/.test(hora)) hora='19:00'; var hh=hora.split(':')[0], mm=hora.split(':')[1]; hora=String(hh).padStart(2,'0')+':'+mm; COMUNIDADES[commId].juntas.unshift({fecha:formatDateES(d),year:d.getFullYear(),mes:getMonthShort(d.getMonth()),dia:pad2(d.getDate()),name:tipo,hora:hora+' · '+((document.getElementById('nj-place').value||'Sala comunitaria').trim()),badge:{cls:'bb',txt:'Convocada'},notes:(document.getElementById('nj-notes').value||'').trim()}); if(_juntaUploadData){ var docId=makeUid('doc'); var docName=_juntaUploadData.name||('Convocatoria '+tipo+' '+COMUNIDADES[commId].short); DOC_CONTENT[docId]={title:docName,body:attachmentPreviewMarkup({name:docName,meta:_juntaUploadData.meta,mime:_juntaUploadData.mime,dataUrl:_juntaUploadData.dataUrl})}; DOCS.unshift({id:docId,commId:commId,comm:COMUNIDADES[commId].short,icon:_juntaUploadData.icon||'📄',name:docName,meta:_juntaUploadData.meta,type:'acta',fecha:formatDateES(d),status:{cls:'by',txt:'Convocada'},content:docId,dataUrl:_juntaUploadData.dataUrl,mime:_juntaUploadData.mime}); } _juntaUploadData=null; syncCommunityRelations(); closeModal(); renderDocs(); refreshDashboard(); renderUpcomingMeetings(); refreshAllCommunitySelectors(); if(currentCommId===commId){ showCommTab('juntas',null,true); } };
 
 // documents date fields with picker
 subirDocModal = function(prefillCommId){
@@ -2794,11 +2794,11 @@ subirDocModal = function(prefillCommId){
       <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div><select id="nd-comm" class="comm-dyn-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">${getCommOptions(selected)}</select></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select id="nd-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option value="acta">Acta</option><option value="contrato">Contrato</option><option value="poliza">Póliza</option><option value="factura">Factura</option><option value="presupuesto">Presupuesto</option><option value="otro">Otro</option></select></div>
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA</div><div style="display:flex;gap:6px"><input id="nd-date" readonly placeholder="dd/mm/aaaa" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;cursor:pointer" onclick="openDatePicker('nd-date')"><button class="btn bs" type="button" onclick="openDatePicker('nd-date')">📅</button></div></div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA</div><input id="nd-date" type="date" lang="es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ESTADO</div><select id="nd-status" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option value="vigente">Vigente / Activo</option><option value="firmada">Firmada</option><option value="pendiente">Pendiente</option><option value="auto">Automático por vencimiento</option></select></div>
-        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">VENCE (opcional)</div><div style="display:flex;gap:6px"><input id="nd-expiry" readonly placeholder="dd/mm/aaaa" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff;cursor:pointer" onclick="openDatePicker('nd-expiry')"><button class="btn bs" type="button" onclick="openDatePicker('nd-expiry')">📅</button></div></div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">VENCE (opcional)</div><input id="nd-expiry" type="date" lang="es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#fff"></div>
       </div>
       <div style="font-size:11px;color:var(--muted);background:var(--bg);padding:8px 10px;border-radius:8px">Estado: <strong>Vigente/Activo</strong> = documento utilizable. <strong>Pendiente</strong> = falta aprobación o revisión. Si indicas fecha de vencimiento, la demo avisará cuando se acerque el plazo.</div>
       <div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div><input id="nd-name" placeholder="Ej: Acta junta ordinaria mar 2026" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>
@@ -2809,7 +2809,7 @@ subirDocModal = function(prefillCommId){
     </div>`;
   document.getElementById('modal').style.display='flex';
 };
-function saveUploadedDoc(){ var commId=document.getElementById('nd-comm').value; var type=document.getElementById('nd-type').value; var fecha=document.getElementById('nd-date').value||formatDateES(new Date()); var name=(document.getElementById('nd-name').value||'').trim(); var statusSel=(document.getElementById('nd-status').value||'vigente'); var expiryVal=(document.getElementById('nd-expiry').value||'').trim(); var fechaVence=expiryVal||''; if(!commId||!name||!_docUploadData){document.getElementById('nd-err').style.display='';return;} var comm=COMUNIDADES[commId]; var id=makeUid('doc'); DOC_CONTENT[id]={title:name,body:attachmentPreviewMarkup({name:name,meta:_docUploadData.meta,mime:_docUploadData.mime,dataUrl:_docUploadData.dataUrl})}; var doc={id:id,commId:commId,comm:comm.short,icon:_docUploadData.icon||'📄',name:name,meta:_docUploadData.meta,type:type,fecha:fecha,content:id,dataUrl:_docUploadData.dataUrl,mime:_docUploadData.mime,fechaVence:fechaVence}; if(statusSel==='firmada') doc.status={cls:'bg',txt:'Firmada'}; else if(statusSel==='pendiente') doc.status={cls:'by',txt:'Pendiente'}; else doc.status={cls:'bg',txt:'Vigente'}; normalizeDocStatus(doc); DOCS.unshift(doc); _docUploadData=null; syncCommunityRelations(); closeModal(); renderDocs(); refreshDashboard(); refreshAllCommunitySelectors(); if(currentCommId===commId) showCommTab('documentos',null,true); };
+function saveUploadedDoc(){ var commId=document.getElementById('nd-comm').value; var type=document.getElementById('nd-type').value; var fechaRaw=document.getElementById('nd-date').value||''; var fecha=(fechaRaw?formatDateES(parseDateFlexible(fechaRaw)):formatDateES(DEMO_NOW)); var name=(document.getElementById('nd-name').value||'').trim(); var statusSel=(document.getElementById('nd-status').value||'vigente'); var expiryVal=(document.getElementById('nd-expiry').value||'').trim(); var fechaVence=expiryVal?formatDateES(parseDateFlexible(expiryVal)):''; if(!commId||!name||!_docUploadData){document.getElementById('nd-err').style.display='';return;} var comm=COMUNIDADES[commId]; var id=makeUid('doc'); DOC_CONTENT[id]={title:name,body:attachmentPreviewMarkup({name:name,meta:_docUploadData.meta,mime:_docUploadData.mime,dataUrl:_docUploadData.dataUrl})}; var doc={id:id,commId:commId,comm:comm.short,icon:_docUploadData.icon||'📄',name:name,meta:_docUploadData.meta,type:type,fecha:fecha,content:id,dataUrl:_docUploadData.dataUrl,mime:_docUploadData.mime,fechaVence:fechaVence}; if(statusSel==='firmada') doc.status={cls:'bg',txt:'Firmada'}; else if(statusSel==='pendiente') doc.status={cls:'by',txt:'Pendiente'}; else doc.status={cls:'bg',txt:'Vigente'}; normalizeDocStatus(doc); DOCS.unshift(doc); _docUploadData=null; syncCommunityRelations(); closeModal(); renderDocs(); refreshDashboard(); refreshAllCommunitySelectors(); if(currentCommId===commId) showCommTab('documentos',null,true); };
 
 // Better placeholders for built-in demo incident files
 makeImagePlaceholderDataUrl = function(att){
@@ -2836,6 +2836,101 @@ refreshDocCommFilter();
 refreshIncCommSelect();
 setNoteType('interna');
 openComm(currentCommId,true);
+
+// ══════════════════════════════════════════════
+// PATCH v20 — fechas, contactos y previews más reales
+// ══════════════════════════════════════════════
+function makeIncidentVisual(att){
+  var n=String((att&&att.name)||'').toLowerCase();
+  if(/luminaria|alumbrado|led|portal/.test(n)) return 'light';
+  if(/fontaner|fuga|agua|garaje|humedad/.test(n)) return 'water';
+  if(/tejado|cubierta|teja/.test(n)) return 'roof';
+  if(/pintura|pinturas|rellano|portal/.test(n)) return 'paint';
+  if(/ascensor|thyssen|motor|pieza/.test(n)) return 'elevator';
+  if(/cerra|cerradura|llave/.test(n)) return 'locksmith';
+  return 'generic';
+}
+makeImagePlaceholderDataUrl = function(att){
+  var kind = makeIncidentVisual(att);
+  var title = escapeHtml(att.name||'Imagen adjunta');
+  var sub = escapeHtml(att.meta||'Vista previa demo');
+  var svg = '';
+  if(kind==='water'){
+    svg = '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540"><rect width="900" height="540" fill="#cbd5e1"/><rect y="250" width="900" height="290" fill="#6b7280"/><ellipse cx="450" cy="330" rx="300" ry="70" fill="#60a5fa" opacity=".55"/><ellipse cx="420" cy="350" rx="220" ry="46" fill="#93c5fd" opacity=".5"/><rect x="65" y="75" width="300" height="95" rx="14" fill="#0f766e" opacity=".18"/><rect x="120" y="390" width="660" height="88" rx="16" fill="#111827" opacity=".82"/><text x="450" y="425" fill="#f8fafc" font-family="Arial" font-size="28" text-anchor="middle">'+title+'</text><text x="450" y="458" fill="#cbd5e1" font-family="Arial" font-size="18" text-anchor="middle">'+sub+'</text></svg>';
+  } else if(kind==='light'){
+    svg = '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540"><rect width="900" height="540" fill="#111827"/><rect x="130" y="85" width="640" height="300" rx="26" fill="#1f2937"/><circle cx="450" cy="230" r="118" fill="#fde68a" opacity=".92"/><circle cx="450" cy="230" r="68" fill="#fff7ed"/><rect x="120" y="405" width="660" height="86" rx="16" fill="#0b1220" opacity=".88"/><text x="450" y="438" fill="#f8fafc" font-family="Arial" font-size="28" text-anchor="middle">'+title+'</text><text x="450" y="468" fill="#cbd5e1" font-family="Arial" font-size="18" text-anchor="middle">'+sub+'</text></svg>';
+  } else if(kind==='roof'){
+    svg = '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540"><rect width="900" height="540" fill="#d1d5db"/><polygon points="140,250 450,90 760,250" fill="#92400e"/><polygon points="200,250 450,130 700,250" fill="#b45309"/><rect x="180" y="250" width="540" height="120" fill="#9ca3af"/><rect x="120" y="395" width="660" height="86" rx="16" fill="#111827" opacity=".82"/><text x="450" y="428" fill="#f8fafc" font-family="Arial" font-size="28" text-anchor="middle">'+title+'</text><text x="450" y="458" fill="#cbd5e1" font-family="Arial" font-size="18" text-anchor="middle">'+sub+'</text></svg>';
+  } else if(kind==='paint'){
+    svg = '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540"><rect width="900" height="540" fill="#f3f4f6"/><rect x="90" y="80" width="210" height="280" rx="18" fill="#60a5fa" opacity=".45"/><rect x="345" y="80" width="210" height="280" rx="18" fill="#f59e0b" opacity=".45"/><rect x="600" y="80" width="210" height="280" rx="18" fill="#34d399" opacity=".45"/><rect x="120" y="395" width="660" height="86" rx="16" fill="#111827" opacity=".82"/><text x="450" y="428" fill="#f8fafc" font-family="Arial" font-size="28" text-anchor="middle">'+title+'</text><text x="450" y="458" fill="#cbd5e1" font-family="Arial" font-size="18" text-anchor="middle">'+sub+'</text></svg>';
+  } else if(kind==='elevator'){
+    svg = '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540"><rect width="900" height="540" fill="#e5e7eb"/><rect x="285" y="70" width="330" height="320" rx="18" fill="#334155"/><rect x="305" y="90" width="140" height="280" fill="#64748b"/><rect x="455" y="90" width="140" height="280" fill="#475569"/><circle cx="650" cy="130" r="16" fill="#ef4444"/><rect x="120" y="405" width="660" height="86" rx="16" fill="#111827" opacity=".82"/><text x="450" y="428" fill="#f8fafc" font-family="Arial" font-size="28" text-anchor="middle">'+title+'</text><text x="450" y="458" fill="#cbd5e1" font-family="Arial" font-size="18" text-anchor="middle">'+sub+'</text></svg>';
+  } else if(kind==='locksmith'){
+    svg = '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540"><rect width="900" height="540" fill="#f3f4f6"/><rect x="250" y="140" width="400" height="210" rx="26" fill="#1f2937"/><circle cx="450" cy="245" r="60" fill="#f59e0b"/><rect x="435" y="235" width="150" height="26" rx="8" fill="#fcd34d"/><rect x="555" y="225" width="36" height="16" fill="#fbbf24"/><rect x="120" y="395" width="660" height="86" rx="16" fill="#111827" opacity=".82"/><text x="450" y="428" fill="#f8fafc" font-family="Arial" font-size="28" text-anchor="middle">'+title+'</text><text x="450" y="458" fill="#cbd5e1" font-family="Arial" font-size="18" text-anchor="middle">'+sub+'</text></svg>';
+  } else {
+    svg = '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540"><rect width="900" height="540" fill="#e5e7eb"/><rect x="70" y="120" width="240" height="130" rx="10" fill="#2563eb" opacity=".85"/><rect x="120" y="275" width="680" height="120" rx="18" fill="#6b7280" opacity=".45"/><circle cx="225" cy="335" r="22" fill="#f97316"/><rect x="540" y="158" width="180" height="86" rx="18" fill="#374151" opacity=".8"/><rect x="78" y="408" width="744" height="82" rx="16" fill="#111827" opacity=".82"/><text x="450" y="442" fill="#f8fafc" font-family="Arial" font-size="28" text-anchor="middle">'+title+'</text><text x="450" y="472" fill="#cbd5e1" font-family="Arial" font-size="18" text-anchor="middle">'+sub+'</text></svg>';
+  }
+  return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+};
+function makePdfPreviewDataUrl(att){
+  var title = escapeHtml(att.name||'Documento PDF');
+  var kind = makeIncidentVisual(att);
+  var body = 'Documento técnico relacionado con la incidencia.';
+  if(kind==='water') body='Informe y presupuesto de reparación de fuga en garaje. Incluye alcance, materiales y plazo de ejecución.';
+  if(kind==='elevator') body='Parte técnico del ascensor. Diagnóstico, pieza afectada y plazo estimado de reparación.';
+  if(kind==='paint') body='Presupuesto y propuesta de trabajos de pintura en zonas comunes de la comunidad.';
+  if(kind==='roof') body='Informe de revisión de cubierta y actuaciones recomendadas.';
+  if(kind==='locksmith') body='Informe de cerrajería con trabajos realizados, elementos sustituidos y coste.';
+  var html = '<!doctype html><html><head><meta charset="utf-8"><title>'+title+'</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#111827} .tag{display:inline-block;padding:4px 8px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:700} h1{font-size:24px;margin:16px 0 8px} p{line-height:1.7} .box{border:1px solid #e5e7eb;border-radius:12px;padding:16px;background:#f9fafb;margin-top:18px}</style></head><body><div class="tag">Vista previa demo</div><h1>'+title+'</h1><p>'+body+'</p><div class="box"><strong>Fecha:</strong> '+formatDateES(DEMO_NOW)+'<br><strong>Estado:</strong> Documento activo en expediente de comunidad</div></body></html>';
+  return 'data:text/html;charset=UTF-8,'+encodeURIComponent(html);
+}
+var _origNormalizeAdjunto = normalizeAdjunto;
+normalizeAdjunto = function(att){
+  att = _origNormalizeAdjunto(att);
+  if(!att) return att;
+  if(isPdfMime(att.mime) && (!att.dataUrl || String(att.dataUrl).indexOf('data:text/plain')===0)){
+    att.previewDataUrl = makePdfPreviewDataUrl(att);
+    att.thumbDataUrl = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420"><rect width="100%" height="100%" fill="#ffffff"/><rect x="70" y="40" width="460" height="320" rx="16" fill="#f8fafc" stroke="#e5e7eb"/><rect x="110" y="90" width="220" height="20" rx="6" fill="#cbd5e1"/><rect x="110" y="128" width="360" height="12" rx="6" fill="#e5e7eb"/><rect x="110" y="154" width="320" height="12" rx="6" fill="#e5e7eb"/><rect x="110" y="180" width="340" height="12" rx="6" fill="#e5e7eb"/><circle cx="450" cy="86" r="34" fill="#ef4444"/><text x="450" y="94" font-family="Arial" font-size="22" text-anchor="middle" fill="#fff">PDF</text></svg>');
+    att.dataUrl = att.previewDataUrl;
+  }
+  return att;
+};
+attachmentThumbContent = function(att){
+  att=normalizeAdjunto(att);
+  if(isImageMime(att.mime) && att.dataUrl){
+    return '<img src="'+att.dataUrl+'" alt="'+escapeHtml(att.name)+'" style="width:100%;height:100%;object-fit:cover;display:block">';
+  }
+  if(isPdfMime(att.mime) && att.thumbDataUrl){
+    return '<img src="'+att.thumbDataUrl+'" alt="'+escapeHtml(att.name)+'" style="width:100%;height:100%;object-fit:cover;display:block">';
+  }
+  if(isPdfMime(att.mime)){
+    return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;background:#fff"><div style="font-size:22px">📄</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">PDF</div></div>';
+  }
+  return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;background:#fff"><div style="font-size:22px">'+(att.icon||'📋')+'</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">'+escapeHtml(((att.meta||'Archivo').split('·')[0]||'Archivo').trim())+'</div></div>';
+};
+attachmentPreviewMarkup = function(att){
+  att=normalizeAdjunto(att);
+  if(att.dataUrl && att.mime && att.mime.indexOf('image/')===0){
+    return '<div style="background:#0f172a;border-radius:10px;padding:10px;display:flex;justify-content:center"><img src="'+att.dataUrl+'" alt="'+escapeHtml(att.name)+'" style="max-width:100%;max-height:340px;border-radius:8px;object-fit:contain"></div>';
+  }
+  if(isPdfMime(att.mime) && (att.previewDataUrl || att.dataUrl)){
+    return '<iframe src="'+(att.previewDataUrl||att.dataUrl)+'" style="width:100%;height:420px;border:1px solid var(--border);border-radius:10px;background:#fff"></iframe>';
+  }
+  return '<div style="background:#fff;border:1px solid #e2e4ea;border-radius:10px;width:100%;padding:20px 22px;font-size:12px;color:#3a3d4a;line-height:1.8"><div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8b8fa8;border-bottom:1px solid #e2e4ea;padding-bottom:8px;margin-bottom:12px">DESPACHO GARCÍA &amp; ASOCIADOS · MADRID</div><p><strong>Documento:</strong> '+escapeHtml(att.name)+'</p><p><strong>Tamaño:</strong> '+escapeHtml(att.meta||'—')+'</p><p><strong>Fecha:</strong> '+formatDateES(DEMO_NOW)+'</p><div style="background:#f4f5f7;border-radius:6px;padding:10px 12px;margin-top:10px;color:#8b8fa8">Vista previa demo disponible para este archivo.</div></div>';
+};
+
+// ensure completed historic meetings in late-year default to previous year
+Object.keys(COMUNIDADES).forEach(function(cid){
+  var c = COMUNIDADES[cid];
+  (c.juntas||[]).forEach(function(j){
+    if(!j.year && /completada/i.test(String(j.name||''))){
+      var mm = {ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11}[String(j.mes||'').slice(0,3).toLowerCase()];
+      if(mm!=null && mm > DEMO_NOW.getMonth()) j.year = DEMO_NOW.getFullYear()-1;
+      else if(mm!=null) j.year = DEMO_NOW.getFullYear();
+    }
+  });
+});
+
 </script>
 </body>
 </html>
