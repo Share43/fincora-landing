@@ -507,7 +507,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
       </div>
     </div>
     <div class="content">
-      <div class="callout cg">✅ El presidente ve este estado en tiempo real — sin llamar al despacho para preguntar.</div>
+      <div class="callout cg">✅ El presidente ve este estado en tiempo real — sin llamar al despacho para preguntar. Pulsa <strong>👁️ Vista del presidente</strong> para verlo como lo ve él.</div>
       <div style="display:flex;align-items:flex-start;gap:11px;margin-bottom:14px">
         <div style="font-size:22px" id="inc-icon">⚠️</div>
         <div>
@@ -757,11 +757,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
       <div class="twocol" style="max-width:680px">
         <div class="card">
           <div class="ch"><div class="ct">Despacho</div></div>
-          <div class="mf"><span class="mk">Nombre</span><span class="mv">García &amp; Asociados</span></div>
-          <div class="mf"><span class="mk">CIF</span><span class="mv">B-28123456</span></div>
-          <div class="mf"><span class="mk">Teléfono</span><span class="mv">91 123 45 67</span></div>
-          <div class="mf"><span class="mk">Email</span><span class="mv"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="31585f575e7156504352585050425e525850555e421f5442">[email&#160;protected]</a></span></div>
-          <div class="mf"><span class="mk">Dirección</span><span class="mv">C/ Serrano 44, Madrid</span></div>
+          <div class="mf"><span class="mk">Nombre</span><span class="mv" id="dsp-nombre">García &amp; Asociados</span></div>
+          <div class="mf"><span class="mk">CIF</span><span class="mv" id="dsp-cif">B-28123456</span></div>
+          <div class="mf"><span class="mk">Teléfono</span><span class="mv" id="dsp-tel">91 123 45 67</span></div>
+          <div class="mf"><span class="mk">Email</span><span class="mv" id="dsp-email">info@garciaasociados.es</span></div>
+          <div class="mf"><span class="mk">Dirección</span><span class="mv" id="dsp-dir">C/ Serrano 44, Madrid</span></div>
           <div style="padding:12px 16px"><button class="btn bs" style="font-size:12px" onclick="openEditDespachoModal()">✏️ Editar datos</button></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:12px">
@@ -1194,7 +1194,7 @@ function exitGuide(){
   document.getElementById('gbar').style.display='none';
   document.getElementById('app').classList.remove('guided');
 }
-function nextStep(){if(cur<STEPS.length-1){cur++;applyStep(cur);}}
+function nextStep(){if(cur<STEPS.length-1){cur++;applyStep(cur);}else{showClose();}}
 function prevStep(){if(cur>0){cur--;applyStep(cur);}}
 function jumpTo(idx){cur=idx;applyStep(idx);}
 function showClose(){
@@ -1540,6 +1540,7 @@ function openActaEditor(){
       </div>
       <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px">
         <button class="btn bs" onclick="closeModal()">Cancelar</button>
+        <button class="btn bs" onclick="closeModal();exportActaPDF()">📄 Exportar PDF</button>
         <button class="btn bp" onclick="closeModal()">💾 Guardar cambios</button>
       </div>
     </div>`;
@@ -2051,7 +2052,7 @@ function saveNewComm(){
   var ini=nombre.charAt(0).toUpperCase();
   var colors=['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff','#fef9c3']; var tcs=['#2563eb','#16a34a','#ea580c','#7c3aed','#ca8a04']; var ci=Object.keys(COMUNIDADES).length%5;
   COMUNIDADES[id]={id:id,initial:ini,short:nombre,name:'Comunidad '+nombre,sub:'Madrid · '+vec+' vecinos',avStyle:'background:'+colors[ci]+';color:'+tcs[ci],presidente:pres,cuota:cuota,cif:cif,morosos:'0 vecinos',badges:[{cls:'bg',txt:'Sin incidencias'}],incIds:[],docIds:[],juntas:[],info:{vecinos:vec,plantas:'—',cp:'—'}};
-  closeModal(); syncCommunityRelations(); refreshDashboard(); refreshIncCommSelect(); refreshAllCommunitySelectors(); renderDocs(); openComm(id);
+  closeModal(); syncCommunityRelations(); refreshDashboard(); renderCommList(); refreshIncCommSelect(); refreshAllCommunitySelectors(); renderDocs(); openComm(id);
 }
 
 // ══════════════════════════════════════════════
@@ -2089,15 +2090,11 @@ function saveDespacho(){
   DESPACHO.email=document.getElementById('ed-email').value.trim()||DESPACHO.email;
   DESPACHO.dir=document.getElementById('ed-dir').value.trim()||DESPACHO.dir;
   closeModal();
-  // Update displayed fields
-  var card=document.querySelector('#screen-configuracion .card');
-  if(card){
-    card.querySelectorAll('.mv')[0].textContent=DESPACHO.nombre;
-    card.querySelectorAll('.mv')[1].textContent=DESPACHO.cif;
-    card.querySelectorAll('.mv')[2].textContent=DESPACHO.tel;
-    card.querySelectorAll('.mv')[3].textContent=DESPACHO.email;
-    card.querySelectorAll('.mv')[4].textContent=DESPACHO.dir;
-  }
+  var n=document.getElementById('dsp-nombre'); if(n) n.textContent=DESPACHO.nombre;
+  var c=document.getElementById('dsp-cif');    if(c) c.textContent=DESPACHO.cif;
+  var t=document.getElementById('dsp-tel');    if(t) t.textContent=DESPACHO.tel;
+  var em=document.getElementById('dsp-email'); if(em) em.textContent=DESPACHO.email;
+  var d=document.getElementById('dsp-dir');    if(d) d.textContent=DESPACHO.dir;
 }
 
 // ══════════════════════════════════════════════
