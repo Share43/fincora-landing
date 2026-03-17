@@ -863,8 +863,9 @@ const INCIDENCIAS = {
     ],
     adjuntos:[
       {icon:'📋',name:'Parte técnico Thyssenkrupp',meta:'PDF · 128 KB',visible:true},
-      {icon:'📸',name:'Fotos avería (3)',meta:'JPG · 2.4 MB',visible:true},
-      {icon:'📸',name:'Cabina ascensor — acceso bloqueado',meta:'JPG · 1.8 MB',visible:true},
+      {icon:'📸',name:'Cabina ascensor — acceso bloqueado',meta:'JPG · 1.8 MB',visible:true,demoScene:'elevator-cabin'},
+      {icon:'📸',name:'Motor de tracción — avería detectada',meta:'JPG · 1.6 MB',visible:true,demoScene:'elevator-motor'},
+      {icon:'📸',name:'Panel maniobra — código E-27',meta:'JPG · 1.2 MB',visible:true,demoScene:'elevator-panel'},
     ]
   },
   inc2:{
@@ -1008,9 +1009,32 @@ function readFileData(file, cb){ if(!file){cb(null);return;} var r=new FileReade
 function makeImagePlaceholderDataUrl(att){
   var title=escapeHtml(att.name||'Imagen adjunta');
   var sub=escapeHtml(att.meta||'Vista previa demo');
+  var scene=(att.demoScene||'').toLowerCase();
   var multi=/\((\d+)\)/.test(att.name||'')||/fotos?/i.test(att.name||'');
   var svg='';
-  if(multi){
+  if(scene==='elevator-cabin'){
+    svg='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540">'
+      +'<rect width="900" height="540" fill="#111827"/><rect x="180" y="70" width="540" height="380" rx="22" fill="#374151" stroke="#9ca3af" stroke-width="8"/>'
+      +'<rect x="220" y="110" width="460" height="300" rx="12" fill="#6b7280"/><rect x="420" y="82" width="60" height="24" rx="4" fill="#dc2626"/>'
+      +'<text x="450" y="99" fill="#fff" font-family="Arial" font-size="14" text-anchor="middle">FUERA DE SERVICIO</text>'
+      +'<rect x="120" y="460" width="660" height="54" rx="14" fill="#0b1220" opacity=".9"/>'
+      +'<text x="450" y="493" fill="#f8fafc" font-family="Arial" font-size="28" text-anchor="middle">'+title+'</text></svg>';
+  } else if(scene==='elevator-motor'){
+    svg='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540">'
+      +'<rect width="900" height="540" fill="#0f172a"/><circle cx="450" cy="230" r="118" fill="#475569" stroke="#94a3b8" stroke-width="18"/>'
+      +'<circle cx="450" cy="230" r="42" fill="#1e293b"/><rect x="250" y="190" width="120" height="80" rx="12" fill="#64748b"/>'
+      +'<rect x="530" y="190" width="120" height="80" rx="12" fill="#64748b"/><path d="M450 112 L474 146 L426 146 Z" fill="#f59e0b"/>'
+      +'<rect x="140" y="430" width="620" height="60" rx="14" fill="#111827" opacity=".92"/>'
+      +'<text x="450" y="468" fill="#f8fafc" font-family="Arial" font-size="28" text-anchor="middle">'+title+'</text></svg>';
+  } else if(scene==='elevator-panel'){
+    svg='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540">'
+      +'<rect width="900" height="540" fill="#111827"/><rect x="280" y="70" width="340" height="400" rx="22" fill="#1f2937" stroke="#6b7280" stroke-width="6"/>'
+      +'<rect x="345" y="110" width="210" height="70" rx="10" fill="#7f1d1d"/><text x="450" y="154" fill="#fecaca" font-family="Courier New" font-size="42" text-anchor="middle">E-27</text>'
+      +'<circle cx="360" cy="230" r="24" fill="#94a3b8"/><circle cx="450" cy="230" r="24" fill="#94a3b8"/><circle cx="540" cy="230" r="24" fill="#94a3b8"/>'
+      +'<circle cx="360" cy="310" r="24" fill="#94a3b8"/><circle cx="450" cy="310" r="24" fill="#94a3b8"/><circle cx="540" cy="310" r="24" fill="#94a3b8"/>'
+      +'<rect x="140" y="475" width="620" height="46" rx="12" fill="#0b1220" opacity=".9"/>'
+      +'<text x="450" y="505" fill="#f8fafc" font-family="Arial" font-size="26" text-anchor="middle">'+title+'</text></svg>';
+  } else if(multi){
     svg='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540">'
       +'<defs><linearGradient id="bg" x1="0" x2="1"><stop offset="0" stop-color="#0f172a"/><stop offset="1" stop-color="#1e293b"/></linearGradient></defs>'
       +'<rect width="900" height="540" fill="url(#bg)"/>'
@@ -1026,17 +1050,14 @@ function makeImagePlaceholderDataUrl(att){
       +'</svg>';
   } else {
     svg='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540">'
-      +'<defs><linearGradient id="sky" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#dbeafe"/></linearGradient></defs>'
-      +'<rect width="900" height="540" fill="#e5e7eb"/>'
-      +'<rect width="900" height="250" fill="url(#sky)"/>'
-      +'<rect y="250" width="900" height="290" fill="#9ca3af"/>'
-      +'<rect x="70" y="120" width="240" height="130" rx="10" fill="#2563eb" opacity=".85"/>'
-      +'<rect x="120" y="275" width="680" height="120" rx="18" fill="#6b7280" opacity=".45"/>'
-      +'<circle cx="225" cy="335" r="22" fill="#f97316"/>'
-      +'<rect x="540" y="158" width="180" height="86" rx="18" fill="#374151" opacity=".8"/>'
-      +'<rect x="78" y="408" width="744" height="82" rx="16" fill="#111827" opacity=".82"/>'
-      +'<text x="450" y="442" fill="#f8fafc" font-family="Arial" font-size="28" text-anchor="middle">'+title+'</text>'
-      +'<text x="450" y="472" fill="#cbd5e1" font-family="Arial" font-size="18" text-anchor="middle">'+sub+'</text>'
+      +'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dbeafe"/><stop offset="1" stop-color="#bfdbfe"/></linearGradient></defs>'
+      +'<rect width="900" height="540" fill="url(#g)"/>'
+      +'<rect x="120" y="95" width="660" height="350" rx="28" fill="#ffffff" opacity=".96"/>'
+      +'<rect x="175" y="155" width="550" height="150" rx="20" fill="#e0f2fe"/>'
+      +'<circle cx="250" cy="230" r="46" fill="#38bdf8" opacity=".82"/>'
+      +'<path d="M220 285 L320 205 L390 265 L515 175 L640 295 Z" fill="#0ea5e9" opacity=".72"/>'
+      +'<rect x="195" y="358" width="510" height="54" rx="14" fill="#0f172a" opacity=".92"/>'
+      +'<text x="450" y="392" fill="#f8fafc" font-family="Arial" font-size="28" text-anchor="middle">'+title+'</text>'
       +'</svg>';
   }
   return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
@@ -1060,18 +1081,61 @@ function docStatusMeaning(doc){
   if(doc.status && /Pendiente/i.test(doc.status.txt||'')) return 'Documento cargado pero pendiente de aprobación o validación.';
   return 'Documento activo y utilizable en la comunidad.';
 }
+
+function pdfEscapeText(str){ return String(str||'').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)'); }
+function makeDemoPdfDataUrl(title, lines){
+  lines=(lines||[]).filter(Boolean).map(function(x){ return String(x); });
+  var ops=[];
+  ops.push('BT /F1 18 Tf 50 790 Td ('+pdfEscapeText(title||'Documento demo')+') Tj ET');
+  var y=760;
+  lines.forEach(function(line){ ops.push('BT /F1 11 Tf 50 '+y+' Td ('+pdfEscapeText(line)+') Tj ET'); y-=18; });
+  var stream=ops.join('\n');
+  var pdf='%PDF-1.4\n';
+  var offsets=[];
+  function addObj(body){ offsets.push(pdf.length); pdf += (offsets.length)+' 0 obj\n'+body+'\nendobj\n'; }
+  addObj('<< /Type /Catalog /Pages 2 0 R >>');
+  addObj('<< /Type /Pages /Count 1 /Kids [3 0 R] >>');
+  addObj('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>');
+  addObj('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+  addObj('<< /Length '+stream.length+' >>\nstream\n'+stream+'\nendstream');
+  var xrefPos=pdf.length;
+  pdf+='xref\n0 '+(offsets.length+1)+'\n0000000000 65535 f \n';
+  offsets.forEach(function(off){ pdf += String(off).padStart(10,'0')+' 00000 n \n'; });
+  pdf+='trailer\n<< /Size '+(offsets.length+1)+' /Root 1 0 R >>\nstartxref\n'+xrefPos+'\n%%EOF';
+  return 'data:application/pdf;base64,'+btoa(unescape(encodeURIComponent(pdf)));
+}
+function getDemoPdfPayload(att){
+  var n=String(att.name||'').toLowerCase();
+  if(n.indexOf('thyssenkrupp')>=0 || n.indexOf('ascensor')>=0){
+    return {title:'Parte técnico - Ascensor Goya 47', lines:['Incidencia: INC-2026-047','Proveedor: Thyssenkrupp Elevadores S.L.','Diagnóstico: motor de tracción averiado','Acción: pieza de repuesto solicitada','Plazo estimado: 3 a 5 días hábiles']};
+  }
+  if(n.indexOf('informe inspección tejado')>=0){
+    return {title:'Informe de inspección - Tejado', lines:['Incidencia: INC-2026-022','Proveedor: Cubiertas Madrid S.L.','Hallazgo: fisuras en lámina impermeabilizante','Riesgo: filtraciones en próximas lluvias','Recomendación: reparación preventiva en zona norte']};
+  }
+  if(n.indexOf('presupuesto cubiertas madrid')>=0){
+    return {title:'Presupuesto - Cubiertas Madrid', lines:['Incidencia: INC-2026-022','Saneado y sellado de juntas: 325 €','Reposición lámina impermeabilizante: 420 €','Medios auxiliares y desplazamiento: 220 €','Total presupuesto: 965 € + IVA']};
+  }
+  if(n.indexOf('fontanería lópez')>=0 || n.indexOf('fuga')>=0){
+    return {title:'Informe / presupuesto - Fontanería López', lines:['Incidencia: INC-2026-031','Localización de fuga en junta de tubería principal','Materiales y mano de obra estimados: 680 €','Intervención recomendada: reparación inmediata']};
+  }
+  return {title:att.name||'Documento demo', lines:[att.meta||'Documento adjunto','Vista previa demo generada automáticamente']};
+}
+
 function normalizeAdjunto(att){
   if(!att.id) att.id=makeUid('att');
   if(!att.mime){
-    var m=(att.meta||'').toLowerCase();
+    var m=((att.meta||'')+' '+(att.name||'')).toLowerCase();
     if(m.indexOf('jpg')>=0||m.indexOf('jpeg')>=0) att.mime='image/jpeg';
     else if(m.indexOf('png')>=0) att.mime='image/png';
-    else if(m.indexOf('pdf')>=0) att.mime='application/pdf';
+    else if(m.indexOf('pdf')>=0 || /parte|presupuesto|informe|acta|contrato|poliza|póliza/i.test(att.name||'')) att.mime='application/pdf';
     else att.mime='text/plain';
   }
   if(!att.dataUrl){
     if(att.mime.indexOf('image/')===0){
       att.dataUrl=makeImagePlaceholderDataUrl(att);
+    } else if(att.mime==='application/pdf') {
+      var payload=getDemoPdfPayload(att);
+      att.dataUrl=makeDemoPdfDataUrl(payload.title, payload.lines);
     } else {
       att.dataUrl='data:text/plain;charset=utf-8,'+encodeURIComponent('Documento adjunto: '+(att.name||'Adjunto')+'\n'+(att.meta||''));
     }
@@ -1095,13 +1159,8 @@ function attachmentThumbContent(att){
   if(isImageMime(att.mime) && att.dataUrl){
     return '<img src="'+att.dataUrl+'" alt="'+escapeHtml(att.name)+'" style="width:100%;height:100%;object-fit:cover;display:block">';
   }
-  if(isPdfMime(att.mime) || att.mime==='text/html'){
-    var label=att.mime==='text/html'?'INFORME':'PDF';
-    var ico=att.mime==='text/html'?'📋':'📄';
-    if(att.dataUrl && att.mime==='text/html'){
-      return '<div style="width:100%;height:100%;overflow:hidden;border-radius:4px;position:relative"><iframe src="'+att.dataUrl+'" style="width:200%;height:200%;transform:scale(0.5);transform-origin:0 0;pointer-events:none;border:none" scrolling="no"></iframe><div style="position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,0.85);text-align:center;font-size:9px;font-weight:700;color:#1d4ed8;padding:2px 0;text-transform:uppercase">'+label+'</div></div>';
-    }
-    return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;background:#fff"><div style="font-size:22px">'+ico+'</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">'+label+'</div></div>';
+  if(isPdfMime(att.mime)){
+    return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;background:#fff"><div style="font-size:22px">📄</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">PDF</div></div>';
   }
   return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;background:#fff"><div style="font-size:22px">'+(att.icon||'📋')+'</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">'+escapeHtml(((att.meta||'Archivo').split('·')[0]||'Archivo').trim())+'</div></div>';
 }
@@ -2989,137 +3048,6 @@ normalizeAdjunto = function(att){
   return att;
 };function refreshDashboard(){ syncCommunityRelations(); var allIncs=Object.values(INCIDENCIAS); var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';}); var urgent=open.filter(function(i){return i.priority==='Urgente';}); var dbComms=document.getElementById('db-comms'); var dbIncs=document.getElementById('db-incs'); var dbUrg=document.getElementById('db-urg'); if(dbComms) dbComms.textContent=Object.keys(COMUNIDADES).length; if(dbIncs) dbIncs.textContent=open.length; if(dbUrg) dbUrg.textContent=urgent.length+' urgente'+(urgent.length!==1?'s':''); renderDashIncs(); renderCommList(); refreshFilterCounts(); refreshSidebarBadges(); refreshDocCommFilter(); refreshDocsSummary(); renderUpcomingMeetings(); updateLiveDate(); }
 
-
-function _pdfEsc(s){return String(s||'').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');}
-function makeSimplePdfDataUrl(title, lines){
-  title=String(title||'Documento');
-  lines=(lines||[]).map(function(x){return String(x||'');});
-  var content=['BT /F1 18 Tf 50 800 Td ('+_pdfEsc(title)+') Tj'];
-  var y=774;
-  for(var i=0;i<lines.length;i++){
-    content.push('BT /F1 11 Tf 50 '+y+' Td ('+_pdfEsc(lines[i])+') Tj');
-    y-=16;
-  }
-  var stream = content.join(' ET\n')+' ET';
-  var objs=[];
-  objs[1]='1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n';
-  objs[2]='2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n';
-  objs[3]='3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>\nendobj\n';
-  objs[4]='4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n';
-  objs[5]='5 0 obj\n<< /Length '+stream.length+' >>\nstream\n'+stream+'\nendstream\nendobj\n';
-  var pdf='%PDF-1.4\n';
-  var offsets=[0];
-  for(var n=1;n<=5;n++){
-    offsets[n]=pdf.length;
-    pdf += objs[n];
-  }
-  var xrefPos=pdf.length;
-  pdf+='xref\n0 6\n0000000000 65535 f \n';
-  for(var x=1;x<=5;x++) pdf += String(offsets[x]).padStart(10,'0')+' 00000 n \n';
-  pdf+='trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n'+xrefPos+'\n%%EOF';
-  return 'data:application/pdf;base64,'+btoa(pdf);
-}
-function makeIncidentPdfDataUrl(att){
-  var n=String(att.name||'').toLowerCase();
-  if(n.indexOf('parte tecnico thyssenkrupp')>=0 || n.indexOf('parte técnico thyssenkrupp')>=0){
-    return makeSimplePdfDataUrl('Parte tecnico Thyssenkrupp — INC-2026-047',[
-      'Comunidad: C/ Goya 47',
-      'Incidencia: Ascensor parado — planta 3',
-      'Fecha visita: 09/03/2026 · Tecnico: J. Martin',
-      'Diagnostico: averia en motor de traccion y fallo de desbloqueo de cabina.',
-      'Codigo observado en panel: E-27.',
-      'Actuacion recomendada: sustituir conjunto de traccion y verificar maniobra.',
-      'Plazo estimado de suministro: 3 a 5 dias habiles.'
-    ]);
-  }
-  if(n.indexOf('informe inspeccion tejado')>=0 || n.indexOf('informe inspección tejado')>=0){
-    return makeSimplePdfDataUrl('Informe de inspeccion de tejado — INC-2026-022',[
-      'Comunidad: C/ Goya 47',
-      'Proveedor: Cubiertas Madrid S.L.',
-      'Fecha de inspeccion: 18/03/2026',
-      'Hallazgos: varias tejas desplazadas y sello de canalon deteriorado en zona derecha.',
-      'Riesgo: entrada de agua en episodios de lluvia fuerte.',
-      'Recomendacion: recolocacion de tejas y renovacion de sellado impermeable.',
-      'Este documento es un informe tecnico, no un presupuesto economico.'
-    ]);
-  }
-  if(n.indexOf('presupuesto cubiertas madrid')>=0){
-    return makeSimplePdfDataUrl('Presupuesto Cubiertas Madrid — INC-2026-022',[
-      'Comunidad: C/ Goya 47',
-      'Actuacion: reparacion preventiva de tejado y canalon',
-      'Partida 1: recolocacion de tejas desplazadas .......... 420 EUR',
-      'Partida 2: saneado y sellado de canalon ............... 280 EUR',
-      'Partida 3: retirada de restos y revision final ........ 265 EUR',
-      'Base imponible ........................................ 965 EUR',
-      'IVA (21%) ............................................. 202,65 EUR',
-      'Total presupuesto ..................................... 1.167,65 EUR'
-    ]);
-  }
-  if(n.indexOf('presupuesto fontaneria')>=0 || n.indexOf('presupuesto fontanería')>=0){
-    return makeSimplePdfDataUrl('Presupuesto Fontaneria Lopez — INC-2026-031',[
-      'Comunidad: Pza. Espana 3',
-      'Actuacion: reparacion de fuga en tuberia principal de garaje',
-      'Base imponible: 680 EUR',
-      'IVA (21%): 142,80 EUR',
-      'Total: 822,80 EUR'
-    ]);
-  }
-  return makeSimplePdfDataUrl(att.name||'Documento adjunto',[
-    'Comunidad: expediente demo Fincora',
-    'Documento generado automaticamente para previsualizacion en PDF.',
-    'Nombre: '+(att.name||'Adjunto')
-  ]);
-}
-function makeSpecificIncidentImageDataUrl(name){
-  var t=String(name||'');
-  var lower=t.toLowerCase();
-  var bg='#0f172a', accent='#60a5fa', sub='Incidencia documentada';
-  if(lower.indexOf('cabina ascensor')>=0){accent='#ef4444'; sub='Cabina bloqueada y acceso restringido';}
-  else if(lower.indexOf('motor')>=0){accent='#f59e0b'; sub='Motor de traccion averiado';}
-  else if(lower.indexOf('panel maniobra')>=0){accent='#22c55e'; sub='Codigo de error E-27 en panel';}
-  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540">'
-    +'<rect width="900" height="540" fill="'+bg+'"/>'
-    +'<rect x="60" y="60" width="780" height="420" rx="24" fill="#e5e7eb"/>'
-    +'<rect x="95" y="95" width="710" height="260" rx="18" fill="#cbd5e1"/>'
-    +'<rect x="120" y="120" width="220" height="180" rx="12" fill="'+accent+'" opacity="0.35"/>'
-    +'<rect x="380" y="120" width="295" height="180" rx="12" fill="#94a3b8" opacity="0.45"/>'
-    +'<rect x="705" y="120" width="60" height="180" rx="10" fill="#111827" opacity="0.9"/>'
-    +'<circle cx="735" cy="155" r="8" fill="#ef4444"/>'
-    +'<circle cx="735" cy="185" r="8" fill="#f59e0b"/>'
-    +'<circle cx="735" cy="215" r="8" fill="#22c55e"/>'
-    +'<rect x="120" y="390" width="660" height="78" rx="16" fill="#111827" opacity="0.92"/>'
-    +'<text x="450" y="426" fill="#f8fafc" font-family="Arial" font-size="28" text-anchor="middle">'+escapeHtml(t)+'</text>'
-    +'<text x="450" y="455" fill="#cbd5e1" font-family="Arial" font-size="18" text-anchor="middle">'+escapeHtml(sub)+'</text>'
-    +'</svg>';
-  return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
-}
-(function(){
-  if(INCIDENCIAS && INCIDENCIAS.inc1){
-    INCIDENCIAS.inc1.adjuntos=[
-      {icon:'📋',name:'Parte técnico Thyssenkrupp',meta:'PDF · 128 KB',visible:true,mime:'application/pdf'},
-      {icon:'📸',name:'Cabina ascensor — acceso bloqueado',meta:'JPG · 1.8 MB',visible:true,mime:'image/jpeg',dataUrl:makeSpecificIncidentImageDataUrl('Cabina ascensor — acceso bloqueado')},
-      {icon:'📸',name:'Motor de tracción — avería detectada',meta:'JPG · 2.1 MB',visible:true,mime:'image/jpeg',dataUrl:makeSpecificIncidentImageDataUrl('Motor de tracción — avería detectada')},
-      {icon:'📸',name:'Panel maniobra — código E-27',meta:'JPG · 1.4 MB',visible:true,mime:'image/jpeg',dataUrl:makeSpecificIncidentImageDataUrl('Panel maniobra — código E-27')}
-    ];
-  }
-})();
-var _origNormalizeAdjuntoV36 = normalizeAdjunto;
-normalizeAdjunto = function(att){
-  att=_origNormalizeAdjuntoV36(att);
-  if(!att) return att;
-  var n=String(att.name||'').toLowerCase();
-  if(n.indexOf('cabina ascensor')>=0 || n.indexOf('motor de traccion')>=0 || n.indexOf('motor de tracción')>=0 || n.indexOf('panel maniobra')>=0){
-    att.mime='image/jpeg';
-    att.dataUrl=att.dataUrl||makeSpecificIncidentImageDataUrl(att.name||'Adjunto');
-    return att;
-  }
-  if(/parte tecnico|parte técnico|informe|presupuesto/i.test(att.name||'')){
-    att.mime='application/pdf';
-    att.dataUrl=makeIncidentPdfDataUrl(att);
-    return att;
-  }
-  return att;
-};
 syncCommunityRelations();
 normalizeJuntasData();
 renderProveedores();
