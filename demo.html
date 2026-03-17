@@ -1695,699 +1695,10 @@ function exportActaPDF(){
   if(win){setTimeout(()=>{win.print();},600);}
 }
 
-function downloadDocFile(docId){ var d=DOCS.find(function(x){return x.id===docId;}); if(!d)return; if(d.dataUrl){ downloadBlob(d.dataUrl,d.name); return; } var blob=new Blob(['Documento: '+d.name+'\nComunidad: '+d.comm+'\nFecha: '+d.fecha],{type:'text/plain'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(d.name||'documento')+'.txt'; a.click(); }
-
-function openProvModal(nombre, categoria, contacto, comunidad, notas, importe){
-  document.getElementById('modal-title').textContent=nombre;
-  document.getElementById('modal-body').innerHTML=`
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">CATEGORÍA</div><div style="font-weight:600">${categoria}</div></div>
-        <div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">COMUNIDAD</div><div style="font-weight:600">${comunidad}</div></div>
-        <div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">IMPORTE</div><div style="font-weight:700;font-size:15px;color:var(--ink)">${importe||'—'}</div></div>
-        <div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">ESTADO</div><div class="badge bg">Activo</div></div>
-      </div>
-      <div class="card" style="padding:12px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px">CONTACTO</div><div style="font-size:13px">${contacto}</div></div>
-      <div class="card" style="padding:12px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px">NOTAS</div><div style="font-size:13px;color:var(--ink2)">${notas}</div></div>
-      <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px">
-        <button class="btn bs" onclick="closeModal()">Cerrar</button>
-        <button class="btn bp" onclick="closeModal()">✏️ Editar</button>
-      </div>
-    </div>`;
-  document.getElementById('modal').style.display='flex';
-}
-// ══════════════════════════════════════════════
-// INCIDENCIAS — render + presidente
-// ══════════════════════════════════════════════
-function renderAllIncs(){
-  var el=document.getElementById('all-incs-list'); if(!el)return; syncCommunityRelations(); refreshFilterCounts(); refreshSidebarBadges();
-  var allIncs=Object.values(INCIDENCIAS); var f=el._filter||'todas';
-  var visible=allIncs.filter(function(i){ if(f==='todas') return true; if(f==='urgente') return i.priority==='Urgente'; if(f==='en-curso') return i.status==='En curso'; if(f==='pendiente') return i.status==='Pendiente de proveedor'||i.status==='Pendiente de comunidad'||i.status==='Nueva'||i.status==='Revisando'; return true;});
-  el.innerHTML=visible.map(function(inc){
-    return '<div class="ir" data-open-inc="'+inc.id+'" data-comm-id="'+inc.commId+'" onclick="openInc(\''+inc.commId+'\',\''+inc.id+'\')" style="cursor:pointer">'
-      +'<div class="idot '+statusDot(inc.status)+'"></div>'
-      +'<div style="flex:1"><div class="itl">'+escapeHtml(inc.title||'Incidencia')+'</div><div class="imt">'+escapeHtml((COMUNIDADES[inc.commId]&&COMUNIDADES[inc.commId].short)||inc.commId)+' · '+escapeHtml(inc.ref||'—')+' · '+escapeHtml(inc.status||'Nueva')+'</div></div>'
-      +'<div class="irr"><div class="badge '+statusBadge(inc.priority||'Normal')+'">'+escapeHtml(inc.priority||'Normal')+'</div></div>'
-      +'</div>';
-  }).join('') || '<div style="padding:16px;font-size:13px;color:var(--muted)">Sin incidencias para este filtro.</div>';
-}
-function filterIncs(f,btn){
-  document.querySelectorAll('#screen-incidencias .filterbtn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  var el=document.getElementById('all-incs-list');
-  el._filter=f;
-  renderAllIncs();
-}
-
-function openPresidente(){
-  var inc=INCIDENCIAS[currentIncId]; var comm=COMUNIDADES[inc.commId];
-  document.getElementById('pres-title').textContent=inc.title;
-  document.getElementById('pres-comm').textContent=comm.name+' · '+inc.ref;
-  document.getElementById('pres-icon').textContent=inc.icon;
-  document.getElementById('pres-badge').innerHTML='<div class="badge '+priorityBadgeFromStatus(inc.status)+'">'+inc.status+'</div>';
-  document.getElementById('pres-since').textContent='Abierta: '+inc.apertura+(inc.estimada?' · Resolución est.: '+inc.estimada:'');
-  document.getElementById('pres-desc').textContent=inc.desc||'—';
-  document.getElementById('pres-details').innerHTML='<div class="mf"><span class="mk">Proveedor</span><span class="mv">'+(inc.proveedor||'Sin asignar')+'</span></div><div class="mf"><span class="mk">Categoría</span><span class="mv">'+(inc.category||'—')+'</span></div><div class="mf"><span class="mk">Gestor</span><span class="mv">'+(inc.gestor||'—')+'</span></div><div class="mf"><span class="mk">Apertura</span><span class="mv">'+(inc.apertura||'—')+'</span></div>'+(inc.estimada?'<div class="mf"><span class="mk">Est. resolución</span><span class="mv">'+inc.estimada+'</span></div>':'');
-  var visibleEvents=(inc.timeline||[]).filter(function(e){return e.type==='visible'||e.type==='event';});
-  document.getElementById('pres-timeline').innerHTML=visibleEvents.length?visibleEvents.map(function(e){return '<div class="tli"><div class="tld">'+e.icon+'</div><div><div class="tlt">'+e.title+'</div><div class="tltx">'+e.text+'</div><div class="tlts">'+e.ts+'</div></div></div>';}).join(''):'<div style="font-size:13px;color:var(--muted)">Sin actualizaciones todavía.</div>';
-  var visibleAdj=(inc.adjuntos||[]).filter(function(a){return a.visible;});
-  document.getElementById('pres-adjuntos').innerHTML=visibleAdj.length?visibleAdj.map(function(a){ return '<div style="padding:0 16px">'+attachmentRowMarkup(a,false)+'</div>'; }).join(''):'<div style="padding:12px 16px;font-size:13px;color:var(--muted)">Sin documentos adjuntos visibles.</div>';
-  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-  document.getElementById('screen-presidente').classList.add('active');
-  window.scrollTo(0,0);
-}
-
-function closePresidente(){
-  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-  document.getElementById('screen-inc-detalle').classList.add('active');
-  window.scrollTo(0,0);
-}
-
-// ══════════════════════════════════════════════
-// DOCUMENTOS — render + filters + preview
-// ══════════════════════════════════════════════
-
-function renderDocs(){
-  var search=(document.getElementById('doc-search')?document.getElementById('doc-search').value:'').toLowerCase();
-  var filtered=DOCS.map(normalizeDocStatus).filter(function(d){ var matchType=docTypeFilter==='todos'||d.type===docTypeFilter; var matchComm=docCommFilter==='todas'||d.commId===docCommFilter; var matchSearch=!search||d.name.toLowerCase().includes(search)||d.comm.toLowerCase().includes(search)||(d.meta||'').toLowerCase().includes(search); return matchType&&matchComm&&matchSearch; });
-  var tbody=document.getElementById('docs-tbody'); if(!tbody)return;
-  tbody.innerHTML=filtered.map(function(d){ var st=d.status?'<div class="badge '+d.status.cls+'">'+d.status.txt+'</div>':d.statusVb?'<div class="vb '+d.statusVb.cls+'">'+d.statusVb.txt+'</div>':''; return '<tr class="drow" onclick="openDoc('+JSON.stringify(d.id)+')"><td><span style="font-size:14px;margin-right:7px">'+d.icon+'</span><span class="dn">'+escapeHtml(d.name)+'</span><span class="ds">'+escapeHtml(d.meta||'')+'</span></td><td style="color:var(--muted);font-size:12px">'+escapeHtml(d.comm)+'</td><td><div class="badge bgr">'+d.type.charAt(0).toUpperCase()+d.type.slice(1)+'</div></td><td style="color:var(--muted);font-size:12px">'+escapeHtml(d.fecha)+'</td><td><div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">'+st+'<button class="badge bb" style="border:0;cursor:pointer" onclick="event.stopPropagation();openDoc(\''+d.id+'\')">Ver</button><button class="badge bg" style="border:0;cursor:pointer" onclick="event.stopPropagation();downloadDocFile(\''+d.id+'\')">Descargar</button><button class="badge br" style="border:0;cursor:pointer" onclick="event.stopPropagation();confirmDeleteDoc(\''+d.id+'\')">Borrar</button></div></td></tr>'; }).join('');
-  var cnt=document.getElementById('docs-count'); if(cnt) cnt.textContent=filtered.length+' documento'+(filtered.length!==1?'s':'')+' mostrado'+(filtered.length!==1?'s':'');
-  refreshDocsSummary();
-}
-function filterDocs(){renderDocs();}
-
-function filterDocsType(t,btn){
-  document.querySelectorAll('#screen-documentos .filterbtn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  docTypeFilter=t;
-  renderDocs();
-}
-
-function filterDocsComm(c,btn){
-  document.querySelectorAll('#screen-documentos .filterbtn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  docCommFilter=c;
-  renderDocs();
-}
-
-function openDoc(docId){
-  var d=DOCS.find(function(x){return x.id===docId;}); if(!d)return;
-  var content=DOC_CONTENT[d.content]||null; if(!content && (d.dataUrl||d.mime)) content={body:attachmentPreviewMarkup({name:d.name,meta:d.meta,mime:d.mime,dataUrl:d.dataUrl})};
-  document.getElementById('modal-title').textContent=d.name;
-  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:14px"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px"><div class="card" style="padding:9px 12px"><div style="color:var(--muted);font-weight:600;font-size:10px;margin-bottom:2px">COMUNIDAD</div><div style="font-weight:600">'+escapeHtml(d.comm)+'</div></div><div class="card" style="padding:9px 12px"><div style="color:var(--muted);font-weight:600;font-size:10px;margin-bottom:2px">TIPO</div><div class="badge bgr">'+d.type.charAt(0).toUpperCase()+d.type.slice(1)+'</div></div><div class="card" style="padding:9px 12px"><div style="color:var(--muted);font-weight:600;font-size:10px;margin-bottom:2px">FECHA</div><div style="font-weight:600">'+escapeHtml(d.fecha)+'</div></div></div>'+(content?content.body:'<div style="background:var(--bg);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:13px">'+d.icon+' Vista previa no disponible para este documento.</div>')+'<div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cerrar</button><button class="btn bp" onclick="downloadDocFile(\''+d.id+'\')">📥 Descargar</button></div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-function confirmDeleteAdjunto(attId){
-  var found=findAttachmentById(attId); if(!found) return;
-  if(!confirm('¿Borrar el archivo adjunto "'+(found.att.name||'Adjunto')+'"?')) return;
-  deleteAdjunto(attId);
-}
-function deleteAdjunto(attId){
-  var found=findAttachmentById(attId); if(!found) return;
-  found.inc.adjuntos=(found.inc.adjuntos||[]).filter(function(a){return a.id!==attId;});
-  found.inc.timeline=(found.inc.timeline||[]).concat([{type:'internal',icon:'🗑',title:'Adjunto eliminado',text:'Se eliminó '+(found.att.name||'un archivo')+'.',ts:'Ahora mismo'}]);
-  closeModal(); renderDocs(); refreshDashboard();
-  if(currentIncId===found.inc.id) openInc(found.inc.commId,found.inc.id,true);
-  else if(currentCommId===found.inc.commId) showCommTab('incidencias',null,true);
-}
-function confirmDeleteDoc(docId){
-  var d=DOCS.find(function(x){return x.id===docId;}); if(!d) return;
-  if(!confirm('¿Borrar el documento "'+(d.name||'Documento')+'"?')) return;
-  deleteDoc(docId);
-}
-function deleteDoc(docId){
-  var idx=DOCS.findIndex(function(x){return x.id===docId;}); if(idx<0) return;
-  var d=DOCS[idx];
-  DOCS.splice(idx,1);
-  if(d.content && DOC_CONTENT[d.content]) delete DOC_CONTENT[d.content];
-  closeModal(); syncCommunityRelations(); renderDocs(); refreshDashboard(); refreshAllCommunitySelectors();
-  if(currentCommId===d.commId) showCommTab('documentos',null,true);
-}
-
-// ══════════════════════════════════════════════
-// PROVEEDORES DATA + RENDER
-// ══════════════════════════════════════════════
-var PROVEEDORES=[
-  {id:'p1',nombre:'Thyssenkrupp Elevadores S.L.',cat:'Ascensores',contacto:'91 234 56 78 · carlos.fernandez@thyssenkrupp.com',comm:'Goya 47',notas:'Contrato vigente hasta dic 2026',importe:'145 €/mes',badge:'bg',badgeTxt:'Activo',warn:'🔗 INC-047',color:'#eff6ff',tc:'#2563eb'},
-  {id:'p2',nombre:'Fontanería López S.L.',cat:'Fontanería',contacto:'91 345 67 89 · lopez.fontaneria@gmail.com',comm:'Pza. España 3',notas:'Colaborador habitual · Sin contrato fijo',importe:'Por obra',badge:'bo',badgeTxt:'En obra',warn:'🔗 INC-031',color:'#eff6ff',tc:'#2563eb'},
-  {id:'p3',nombre:'Electricidad Martín S.L.',cat:'Electricidad',contacto:'91 456 78 90 · martin@electricidadmartin.es',comm:'Velázquez 12',notas:'Contrato mantenimiento eléctrico — vigente feb 2027',importe:'480 €/año',badge:'bg',badgeTxt:'Activo',warn:'🔗 INC-048',color:'#eff6ff',tc:'#2563eb'},
-  {id:'p4',nombre:'Limpiezas García S.L.',cat:'Limpieza',contacto:'91 567 89 01 · info@limpiezasgarcia.com',comm:'Velázquez 12',notas:'Contrato limpieza — vence 15 abr 2026',importe:'180 €/mes',badge:'',badgeTxt:'',warn:'⚠ Contrato vence abr',color:'#fff7ed',tc:'#ea580c'},
-  {id:'p5',nombre:'Cubiertas Madrid S.L.',cat:'Tejados',contacto:'91 678 90 12 · info@cubiertasmadrid.com',comm:'Goya 47',notas:'Presupuesto en proceso · Visita sem. 18 mar',importe:'Pendiente',badge:'by',badgeTxt:'Pendiente',warn:'',color:'#f0fdf4',tc:'#16a34a'}
-];
-
-function renderProveedores(){
-  var el=document.getElementById('prov-list');
-  if(!el)return;
-  el.innerHTML=PROVEEDORES.map(function(p){
-    var ini=p.nombre.charAt(0);
-    var pName=_normProvName(p.nombre||'');
-    var activeLinked=(Object.values(INCIDENCIAS||{})).find(function(i){
-      var st=String(i.status||'').trim();
-      if(st==='Cerrada' || st==='Resuelta') return false;
-      var iName=_normProvName(i.proveedor||'');
-      var nextTxt=_normProvName(i.nextAction||'');
-      return !!pName && (
-        (!!iName && (iName===pName || iName.indexOf(pName)!==-1 || pName.indexOf(iName)!==-1)) ||
-        (!!nextTxt && nextTxt.indexOf(pName)!==-1)
-      );
-    });
-    var linkedBadge = activeLinked ? ('🔗 '+(activeLinked.ref||activeLinked.id||'')) : '';
-    var warnHtml='';
-    if(linkedBadge){
-      warnHtml += '<div class="badge bb">'+linkedBadge+'</div>';
-    }
-    if(p.warn && !(linkedBadge && _provWarnRef(p.warn||'')===_provWarnRef(linkedBadge))){
-      warnHtml += '<div class="'+(p.warn.startsWith('⚠')?'vb urg':'badge bb')+'">'+p.warn+'</div>';
-    }
-    return '<div class="cr" onclick="openProvModal(\''+p.id+'\')">'
-      +'<div class="cav" style="background:'+p.color+';color:'+p.tc+'">'+ini+'</div>'
-      +'<div><div class="cn">'+p.nombre+'</div><div class="csb">'+p.cat+' · '+p.comm+' · '+p.importe+'</div></div>'
-      +'<div class="cbdg">'+(p.badge?'<div class="badge '+p.badge+'">'+p.badgeTxt+'</div>':'')+warnHtml+'</div>'
-      +'</div>';
-  }).join('');
-  refreshProvSelect();
-}
-
-function refreshProvSelect(){
-  var sels=document.querySelectorAll('.prov-select');
-  sels.forEach(function(sel){
-    var cur=sel.value;
-    sel.innerHTML='<option value="">Sin asignar</option>'+PROVEEDORES.map(function(p){
-      return '<option value="'+p.nombre+'">'+p.nombre+'</option>';
-    }).join('');
-    sel.value=cur;
-  });
-}
-
-function openProvModal(id){
-  var p=PROVEEDORES.find(function(x){return x.id===id;});
-  if(!p)return;
-  document.getElementById('modal-title').textContent=p.nombre;
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:12px">'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-    +'<div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">CATEGORÍA</div><div style="font-weight:600">'+p.cat+'</div></div>'
-    +'<div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">COMUNIDAD</div><div style="font-weight:600">'+p.comm+'</div></div>'
-    +'<div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">IMPORTE</div><div style="font-weight:700;font-size:15px;color:var(--ink)">'+p.importe+'</div></div>'
-    +'<div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px">ESTADO</div><div class="badge '+(p.badge||'bgr')+'">'+(p.badgeTxt||'Activo')+'</div></div>'
-    +'</div>'
-    +'<div class="card" style="padding:12px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px">CONTACTO</div><div style="font-size:13px">'+p.contacto+'</div></div>'
-    +'<div class="card" style="padding:12px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px">NOTAS</div><div style="font-size:13px;color:var(--ink2)">'+p.notas+'</div></div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="closeModal()">Cerrar</button>'
-    +'<button class="btn bp" onclick="openEditProvModal(\''+id+'\')">✏️ Editar</button>'
-    +'</div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-function openEditProvModal(id){
-  var p=PROVEEDORES.find(function(x){return x.id===id;});
-  document.getElementById('modal-title').textContent='Editar proveedor';
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:11px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div>'
-    +'<input id="ep-nombre" value="'+p.nombre+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">IMPORTE</div>'
-    +'<input id="ep-importe" value="'+p.importe+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD</div>'
-    +'<input id="ep-comm" value="'+p.comm+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'</div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CONTACTO</div>'
-    +'<input id="ep-contacto" value="'+p.contacto+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOTAS</div>'
-    +'<textarea id="ep-notas" rows="2" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical">'+p.notas+'</textarea></div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
-    +'<button class="btn bp" onclick="saveEditProv(\''+id+'\')">💾 Guardar</button>'
-    +'</div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-function saveEditProv(id){
-  var p=PROVEEDORES.find(function(x){return x.id===id;});
-  p.nombre=document.getElementById('ep-nombre').value.trim()||p.nombre;
-  p.importe=document.getElementById('ep-importe').value.trim()||p.importe;
-  p.comm=document.getElementById('ep-comm').value.trim()||p.comm;
-  p.contacto=document.getElementById('ep-contacto').value.trim()||p.contacto;
-  p.notas=document.getElementById('ep-notas').value.trim()||p.notas;
-  closeModal();
-  renderProveedores();
-}
-
-function openNewProvModal(){
-  document.getElementById('modal-title').textContent='Nuevo proveedor';
-  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div><input id="np-nombre" placeholder="Ej: Reformas Madrid S.L." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div><select id="np-cat" onchange="handleCatChange(this)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'+getCatOptions('')+'</select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD</div><select id="np-comm" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'+getCommOptions()+'<option value="Todas">Todas</option></select></div></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CONTACTO (tel · email)</div><input id="np-contacto" placeholder="91 000 00 00 · email@empresa.es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">IMPORTE / CONTRATO</div><input id="np-importe" placeholder="Ej: 180 €/mes  ó  Por obra" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div id="np-err" style="display:none;font-size:12px;color:var(--red)">El nombre es obligatorio.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveNewProv()">✅ Guardar proveedor</button></div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-function saveNewProv(){
-  var nombre=(document.getElementById('np-nombre').value||'').trim();
-  if(!nombre){document.getElementById('np-err').style.display='';return;}
-  var cat=document.getElementById('np-cat').value;
-  var commValue=document.getElementById('np-comm').value;
-  var contacto=(document.getElementById('np-contacto').value||'').trim()||'—';
-  var importe=(document.getElementById('np-importe').value||'').trim()||'—';
-  var comm=(COMUNIDADES[commValue]&&COMUNIDADES[commValue].short)||commValue||'Todas';
-  var id='p'+Date.now();
-  PROVEEDORES.push({id:id,nombre:nombre,cat:cat,contacto:contacto,comm:comm,commId:COMUNIDADES[commValue]?commValue:'',notas:'Añadido hoy.',importe:importe,badge:'bg',badgeTxt:'Activo',warn:'',color:'#f0fdf4',tc:'#16a34a'});
-  closeModal();
-  renderProveedores();
-}
-
-// ══════════════════════════════════════════════
-// NEW INC MODAL — with proveedor assignment + adjunto
-// ══════════════════════════════════════════════
-function openNewIncModal(){
-  document.getElementById('modal-title').textContent='Nueva incidencia';
-  var provOpts=PROVEEDORES.map(function(p){return '<option value="'+p.nombre+'">'+p.nombre+'</option>';}).join('');
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:12px">'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div>'
-    +'<select id="ni-comm" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +getCommOptions('')
-    +'</select></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PRIORIDAD *</div>'
-    +'<select id="ni-prior" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option>Normal</option><option>Alta</option><option>Urgente</option>'
-    +'</select></div>'
-    +'</div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TÍTULO *</div>'
-    +'<input id="ni-title" placeholder="Ej: Avería en portal — puerta no cierra" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">DESCRIPCIÓN</div>'
-    +'<textarea id="ni-desc" rows="2" placeholder="Describe el problema..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical"></textarea></div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CATEGORÍA</div>'
-    +'<select id="ni-cat" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option>Ascensor</option><option>Fontanería</option><option>Electricidad</option><option>Humedades</option><option>Pintura</option><option>Puerta/Garaje</option><option>Cerrajería</option><option>Seguridad</option><option>Plagas</option><option>Limpieza</option><option>Estructura</option><option>Otros</option>'
-    +'</select></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PROVEEDOR</div>'
-    +'<select id="ni-prov" class="prov-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option value="">Sin asignar</option>'+provOpts
-    +'</select></div>'
-    +'</div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ADJUNTO (opcional)</div>'
-    +'<div id="ni-adj-zone" style="border:2px dashed var(--border);border-radius:8px;padding:14px;text-align:center;font-size:12px;color:var(--muted);cursor:pointer" onclick="document.getElementById(\'ni-file\').click()">'
-    +'📎 Clic para adjuntar un archivo'
-    +'<input type="file" id="ni-file" style="display:none" onchange="previewNiFile(this)">'
-    +'</div>'
-    +'<div id="ni-adj-preview" style="display:none;margin-top:6px;padding:8px 10px;background:var(--bg);border-radius:8px;font-size:12px;display:flex;align-items:center;gap:8px">'
-    +'<span id="ni-adj-icon" style="font-size:18px">📄</span>'
-    +'<span id="ni-adj-name" style="font-weight:500"></span>'
-    +'<span id="ni-adj-size" style="color:var(--muted)"></span>'
-    +'</div>'
-    +'</div>'
-    +'<div id="ni-err" style="display:none;color:var(--red);font-size:12px">El título es obligatorio.</div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
-    +'<button class="btn bp" onclick="saveNewInc()">✅ Crear incidencia</button>'
-    +'</div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-var _niFileData=null;
-function previewNiFile(input){
-  if(!input.files||!input.files[0])return;
-  var f=input.files[0];
-  var icon=f.type.includes('image')?'📸':f.type.includes('pdf')?'📄':'📋';
-  var size=humanFileSize(f.size);
-  document.getElementById('ni-adj-icon').textContent=icon;
-  document.getElementById('ni-adj-name').textContent=f.name;
-  document.getElementById('ni-adj-size').textContent=size;
-  document.getElementById('ni-adj-preview').style.display='flex';
-  document.getElementById('ni-adj-zone').style.display='none';
-  readFileData(f,function(res){ _niFileData=normalizeAdjunto({id:makeUid('att'),icon:icon,name:f.name,meta:(f.name.split('.').pop()||'FILE').toUpperCase()+' · '+size,visible:true,mime:(res&&res.mime)||f.type||'application/octet-stream',dataUrl:(res&&res.dataUrl)||''}); });
-}
-
-function saveNewInc(){
-  var commId=document.getElementById('ni-comm').value;
-  var title=(document.getElementById('ni-title').value||'').trim();
-  var priority=document.getElementById('ni-prior').value;
-  var desc=(document.getElementById('ni-desc').value||'').trim();
-  var category=document.getElementById('ni-cat').value;
-  var provEl=document.getElementById('ni-prov');
-  var proveedor=provEl?provEl.value||'Sin asignar':'Sin asignar';
-  if(!title){document.getElementById('ni-err').style.display='';return;}
-  var today=new Date().toLocaleDateString('es-ES');
-  var newId='inc_'+Date.now();
-  var refNum=Math.floor(Math.random()*900+100);
-  var adjuntos=_niFileData?[_niFileData]:[];
-  _niFileData=null;
-  INCIDENCIAS[newId]={
-    id:newId,commId:commId,icon:'⚠️',title:title,status:'Nueva',priority:priority,category:category,
-    proveedor:proveedor,gestor:'Miguel García',
-    apertura:today,estimada:'',ref:'INC-2026-'+refNum,
-    desc:desc||'Sin descripción.',
-    nextAction:proveedor&&proveedor!=='Sin asignar'?'Contactar con '+proveedor+' para visita':'Revisar y asignar proveedor',
-    timeline:[{type:'event',icon:'⚠️',title:'Incidencia abierta',text:'Nueva incidencia creada.'+(proveedor&&proveedor!=='Sin asignar'?' Asignada a '+proveedor+'.':''),ts:'Ahora mismo'}],
-    adjuntos:adjuntos
-  };
-  COMUNIDADES[commId].incIds.push(newId);
-  // Update community badge count
-  var comm=COMUNIDADES[commId];
-  var openCount=comm.incIds.filter(function(id){return INCIDENCIAS[id]&&INCIDENCIAS[id].status!=='Resuelta'&&INCIDENCIAS[id].status!=='Cerrada';}).length;
-  comm.badges=[{cls:openCount>0?'bo':'bg',txt:openCount+' incidencia'+(openCount!==1?'s':'')}];
-  comm.sub=(comm.info&&comm.info.vecinos?comm.info.vecinos:comm.sub.split('·')[0].trim())+' · '+openCount+' incidencia'+(openCount!==1?'s':'');
-  closeModal();
-  syncCommunityRelations();
-  refreshAllCommunitySelectors();
-  renderAllIncs();
-  refreshDashboard();
-  if(currentCommId===commId){showCommTab('incidencias',null,true);}
-  openInc(commId,newId);
-}
-
-// Assign proveedor from inc detail
-function openAssignProvModal(incId){
-  var inc=INCIDENCIAS[incId];
-  var provOpts=PROVEEDORES.map(function(p){
-    var sel=inc.proveedor===p.nombre?' selected':'';
-    return '<option value="'+p.nombre+'"'+sel+'>'+p.nombre+'</option>';
-  }).join('');
-  document.getElementById('modal-title').textContent='Asignar proveedor';
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:12px">'
-    +'<div style="font-size:13px;color:var(--ink2)">Incidencia: <strong>'+inc.title+'</strong></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">PROVEEDOR</div>'
-    +'<select id="ap-prov" class="prov-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option value="">Sin asignar</option>'+provOpts
-    +'</select></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOTA INTERNA (opcional)</div>'
-    +'<input id="ap-nota" placeholder="Ej: Llamar antes de las 10h" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
-    +'<button class="btn bp" onclick="saveAssignProv(\''+incId+'\')">✅ Asignar</button>'
-    +'</div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-function saveAssignProv(incId){
-  var inc=INCIDENCIAS[incId];
-  var prov=document.getElementById('ap-prov').value||'Sin asignar';
-  var nota=(document.getElementById('ap-nota').value||'').trim();
-  var old=inc.proveedor;
-  inc.proveedor=prov;
-  inc.timeline.push({type:'event',icon:'🔧',title:'Proveedor asignado: '+prov,text:old&&old!=='Sin asignar'?'Anterior: '+old+(nota?' · '+nota:nota):(nota||''),ts:'Ahora mismo'});
-  if(prov&&prov!=='Sin asignar') inc.nextAction='Contactar con '+prov+' para visita';
-  closeModal();
-  renderProveedores();
-  openInc(inc.commId,incId,true);
-}
-
-// ══════════════════════════════════════════════
-// NUEVA COMUNIDAD
-// ══════════════════════════════════════════════
-function openNewCommModal(){
-  document.getElementById('modal-title').textContent='Nueva comunidad';
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:11px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE / DIRECCIÓN *</div>'
-    +'<input id="nc-nombre" placeholder="Ej: C/ Mayor 12" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:10px\">'
-    +'<div><div style=\"font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px\">Nº VECINOS</div>'
-    +'<input id=\"nc-vec\" type=\"number\" placeholder=\"Ej: 24\" style=\"width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none\"></div>'
-    +'<div><div style=\"font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px\">CUOTA MENSUAL</div>'
-    +'<input id="nc-cuota" placeholder="Ej: 85 €/mes" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'</div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">Nº MOROSOS</div><input id="nc-mor" type="number" placeholder="Ej: 2" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style=\"font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px\">PRESIDENTE</div>'
-    +'<input id=\"nc-pres\" placeholder=\"Nombre del presidente\" style=\"width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none\"></div>'
-    +'<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:10px\"><div><div style=\"font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px\">TELÉFONO PRESIDENTE</div><input id=\"nc-pres-tel\" placeholder=\"Ej: 600 123 123\" style=\"width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none\"></div><div><div style=\"font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px\">EMAIL PRESIDENTE</div><input id=\"nc-pres-email\" placeholder=\"presidente@comunidad.es\" style=\"width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none\"></div></div>'
-    +'<div><div style=\"font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px\">CIF COMUNIDAD</div>'
-    +'<input id="nc-cif" placeholder="Ej: H-28123456" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div id="nc-err" style="display:none;font-size:12px;color:var(--red)">El nombre es obligatorio.</div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
-    +'<button class="btn bp" onclick="saveNewComm()">✅ Crear comunidad</button>'
-    +'</div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-function saveNewComm(){
-  var nombre=(document.getElementById('nc-nombre').value||'').trim();
-  if(!nombre){document.getElementById('nc-err').style.display='';return;}
-  var vec=document.getElementById('nc-vec').value||'0';
-  var cuota=document.getElementById('nc-cuota').value||'—';
-  var pres=document.getElementById('nc-pres').value||'Sin designar';
-  var cif=document.getElementById('nc-cif').value||'—';
-  var id='comm_'+Date.now();
-  var ini=nombre.charAt(0).toUpperCase();
-  var colors=['#eff6ff','#f0fdf4','#fff7ed','#fdf4ff','#fef9c3']; var tcs=['#2563eb','#16a34a','#ea580c','#7c3aed','#ca8a04']; var ci=Object.keys(COMUNIDADES).length%5;
-  COMUNIDADES[id]={id:id,initial:ini,short:nombre,name:'Comunidad '+nombre,sub:'Madrid · '+vec+' vecinos',avStyle:'background:'+colors[ci]+';color:'+tcs[ci],presidente:pres,cuota:cuota,cif:cif,morosos:'0 vecinos',badges:[{cls:'bg',txt:'Sin incidencias'}],incIds:[],docIds:[],juntas:[],info:{vecinos:vec,plantas:'—',cp:'—'}};
-  closeModal(); syncCommunityRelations(); refreshDashboard(); renderCommList(); refreshIncCommSelect(); refreshAllCommunitySelectors(); renderDocs(); openComm(id);
-}
-
-// ══════════════════════════════════════════════
-// EDITAR DESPACHO
-// ══════════════════════════════════════════════
-var DESPACHO={nombre:'García & Asociados',cif:'B-28123456',tel:'91 123 45 67',email:'info@garciaasociados.es',dir:'C/ Serrano 44, Madrid'};
-
-function openEditDespachoModal(){
-  document.getElementById('modal-title').textContent='Editar datos del despacho';
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:11px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE</div>'
-    +'<input id="ed-nombre" value="'+DESPACHO.nombre+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">CIF</div>'
-    +'<input id="ed-cif" value="'+DESPACHO.cif+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TELÉFONO</div>'
-    +'<input id="ed-tel" value="'+DESPACHO.tel+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'</div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">EMAIL</div>'
-    +'<input id="ed-email" value="'+DESPACHO.email+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">DIRECCIÓN</div>'
-    +'<input id="ed-dir" value="'+DESPACHO.dir+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
-    +'<button class="btn bp" onclick="saveDespacho()">💾 Guardar</button>'
-    +'</div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-function saveDespacho(){
-  DESPACHO.nombre=document.getElementById('ed-nombre').value.trim()||DESPACHO.nombre;
-  DESPACHO.cif=document.getElementById('ed-cif').value.trim()||DESPACHO.cif;
-  DESPACHO.tel=document.getElementById('ed-tel').value.trim()||DESPACHO.tel;
-  DESPACHO.email=document.getElementById('ed-email').value.trim()||DESPACHO.email;
-  DESPACHO.dir=document.getElementById('ed-dir').value.trim()||DESPACHO.dir;
-  closeModal();
-  var n=document.getElementById('dsp-nombre'); if(n) n.textContent=DESPACHO.nombre;
-  var c=document.getElementById('dsp-cif');    if(c) c.textContent=DESPACHO.cif;
-  var t=document.getElementById('dsp-tel');    if(t) t.textContent=DESPACHO.tel;
-  var em=document.getElementById('dsp-email'); if(em) em.textContent=DESPACHO.email;
-  var d=document.getElementById('dsp-dir');    if(d) d.textContent=DESPACHO.dir;
-}
-
-// ══════════════════════════════════════════════
-// USUARIOS
-// ══════════════════════════════════════════════
-var USUARIOS=[
-  {id:'u1',nombre:'Miguel García',rol:'Administrador principal',tipo:'Admin',ini:'MG',color:'#0f1117',email:'miguel.garcia@garciaasociados.es',tel:'91 123 45 67',permisos:'Acceso completo a todas las comunidades y módulos.'},
-  {id:'u2',nombre:'Laura Sáez',rol:'Gestora',tipo:'Gestor',ini:'LS',color:'#7c3aed',email:'laura.saez@garciaasociados.es',tel:'—',permisos:'Acceso a incidencias y documentos. Sin acceso a configuración.'}
-];
-
-function renderUsuarios(){
-  var el=document.getElementById('usuarios-list');
-  if(!el)return;
-  var typeCls={'Admin':'bg','Gestor':'bb','Solo lectura':'bgr'};
-  el.innerHTML=USUARIOS.map(function(u){
-    return '<div class="cr" style="cursor:pointer" onclick="openUserModal(\''+u.id+'\')">'
-      +'<div class="uav" style="width:28px;height:28px;font-size:12px;background:'+u.color+'">'+u.ini+'</div>'
-      +'<div><div class="cn" style="font-size:13px">'+u.nombre+'</div><div class="csb">'+u.rol+'</div></div>'
-      +'<div class="badge '+(typeCls[u.tipo]||'bgr')+'" style="margin-left:auto">'+u.tipo+'</div>'
-      +'</div>';
-  }).join('');
-}
-
-function openUserModal(id){
-  var u=USUARIOS.find(function(x){return x.id===id;});
-  if(!u)return;
-  var typeCls={'Admin':'bg','Gestor':'bb','Solo lectura':'bgr'};
-  document.getElementById('modal-title').textContent=u.nombre;
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:12px">'
-    +'<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:10px">'
-    +'<div style="width:44px;height:44px;border-radius:50%;background:'+u.color+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+u.ini+'</div>'
-    +'<div><div style="font-weight:700;font-size:15px">'+u.nombre+'</div><div style="font-size:12px;color:var(--muted)">'+u.rol+'</div></div>'
-    +'<div class="badge '+(typeCls[u.tipo]||'bgr')+'" style="margin-left:auto">'+u.tipo+'</div>'
-    +'</div>'
-    +'<div class="card" style="padding:0">'
-    +'<div class="mf"><span class="mk">Email</span><span class="mv">'+u.email+'</span></div>'
-    +'<div class="mf"><span class="mk">Teléfono</span><span class="mv">'+u.tel+'</span></div>'
-    +'<div class="mf"><span class="mk">Rol</span><span class="mv">'+u.tipo+'</span></div>'
-    +'</div>'
-    +'<div class="card" style="padding:12px 14px"><div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px">PERMISOS</div>'
-    +'<div style="font-size:13px;color:var(--ink2)">'+u.permisos+'</div></div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="deleteUser(\''+u.id+'\')" style="background:#fef2f2;color:var(--red);border-color:#fca5a5">🗑 Borrar</button>'
-    +'<button class="btn bs" onclick="closeModal()">Cerrar</button>'
-    +'<button class="btn bp" onclick="openEditUserModal(\''+u.id+'\')">✏️ Editar</button>'
-    +'</div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-function openEditUserModal(id){
-  var u=USUARIOS.find(function(x){return x.id===id;});
-  document.getElementById('modal-title').textContent='Editar usuario';
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:11px">'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE</div>'
-    +'<input id="eu-nombre" value="'+u.nombre+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ROL</div>'
-    +'<select id="eu-tipo" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option'+(u.tipo==='Admin'?' selected':'')+'>Admin</option>'
-    +'<option'+(u.tipo==='Gestor'?' selected':'')+'>Gestor</option>'
-    +'<option'+(u.tipo==='Solo lectura'?' selected':'')+'>Solo lectura</option>'
-    +'</select></div>'
-    +'</div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">EMAIL</div>'
-    +'<input id="eu-email" value="'+u.email+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TELÉFONO</div>'
-    +'<input id="eu-tel" value="'+u.tel+'" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="openUserModal(\''+u.id+'\')">Cancelar</button>'
-    +'<button class="btn bp" onclick="saveEditUser(\''+u.id+'\')">💾 Guardar</button>'
-    +'</div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-function saveEditUser(id){
-  var u=USUARIOS.find(function(x){return x.id===id;});
-  u.nombre=document.getElementById('eu-nombre').value.trim()||u.nombre;
-  u.tipo=document.getElementById('eu-tipo').value;
-  u.rol=u.tipo==='Admin'?'Administrador principal':u.tipo==='Gestor'?'Gestora':'Solo lectura';
-  u.email=document.getElementById('eu-email').value.trim()||u.email;
-  u.tel=document.getElementById('eu-tel').value.trim()||u.tel;
-  u.ini=u.nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-  closeModal();
-  renderUsuarios();
-}
-function deleteUser(id){ USUARIOS=USUARIOS.filter(function(u){return u.id!==id;}); closeModal(); renderUsuarios(); }
-
-function openCreateUserModal(){
-  document.getElementById('modal-title').textContent='Crear usuario';
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:11px">'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE *</div>'
-    +'<input id="cu-nombre" placeholder="Nombre completo" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ROL *</div>'
-    +'<select id="cu-tipo" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option>Gestor</option><option>Admin</option><option>Solo lectura</option>'
-    +'</select></div>'
-    +'</div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">EMAIL *</div>'
-    +'<input id="cu-email" placeholder="email@ejemplo.es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TELÉFONO</div>'
-    +'<input id="cu-tel" placeholder="91 000 00 00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div id="cu-err" style="display:none;font-size:12px;color:var(--red)">Nombre y email son obligatorios.</div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
-    +'<button class="btn bp" onclick="saveCreateUser()">✅ Crear usuario</button>'
-    +'</div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-function saveCreateUser(){
-  var nombre=(document.getElementById('cu-nombre').value||'').trim();
-  var email=(document.getElementById('cu-email').value||'').trim();
-  if(!nombre||!email){document.getElementById('cu-err').style.display='';return;}
-  var tipo=document.getElementById('cu-tipo').value;
-  var tel=(document.getElementById('cu-tel').value||'').trim()||'—';
-  var colors={'Admin':'#0f1117','Gestor':'#7c3aed','Solo lectura':'#8b8fa8'};
-  var permsMap={'Admin':'Acceso completo.','Gestor':'Acceso a incidencias y documentos.','Solo lectura':'Solo puede consultar. Sin edición.'};
-  var id='u'+Date.now();
-  var ini=nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-  USUARIOS.push({id:id,nombre:nombre,rol:tipo,tipo:tipo,ini:ini,color:colors[tipo]||'#64748b',email:email,tel:tel,permisos:permsMap[tipo]||''});
-  closeModal();
-  renderUsuarios();
-}
-
-function openInviteUserModal(){
-  document.getElementById('modal-title').textContent='Invitar por email';
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:11px">'
-    +'<div style="background:var(--al);border-radius:8px;padding:9px 12px;font-size:12px;color:#1e40af">El invitado recibirá un email para activar su cuenta con acceso de solo lectura.</div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">EMAIL *</div>'
-    +'<input id="inv-email" placeholder="presidente@ejemplo.es" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">NOMBRE (opcional)</div>'
-    +'<input id="inv-nombre" placeholder="Ej: Antonio Ruiz (Presidente Goya 47)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div>'
-    +'<div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ROL</div>'
-    +'<select id="inv-tipo" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
-    +'<option>Solo lectura</option><option>Gestor</option>'
-    +'</select></div>'
-    +'<div style="display:flex;justify-content:flex-end;gap:8px">'
-    +'<button class="btn bs" onclick="closeModal()">Cancelar</button>'
-    +'<button class="btn bp" onclick="closeModal()">📧 Enviar invitación</button>'
-    +'</div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-// ══════════════════════════════════════════════
-// JUNTAS MODALS
-// ══════════════════════════════════════════════
-function openCalendarioModal(){
-  document.getElementById('modal-title').textContent='Calendario de juntas';
-  document.getElementById('modal-body').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:14px">'
-    +'<div style="background:var(--bg);border-radius:10px;padding:16px">'
-    +'<div style="font-weight:700;text-align:center;margin-bottom:12px">Marzo 2026</div>'
-    +'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px;line-height:2.2">'
-    +'<div style="font-weight:700;color:var(--muted)">L</div><div style="font-weight:700;color:var(--muted)">M</div><div style="font-weight:700;color:var(--muted)">X</div><div style="font-weight:700;color:var(--muted)">J</div><div style="font-weight:700;color:var(--muted)">V</div><div style="font-weight:700;color:var(--muted)">S</div><div style="font-weight:700;color:var(--muted)">D</div>'
-    +'<div></div><div></div><div></div><div></div><div></div><div>1</div><div>2</div>'
-    +'<div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div>'
-    +'<div>10</div><div>11</div><div>12</div><div>13</div><div>14</div>'
-    +'<div><span style="background:#2563eb;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">15</span></div>'
-    +'<div>16</div><div>17</div><div>18</div><div>19</div><div>20</div><div>21</div>'
-    +'<div><span style="background:#ea580c;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">22</span></div>'
-    +'<div>23</div><div>24</div><div>25</div><div>26</div><div>27</div><div>28</div>'
-    +'<div><span style="background:#8b8fa8;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center">29</span></div>'
-    +'<div>30</div><div>31</div>'
-    +'</div></div>'
-    +'<div style="display:flex;flex-direction:column;gap:8px;font-size:13px">'
-    +'<div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#2563eb;flex-shrink:0"></div><div><strong>15 mar</strong> Ordinaria Goya 47 · 19:00h · Sala comunitaria</div></div>'
-    +'<div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#ea580c;flex-shrink:0"></div><div><strong>22 mar</strong> Extraordinaria Pza. España 3 · 18:30h · Videoconferencia</div></div>'
-    +'<div style="display:flex;gap:9px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#8b8fa8;flex-shrink:0"></div><div><strong>29 mar</strong> Ordinaria Velázquez 12 · 18:00h · Sala comunitaria</div></div>'
-    +'</div>'
-    +'<div style="display:flex;justify-content:flex-end"><button class="btn bs" onclick="closeModal()">Cerrar</button></div>'
-    +'</div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-function openNuevaJuntaModal(){
-  _juntaUploadData=null;
-  document.getElementById('modal-title').textContent='Nueva junta';
-  document.getElementById('modal-body').innerHTML='<div style="display:flex;flex-direction:column;gap:11px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">COMUNIDAD *</div><select id="nj-comm" class="comm-dyn-select" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none">'+getCommOptions(currentCommId||Object.keys(COMUNIDADES)[0])+'</select></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">TIPO</div><select id="nj-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"><option>Ordinaria</option><option>Extraordinaria</option></select></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">FECHA *</div><input id="nj-date" type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">HORA</div><input id="nj-time" type="time" value="19:00" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">LUGAR</div><input id="nj-place" placeholder="Sala comunitaria / Videoconferencia..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none"></div><div><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px">ORDEN DEL DÍA / NOTAS</div><textarea id="nj-notes" rows="3" placeholder="Puntos principales de la junta..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;resize:vertical"></textarea></div><div id="nj-zone" style="border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer" onclick="document.getElementById(\'nj-file\').click()">Adjuntar convocatoria/acta<input type="file" id="nj-file" style="display:none" onchange="previewJuntaUploadFile(this)"></div><div id="nj-file-preview" style="display:none;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg)"><span>📎</span><div><div id="nj-file-name" style="font-weight:600"></div><div id="nj-file-meta" style="font-size:11px;color:var(--muted)"></div></div></div><div id="nj-err" style="display:none;font-size:12px;color:var(--red)">Comunidad y fecha son obligatorias.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn bs" onclick="closeModal()">Cancelar</button><button class="btn bp" onclick="saveNuevaJunta()">📅 Crear junta</button></div></div>';
-  document.getElementById('modal').style.display='flex';
-}
-
-var _juntaUploadData=null;
-function previewJuntaUploadFile(input){
-  if(!input.files||!input.files[0]) return;
-  var f=input.files[0]; var size=humanFileSize(f.size); document.getElementById('nj-file-preview').style.display='flex'; document.getElementById('nj-file-name').textContent=f.name; document.getElementById('nj-file-meta').textContent=(f.name.split('.').pop()||'FILE').toUpperCase()+' · '+size;
-  readFileData(f,function(res){ _juntaUploadData={name:f.name,meta:(f.name.split('.').pop()||'FILE').toUpperCase()+' · '+size,icon:f.type.includes('pdf')?'📄':'📋',mime:(res&&res.mime)||f.type||'application/octet-stream',dataUrl:(res&&res.dataUrl)||''}; });
-}
-function saveNuevaJunta(){
-  var commId=document.getElementById('nj-comm').value; var tipo=document.getElementById('nj-type').value; var dateVal=document.getElementById('nj-date').value;
-  if(!commId||!dateVal){document.getElementById('nj-err').style.display='';return;}
-  var d=new Date(dateVal+'T00:00:00'); var meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  COMUNIDADES[commId].juntas.unshift({mes:meses[d.getMonth()],dia:String(d.getDate()).padStart(2,'0'),name:tipo,hora:(document.getElementById('nj-time').value||'19:00')+'h · '+((document.getElementById('nj-place').value||'Sala comunitaria').trim()),badge:{cls:'bb',txt:'Convocada'},notes:(document.getElementById('nj-notes').value||'').trim()});
-  if(_juntaUploadData){ var docId=makeUid('doc'); var docName=_juntaUploadData.name||('Convocatoria '+tipo+' '+COMUNIDADES[commId].short); DOC_CONTENT[docId]={title:docName,body:attachmentPreviewMarkup({name:docName,meta:_juntaUploadData.meta,mime:_juntaUploadData.mime,dataUrl:_juntaUploadData.dataUrl})}; DOCS.unshift({id:docId,commId:commId,comm:COMUNIDADES[commId].short,icon:_juntaUploadData.icon||'📄',name:docName,meta:_juntaUploadData.meta,type:'acta',fecha:formatInputDate(dateVal),status:{cls:'by',txt:'Convocada'},content:docId,dataUrl:_juntaUploadData.dataUrl,mime:_juntaUploadData.mime}); }
-  _juntaUploadData=null; syncCommunityRelations(); closeModal(); renderDocs(); refreshDashboard(); refreshAllCommunitySelectors(); if(currentCommId===commId){ showCommTab('juntas',null,true); }
-}
-
-// ══════════════════════════════════════════════
-// DOCUMENTOS — EXPORTAR / SUBIR
-// ══════════════════════════════════════════════
-function exportarDocs(){
-  var TAB=String.fromCharCode(9),NL=String.fromCharCode(10);
-  var rows=DOCS.map(function(d){return d.name+TAB+d.comm+TAB+d.type+TAB+d.fecha+TAB+(d.status?d.status.txt:d.statusVb?d.statusVb.txt:'—');}).join(NL);
-  var blob=new Blob(['Documento'+TAB+'Comunidad'+TAB+'Tipo'+TAB+'Fecha'+TAB+'Estado'+NL+rows],{type:'text/plain'});
+function downloadDocFile(docId){ var d=DOCS.find(function(x){return x.id===docId;}); if(!d)return; if(d.dataUrl){ downloadBlob(d.dataUrl,d.name); return; }
+    var blob=new Blob([`Documento: ${d.name}
+Comunidad: ${d.comm}
+Fecha: ${d.fecha}`],{type:'text/plain'});
   var a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
   a.download='Fincora_Documentos.txt';
@@ -3059,6 +2370,97 @@ refreshDocCommFilter();
 refreshIncCommSelect();
 setNoteType('interna');
 openComm(currentCommId,true);
+</script>
+
+<script>
+/* Patch v39: previews reales y PDFs robustos */
+(function(){
+  function inferSceneFromName(name){
+    var n=String(name||'').toLowerCase();
+    if(n.indexOf('cabina ascensor')>=0) return 'elevator-cabin';
+    if(n.indexOf('motor de tracción')>=0 || n.indexOf('motor de traccion')>=0) return 'elevator-motor';
+    if(n.indexOf('panel maniobra')>=0 || n.indexOf('código e-27')>=0 || n.indexOf('codigo e-27')>=0) return 'elevator-panel';
+    return '';
+  }
+  function ensurePdfName(name){
+    name=String(name||'documento');
+    return /\.pdf$/i.test(name) ? name : (name + '.pdf');
+  }
+  function looksLikePdf(att){
+    var t=((att.name||'')+' '+(att.meta||'')).toLowerCase();
+    return (att.mime==='application/pdf') || /pdf/.test(t) || /parte|presupuesto|informe|acta|contrato|poliza|póliza/i.test(att.name||'');
+  }
+  function looksLikeImage(att){
+    var t=((att.name||'')+' '+(att.meta||'')).toLowerCase();
+    return (att.mime && String(att.mime).indexOf('image/')===0) || /jpg|jpeg|png|foto|imagen/.test(t);
+  }
+  var _origNormalizeAdjunto_v39 = normalizeAdjunto;
+  normalizeAdjunto = function(att){
+    att = _origNormalizeAdjunto_v39(att||{});
+    if(!att) return att;
+    var scene = att.demoScene || inferSceneFromName(att.name);
+    if(looksLikeImage(att)){
+      att.mime = 'image/svg+xml';
+      if(scene) att.demoScene = scene;
+      att.dataUrl = makeImagePlaceholderDataUrl(att);
+    } else if(looksLikePdf(att)){
+      att.mime = 'application/pdf';
+      var payload = getDemoPdfPayload(att);
+      att.dataUrl = makeDemoPdfDataUrl(payload.title, payload.lines);
+    }
+    return att;
+  };
+
+  attachmentPreviewMarkup = function(att){
+    att = normalizeAdjunto(att);
+    if(att.dataUrl && String(att.mime||'').indexOf('image/')===0){
+      return '<div style="background:#0f172a;border-radius:10px;padding:10px;display:flex;justify-content:center;align-items:center;min-height:280px"><img src="'+att.dataUrl+'" alt="'+escapeHtml(att.name)+'" style="max-width:100%;max-height:520px;border-radius:8px;object-fit:contain;display:block"></div>';
+    }
+    if(att.dataUrl && att.mime==='application/pdf'){
+      return '<object data="'+att.dataUrl+'" type="application/pdf" style="width:100%;height:520px;border:1px solid var(--border);border-radius:10px;background:#fff"><div style="background:#fff;border:1px solid #e2e4ea;border-radius:10px;padding:20px 22px;font-size:13px;color:#3a3d4a;line-height:1.8"><div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8b8fa8;border-bottom:1px solid #e2e4ea;padding-bottom:8px;margin-bottom:12px">PDF</div><p><strong>Documento:</strong> '+escapeHtml(att.name)+'</p><p><strong>Tamaño:</strong> '+escapeHtml(att.meta||'—')+'</p><p>No se puede embeber el PDF en este navegador. Usa Descargar.</p></div></object>';
+    }
+    return '<div style="background:#fff;border:1px solid #e2e4ea;border-radius:10px;width:100%;padding:20px 22px;font-size:12px;color:#3a3d4a;line-height:1.8"><div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8b8fa8;border-bottom:1px solid #e2e4ea;padding-bottom:8px;margin-bottom:12px">DOCUMENTO</div><p><strong>Nombre:</strong> '+escapeHtml(att.name)+'</p><p><strong>Meta:</strong> '+escapeHtml(att.meta||'—')+'</p></div>';
+  };
+
+  attachmentThumbContent = function(att){
+    att = normalizeAdjunto(att);
+    if(att.dataUrl && String(att.mime||'').indexOf('image/')===0){
+      return '<img src="'+att.dataUrl+'" alt="'+escapeHtml(att.name)+'" style="width:100%;height:100%;object-fit:cover;display:block">';
+    }
+    if(att.mime==='application/pdf'){
+      return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;background:#fff"><div style="font-size:22px">📄</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">PDF</div></div>';
+    }
+    return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;background:#fff"><div style="font-size:22px">'+(att.icon||'📋')+'</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">'+escapeHtml(((att.meta||'Archivo').split('·')[0]||'Archivo').trim())+'</div></div>';
+  };
+
+  downloadAdjunto = function(attId){
+    var found=findAttachmentById(attId); if(!found||!found.att)return; var att=normalizeAdjunto(found.att);
+    if(att.dataUrl){
+      var fname = (att.mime==='application/pdf') ? ensurePdfName(att.name||'adjunto') : (att.name||'adjunto');
+      downloadBlob(att.dataUrl, fname); return;
+    }
+    alert('No hay fichero disponible para descargar.');
+  };
+
+  downloadDocFile = function(docId){
+    var d=DOCS.find(function(x){return x.id===docId;}); if(!d)return;
+    if(d.dataUrl){
+      var fname = (d.mime==='application/pdf' || /pdf/i.test(d.meta||'') || /parte|presupuesto|informe|acta|contrato|poliza|póliza/i.test(d.name||'')) ? ensurePdfName(d.name) : d.name;
+      downloadBlob(d.dataUrl, fname); return;
+    }
+    var blob=new Blob([`Documento: ${d.name}
+Comunidad: ${d.comm}
+Fecha: ${d.fecha}`],{type:'text/plain'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(d.name||'documento')+'.txt'; a.click();
+  };
+
+  try{
+    Object.keys(INCIDENCIAS||{}).forEach(function(iid){
+      var inc = INCIDENCIAS[iid];
+      if(Array.isArray(inc.adjuntos)) inc.adjuntos = inc.adjuntos.map(function(a){ return normalizeAdjunto(a); });
+    });
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
