@@ -317,7 +317,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   document.addEventListener('DOMContentLoaded',function(){_q.forEach(function(c){if(window[c.n]&&window[c.n]._stub!==true)window[c.n].apply(null,c.a);});_q=[];});
 })();
 </script>
-</head>
+<!-- FINCORA-v40-FIXES --></head>
 <body>
 
 <!-- SPLASH -->
@@ -2052,6 +2052,13 @@ function filterDocsType(t,btn){
   renderDocs();
 }
 
+function goToDocsPorVencer(){
+  goNav('documentos');
+  setTimeout(function(){
+    var btn=document.getElementById('btn-proximos-vencer');
+    filterDocsType('proximos-vencer',btn);
+  },100);
+}
 function filterDocsComm(c,btn){
   document.querySelectorAll('#screen-documentos .filterbtn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
