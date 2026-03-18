@@ -964,7 +964,7 @@ function _makeDocHtml(title, badge, badgeCls, rows, extra){
   if(rows){html+='<h2>Detalle</h2><table>'+rows+'</table>';}
   if(extra){html+=extra;}
   html+='<div class="footer">Generado por Fincora &middot; fincora.app</div></body></html>';
-  return 'data:text/html;charset=utf-8,'+encodeURIComponent(html);
+  try{return 'data:text/html;base64,'+btoa(unescape(encodeURIComponent(html)));}catch(e){return 'data:text/html;base64,'+btoa(html);}
 }
 const DOCS = [
   {id:'d1',commId:'goya',comm:'C/ Goya 47',icon:'📄',name:'Acta junta ordinaria — feb 2026',meta:'PDF · 284 KB',type:'acta',fecha:'10/03/2026',status:{cls:'bg',txt:'Firmada'},content:'acta_goya_feb2026',mime:'text/html',dataUrl:_makeDocHtml('Acta Junta Ordinaria — C/ Goya 47 (feb 2026)','Firmada','bg','<tr><th>Fecha</th><th>Asistentes</th><th>Presidente</th></tr><tr><td>10 feb 2026 · 19:00h</td><td>24/32 (75%)</td><td>D. Antonio Ruiz Moreno</td></tr>','<h2>Acuerdos</h2><p><strong>Punto 1:</strong> Aprobado presupuesto anual 26.112€. Unanimidad.</p><p><strong>Punto 2:</strong> Se mantiene cuota 68€/mes. Unanimidad.</p>')},
