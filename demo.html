@@ -187,18 +187,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
 .tli.visible .tld{background:var(--al);border-color:var(--accent);}
 .tli.visible .tlt::after{content:' · Visible para el presidente';font-size:10px;color:var(--accent);font-weight:400;}
 
-/* STEPPER */
-.stepper{display:flex;align-items:center;}
-.step{flex:1;text-align:center;position:relative;}
-.step::after{content:'';position:absolute;top:11px;left:50%;right:-50%;height:2px;background:var(--border);z-index:0;}
-.step:last-child::after{display:none;}
-.sdot{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);background:#fff;margin:0 auto 5px;display:flex;align-items:center;justify-content:center;font-size:9px;position:relative;z-index:1;font-weight:700;}
-.step.done .sdot{background:var(--green);border-color:var(--green);color:#fff;}
-.step.cur .sdot{background:var(--accent);border-color:var(--accent);color:#fff;}
-.step.done::after{background:var(--green);}
-.slb2{font-size:10px;color:var(--muted);font-weight:600;}
-.step.done .slb2{color:var(--green);}
-.step.cur .slb2{color:var(--accent);}
+/* PROGRESS BAR (E3) */
+.inc-progress-wrap{display:flex;flex-direction:column;gap:7px;}
+.inc-progress-steps{display:flex;justify-content:space-between;align-items:center;}
+.inc-progress-step-label{font-size:10px;font-weight:600;color:var(--muted);flex:1;text-align:center;}
+.inc-progress-step-label.done{color:var(--green);}
+.inc-progress-step-label.cur{color:var(--accent);}
+.inc-progress-track{height:8px;background:var(--bg);border-radius:100px;overflow:hidden;border:1px solid var(--border);}
+.inc-progress-fill{height:100%;background:var(--accent);border-radius:100px;transition:width .4s ease;}
+.inc-progress-fill.done{background:var(--green);}
+.inc-progress-status{display:flex;justify-content:space-between;align-items:center;}
+.inc-progress-cur-label{font-size:11px;font-weight:700;color:var(--accent);}
+.inc-progress-cur-label.done{color:var(--green);}
+.inc-progress-pct{font-size:11px;color:var(--muted);}
+
+/* NEXT ACTION BANNER (E3) */
+.inc-next-action-banner{display:flex;align-items:center;gap:9px;background:var(--rl);border:1px solid #fca5a5;border-radius:9px;padding:9px 14px;margin-bottom:14px;}
+.inc-next-action-banner .na-icon{font-size:15px;flex-shrink:0;}
+.inc-next-action-banner .na-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--red);margin-bottom:1px;}
+.inc-next-action-banner .na-text{font-size:13px;font-weight:600;color:#7f1d1d;}
+.inc-next-action-banner.resolved{background:var(--gl);border-color:#86efac;}
+.inc-next-action-banner.resolved .na-label{color:var(--green);}
+.inc-next-action-banner.resolved .na-text{color:#14532d;}
 
 /* BACK BTN */
 .bkbtn{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:13px;cursor:pointer;margin-bottom:12px;border:none;background:none;font-family:inherit;padding:0;}
@@ -513,6 +523,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     </div>
     <div class="content">
       <div class="callout cg">✅ El presidente ve este estado en tiempo real — sin llamar al despacho para preguntar. Pulsa <strong>👁️ Vista del presidente</strong> para verlo como lo ve él.</div>
+      <div id="inc-next-action-banner" class="inc-next-action-banner">
+        <div class="na-icon">🔴</div>
+        <div><div class="na-label">Próxima acción</div><div class="na-text" id="inc-next-action-text">—</div></div>
+      </div>
       <div style="display:flex;align-items:flex-start;gap:11px;margin-bottom:14px">
         <div style="font-size:22px" id="inc-icon">⚠️</div>
         <div>
@@ -521,7 +535,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
         </div>
       </div>
       <div class="card" style="margin-bottom:12px;padding:13px 20px">
-        <div class="stepper" id="inc-stepper"></div>
+        <div id="inc-stepper"></div>
       </div>
       <div class="detgrid">
         <div>
@@ -1680,6 +1694,12 @@ function openInc(commId, incId, skipNav){
   renderStepper(inc.status||'Nueva');
   renderTimeline(incId);
   renderStatusBtns(incId);
+  // Next action banner (E3)
+  var banner=document.getElementById('inc-next-action-banner');
+  var bannerText=document.getElementById('inc-next-action-text');
+  var terminal=(inc.status==='Resuelta'||inc.status==='Cerrada');
+  if(bannerText) bannerText.textContent=terminal?'Incidencia resuelta ✓':(inc.nextAction&&inc.nextAction!=='—'?inc.nextAction:'Sin próxima acción definida');
+  if(banner){banner.className='inc-next-action-banner'+(terminal?' resolved':'');banner.querySelector('.na-icon').textContent=terminal?'✅':'🔴';}
   var comm=COMUNIDADES[commId]||{short:commId};
   document.getElementById('inc-meta-fields').innerHTML=''
     +'<div class="mf"><span class="mk">Comunidad</span><span class="mv" style="color:var(--accent);cursor:pointer" data-open-comm="'+escapeHtml(commId)+'">'+escapeHtml(comm.short||comm.name||commId)+'</span></div>'
@@ -1700,19 +1720,28 @@ function openInc(commId, incId, skipNav){
 }
 
 function renderStepper(status){
-  const states=['Nueva','En curso','Pendiente de proveedor','Verificada','Resuelta'];
+  const states=['Nueva','En curso','Pendiente','Verificada','Resuelta'];
+  const statesFull=['Nueva','En curso','Pendiente de proveedor','Verificada','Resuelta'];
   const map={'Nueva':0,'Revisando':0,'En curso':1,'Pendiente de proveedor':2,'Pendiente de comunidad':2,'Verificada':3,'Resuelta':4,'Cerrada':4};
   const curIdx=(status in map)?map[status]:1;
   const terminal=(status==='Resuelta'||status==='Cerrada');
-  document.getElementById('inc-stepper').innerHTML=states.map((s,i)=>{
-    const done=terminal ? true : i<curIdx;
-    const cur=!terminal && i===curIdx;
-    return `
-    <div class="step ${done?'done':cur?'cur':''}">
-      <div class="sdot">${done?'✓':(i+1)}</div>
-      <div class="slb2">${s}</div>
-    </div>`;
+  const pct=terminal?100:Math.round((curIdx/4)*100);
+  const el=document.getElementById('inc-stepper');
+  const labelsHtml=states.map((s,i)=>{
+    const done=terminal?true:i<curIdx;
+    const cur=!terminal&&i===curIdx;
+    return `<span class="inc-progress-step-label${done?' done':cur?' cur':''}">${s}</span>`;
   }).join('');
+  const curLabel=terminal?'Resuelta':statesFull[curIdx]||status;
+  el.innerHTML=`
+    <div class="inc-progress-wrap">
+      <div class="inc-progress-steps">${labelsHtml}</div>
+      <div class="inc-progress-track"><div class="inc-progress-fill${terminal?' done':''}" style="width:${pct}%"></div></div>
+      <div class="inc-progress-status">
+        <span class="inc-progress-cur-label${terminal?' done':''}">● ${curLabel}</span>
+        <span class="inc-progress-pct">${pct}%</span>
+      </div>
+    </div>`;
 }
 
 function renderTimeline(incId){
@@ -1820,6 +1849,13 @@ function confirmChangeStatus(incId, newStatus, oldStatus){
   refreshDashboard();
   renderCommList();
   document.getElementById('pv-estado').textContent=newStatus;
+  // Update next action banner (E3)
+  var banner=document.getElementById('inc-next-action-banner');
+  var bannerText=document.getElementById('inc-next-action-text');
+  var terminalNow=(newStatus==='Resuelta'||newStatus==='Cerrada');
+  var inc2=INCIDENCIAS[incId];
+  if(bannerText) bannerText.textContent=terminalNow?'Incidencia resuelta ✓':(inc2.nextAction&&inc2.nextAction!=='—'?inc2.nextAction:'Sin próxima acción definida');
+  if(banner){banner.className='inc-next-action-banner'+(terminalNow?' resolved':'');banner.querySelector('.na-icon').textContent=terminalNow?'✅':'🔴';}
   const rb=document.getElementById('inc-resolve-btn');
   rb.style.display=(newStatus==='Resuelta'||newStatus==='Cerrada')?'none':'';
   document.getElementById('inc-badges').innerHTML=`
