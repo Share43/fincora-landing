@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Administrator ────────────────────────────────────────────────────────────
+
+model Administrator {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  name         String
+  passwordHash String
+  communities  Community[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("administrators")
+}
+
+// ─── Community ────────────────────────────────────────────────────────────────
+
+model Community {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  address     String
+  adminId     String
+  admin       Administrator @relation(fields: [adminId], references: [id])
+  /// Unique token used to access the president's public portal (no login)
+  publicToken String     @unique @default(cuid())
+  residents   Resident[]
+  incidents   Incident[]
+  documents   Document[]
+  meetings    Meeting[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("communities")
+}
+
+// ─── Resident ─────────────────────────────────────────────────────────────────
+
+model Resident {
+  id          String    @id @default(cuid())
+  name        String
+  email       String?
+  phone       String?
+  unit        String
+  isPresident Boolean   @default(false)
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("residents")
+}
+
+// ─── Incident ─────────────────────────────────────────────────────────────────
+
+model Incident {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  /// OPEN | IN_PROGRESS | RESOLVED | CLOSED
+  status      String   @default("OPEN")
+  /// LOW | MEDIUM | HIGH | URGENT
+  priority    String   @default("MEDIUM")
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("incidents")
+}
+
+// ─── Document ─────────────────────────────────────────────────────────────────
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  fileUrl     String
+  /// STATUTES | MINUTES | REGULATIONS | BUDGETS | OTHER
+  category    String
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("documents")
+}
+
+// ─── Meeting ──────────────────────────────────────────────────────────────────
+
+model Meeting {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  location    String?
+  /// ORDINARY | EXTRAORDINARY
+  type        String
+  /// SCHEDULED | COMPLETED | CANCELLED
+  status      String   @default("SCHEDULED")
+  agenda      String?
+  minutes     String?
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("meetings")
+}
