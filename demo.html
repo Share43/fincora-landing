@@ -641,7 +641,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
             <button class="filterbtn" onclick="filterDocsType('poliza',this)">Pólizas</button>
             <button class="filterbtn" onclick="filterDocsType('factura',this)">Facturas</button>
             <button class="filterbtn" onclick="filterDocsType('presupuesto',this)">Presupuestos</button>
-            <button class="filterbtn" id="btn-proximos-vencer" onclick="filterDocsType('proximos-vencer',this)" style="border-color:#d97706;color:#92400e" data-inactive-style="border-color:#d97706;color:#92400e" data-inactive-style="border-color:#d97706;color:#92400e">⚠ Próximos a vencer</button>
+            <button class="filterbtn" id="btn-proximos-vencer" onclick="filterDocsType('proximos-vencer',this)" style="border-color:#d97706;color:#92400e;font-weight:600" data-inactive-style="border-color:#d97706;color:#92400e;font-weight:600" data-inactive-style="border-color:#d97706;color:#92400e">⚠ Próximos a vencer</button>
           </div>
           <div class="filterrow">
             <span style="font-size:12px;color:var(--muted)">Comunidad:</span>
@@ -2901,7 +2901,7 @@ function renderDashKpis(){
   var allIncs=Object.values(INCIDENCIAS);
   var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';});
   var urgent=open.filter(function(i){return i.priority==='Urgente';});
-  var totalVecinos=Object.values(COMUNIDADES).reduce(function(s,c){var mv=String(c.sub||'').match(/(\d+)\s*vecinos/);return s+(mv?parseInt(mv[1]):0);},0);
+  var totalVecinos=Object.values(COMUNIDADES).reduce(function(s,c){var parts=String(c.sub||'').split('vecinos');var mv=parts.length>1?parts[0].trim().split(' ').pop():'0';return s+(parseInt(mv)||0);},0);
   var totalMorosos=Object.values(COMUNIDADES).reduce(function(s,c){return s+(parseInt(c.morosos)||0);},0);
   var morososComms=Object.values(COMUNIDADES).filter(function(c){return parseInt(c.morosos)>0;}).length;
   var contratosVencen=DOCS.filter(function(d){return d.statusVb&&String(d.statusVb.txt||'').match(/Vence|vence|🔴/i);}).length;
