@@ -394,40 +394,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   <div id="screen-dashboard" class="screen active">
     <div class="topbar"><div class="tbt">Buenos días, Miguel 👋</div><div class="tbact"><span style="font-size:12px;color:var(--muted)" id="live-date"></span><button class="btn bp" onclick="openNewIncModal()">+ Nueva incidencia</button></div></div>
     <div class="content">
-      <div class="callout cb">📌 Estado de las 12 comunidades en un vistazo — sin abrir Excel ni hacer llamadas.</div>
-      <div class="sr">
-        <div class="sc"><div class="slb">Comunidades</div><div class="sv" id="db-comms">12</div><div class="ssb">Madrid</div></div>
-        <div class="sc urg"><div class="slb">Incidencias abiertas</div><div class="sv" id="db-incs">5</div><div class="ssb" id="db-urg">2 urgentes hoy</div></div>
-        <div class="sc"><div class="slb">Juntas este mes</div><div class="sv" id="db-juntas-count">7</div><div class="ssb">Próxima: 15 mar</div></div>
-        <div class="sc ok"><div class="slb">Docs por revisar</div><div class="sv" id="db-docs-count">21</div><div class="ssb" id="db-docs-warn">3 vencen pronto</div></div>
-      </div>
+      <div id="db-kpi-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px"></div>
       <div class="card" style="margin-bottom:14px;border:1.5px solid #fecaca;background:#fff8f8">
-        <div class="ch" style="background:#fef2f2;border-radius:10px 10px 0 0"><div class="ct" style="color:#dc2626">🚨 Alertas del despacho</div><span id="dash-alerts-count" style="font-size:11px;font-weight:700;color:#dc2626"></span></div>
+        <div class="ch" style="background:#fef2f2;border-radius:10px 10px 0 0"><div class="ct" style="color:#dc2626">🚨 Alertas del despacho</div><span id="dash-alerts-count" style="font-size:11px;font-weight:700;color:#dc2626;margin-left:8px"></span></div>
         <div id="dash-alerts-list"></div>
       </div>
       <div class="twocol">
         <div class="card">
-          <div class="ch"><div class="ct">⚠️ Incidencias abiertas</div><button class="clk" onclick="goNav('incidencias')">Ver todas →</button></div>
+          <div class="ch"><div class="ct">Incidencias abiertas</div><button class="clk" onclick="goNav('incidencias')">Ver todas →</button></div>
           <div id="dash-incs-list"></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="card">
-            <div class="ch"><div class="ct">📅 Próximas juntas</div><button class="clk" onclick="goNav('juntas')">Ver →</button></div>
-            <div class="jr"><div class="jdb"><div class="jday">15</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Ordinaria — C/ Goya 47</div><div style="font-size:11px;color:var(--muted)">19:00h · Sala comunitaria</div></div><div class="badge bb" style="margin-left:auto">Convocada</div></div>
-            <div class="jr"><div class="jdb"><div class="jday">22</div><div class="jmon">Mar</div></div><div><div style="font-size:13px;font-weight:600">Extraordinaria — Pza. España 3</div><div style="font-size:11px;color:var(--muted)">18:30h · Videoconferencia</div></div><div class="badge by" style="margin-left:auto">Borrador</div></div>
+            <div class="ch"><div class="ct">Carga por comunidad</div></div>
+            <div id="dash-bars-list"></div>
           </div>
           <div class="card">
-            <div class="ch"><div class="ct">🕐 Actividad reciente</div></div>
+            <div class="ch"><div class="ct">Actividad reciente</div></div>
             <div style="padding:10px 16px;display:flex;flex-direction:column;gap:9px">
-              <div style="display:flex;gap:9px"><span>📄</span><div><div style="font-size:13px;font-weight:500">Acta subida — Goya 47 (feb 2026)</div><div style="font-size:11px;color:var(--muted)">Hace 3 horas</div></div></div>
-              <div style="display:flex;gap:9px"><span>✅</span><div><div style="font-size:13px;font-weight:500">Incidencia resuelta — Interfonos Serrano 88</div><div style="font-size:11px;color:var(--muted)">Ayer, 16:40h</div></div></div>
-              <div style="display:flex;gap:9px"><span>👁️</span><div><div style="font-size:13px;font-weight:500">Presidente Goya 47 consultó estado ascensor</div><div style="font-size:11px;color:var(--muted)">Ayer, 10:15h — sin llamar al despacho</div></div></div>
+              <div style="display:flex;gap:9px"><span style="font-size:14px">📄</span><div><div style="font-size:13px;font-weight:500">Acta subida — Goya 47 (feb 2026)</div><div style="font-size:11px;color:var(--muted)">Hace 3 horas</div></div></div>
+              <div style="display:flex;gap:9px"><span style="font-size:14px">✅</span><div><div style="font-size:13px;font-weight:500">Incidencia resuelta — Puerta garaje Serrano 84</div><div style="font-size:11px;color:var(--muted)">Ayer, 16:40h</div></div></div>
+              <div style="display:flex;gap:9px"><span style="font-size:14px">👁️</span><div><div style="font-size:13px;font-weight:500">Presidente Goya 47 consultó estado ascensor</div><div style="font-size:11px;color:var(--muted)">Ayer, 10:15h — sin llamar al despacho</div></div></div>
+              <div style="display:flex;gap:9px"><span style="font-size:14px">📅</span><div><div style="font-size:13px;font-weight:500">Junta convocada — Serrano 84 (10 abr)</div><div style="font-size:11px;color:var(--muted)">Hace 2 días</div></div></div>
             </div>
           </div>
         </div>
       </div>
       <div class="card" style="margin-top:14px">
-        <div class="ch"><div class="ct">🏢 Comunidades activas</div><button class="clk" onclick="goNav('comunidades')">Ver todas →</button></div>
+        <div class="ch"><div class="ct">Comunidades activas</div><button class="clk" onclick="goNav('comunidades')">Ver todas →</button></div>
         <div id="dash-comm-list-preview"></div>
       </div>
     </div>
@@ -2882,6 +2876,55 @@ function renderDashIncs(){
 }
 
 
+
+function renderDashKpis(){
+  var el=document.getElementById('db-kpi-grid');
+  if(!el)return;
+  var allIncs=Object.values(INCIDENCIAS);
+  var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';});
+  var urgent=open.filter(function(i){return i.priority==='Urgente';});
+  var totalVecinos=Object.values(COMUNIDADES).reduce(function(s,c){return s+(parseInt(String(c.sub||'').match(/\d+/)||0)||0);},0);
+  var totalMorosos=Object.values(COMUNIDADES).reduce(function(s,c){return s+(parseInt(c.morosos)||0);},0);
+  var morososComms=Object.values(COMUNIDADES).filter(function(c){return parseInt(c.morosos)>0;}).length;
+  var contratosVencen=DOCS.filter(function(d){return d.statusVb&&String(d.statusVb.txt||'').match(/Vence|vence|🔴/i);}).length;
+  var juntasThisMonth=Object.values(COMUNIDADES).reduce(function(s,c){return s+(c.juntas||[]).filter(function(j){return j.badge&&String(j.badge.txt||'').match(/Convocada|Borrador/i);}).length;},0);
+  var kpis=[
+    {label:'Comunidades',val:Object.keys(COMUNIDADES).length,sub:totalVecinos+' vecinos en total',color:'var(--accent)',subcolor:'var(--accent)',nav:'comunidades'},
+    {label:'Incidencias abiertas',val:open.length,sub:urgent.length+' urgente'+(urgent.length!==1?'s':''),color:open.length>0?'var(--red)':'var(--green)',subcolor:open.length>0?'var(--red)':'var(--green)',nav:'incidencias'},
+    {label:'Contratos por vencer',val:contratosVencen,sub:'En los próximos 90 días',color:contratosVencen>0?'#b45309':'var(--ink)',subcolor:contratosVencen>0?'#b45309':'var(--muted)',nav:'documentos'},
+    {label:'Juntas este mes',val:juntasThisMonth,sub:'Convocadas o en borrador',color:'#6d28d9',subcolor:'#6d28d9',nav:'juntas'},
+    {label:'Morosos activos',val:totalMorosos,sub:morososComms+' comunidades afectadas',color:totalMorosos>0?'#b45309':'var(--green)',subcolor:totalMorosos>0?'#b45309':'var(--green)',nav:'comunidades'},
+  ];
+  el.innerHTML=kpis.map(function(k){
+    return '<div onclick="goNav(\'' + k.nav + '\')" style="background:var(--white);border-radius:12px;border:1px solid var(--border);padding:16px 18px;cursor:pointer;transition:box-shadow .15s" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+      +'<div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">'+k.label+'</div>'
+      +'<div style="font-size:28px;font-weight:700;line-height:1;color:'+k.color+';margin-bottom:6px">'+k.val+'</div>'
+      +'<div style="font-size:11px;color:'+k.subcolor+'">'+k.sub+'</div>'
+      +'<div style="font-size:10px;color:var(--muted);margin-top:10px">Ver '+k.label.toLowerCase()+' →</div>'
+      +'</div>';
+  }).join('');
+}
+
+function renderDashBars(){
+  var el=document.getElementById('dash-bars-list');
+  if(!el)return;
+  var comms=Object.values(COMUNIDADES).map(function(c){
+    var openCount=c.incIds.filter(function(id){return INCIDENCIAS[id]&&INCIDENCIAS[id].status!=='Resuelta'&&INCIDENCIAS[id].status!=='Cerrada';}).length;
+    return {id:c.id,short:c.short,open:openCount};
+  }).filter(function(c){return c.open>0;}).sort(function(a,b){return b.open-a.open;}).slice(0,6);
+  if(!comms.length){el.innerHTML='<div style="padding:14px 16px;font-size:13px;color:var(--muted)">Sin incidencias activas en ninguna comunidad.</div>';return;}
+  var max=comms[0].open;
+  var colors=['var(--red)','var(--red)','#f97316','#f97316','var(--accent)','var(--accent)'];
+  el.innerHTML='<div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">'+comms.map(function(c,i){
+    var pct=Math.round((c.open/max)*100);
+    var col=colors[Math.min(i,colors.length-1)];
+    return '<div onclick="openComm(\'' + c.id + '\')" style="cursor:pointer" onmouseover="this.style.opacity=\'.8\'" onmouseout="this.style.opacity=\'1\'">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;font-weight:500;color:var(--ink)">'+c.short+'</span><span style="font-size:12px;font-weight:700;color:'+col+'">'+c.open+'</span></div>'
+      +'<div style="background:var(--bg);border-radius:4px;height:7px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+col+';border-radius:4px;transition:width .4s"></div></div>'
+      +'</div>';
+  }).join('')+'</div>';
+}
+
 function renderDashAlerts(){
   var el=document.getElementById('dash-alerts-list');
   if(!el)return;
@@ -3388,7 +3431,7 @@ normalizeAdjunto = function(att){
     }
   }
   return att;
-};function refreshDashboard(){ syncCommunityRelations(); var allIncs=Object.values(INCIDENCIAS); var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';}); var urgent=open.filter(function(i){return i.priority==='Urgente';}); var dbComms=document.getElementById('db-comms'); var dbIncs=document.getElementById('db-incs'); var dbUrg=document.getElementById('db-urg'); if(dbComms) dbComms.textContent=Object.keys(COMUNIDADES).length; if(dbIncs) dbIncs.textContent=open.length; if(dbUrg) dbUrg.textContent=urgent.length+' urgente'+(urgent.length!==1?'s':''); renderDashIncs(); renderCommList(); refreshFilterCounts(); refreshSidebarBadges(); refreshDocCommFilter(); refreshDocsSummary(); renderUpcomingMeetings(); renderDashAlerts(); renderDashCommPreview(); updateLiveDate(); }
+};function refreshDashboard(){ syncCommunityRelations(); var allIncs=Object.values(INCIDENCIAS); var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';}); var urgent=open.filter(function(i){return i.priority==='Urgente';}); var dbComms=document.getElementById('db-comms'); var dbIncs=document.getElementById('db-incs'); var dbUrg=document.getElementById('db-urg'); if(dbComms) dbComms.textContent=Object.keys(COMUNIDADES).length; if(dbIncs) dbIncs.textContent=open.length; if(dbUrg) dbUrg.textContent=urgent.length+' urgente'+(urgent.length!==1?'s':''); renderDashIncs(); renderCommList(); refreshFilterCounts(); refreshSidebarBadges(); refreshDocCommFilter(); refreshDocsSummary(); renderUpcomingMeetings(); renderDashKpis(); renderDashBars(); renderDashAlerts(); renderDashCommPreview(); updateLiveDate(); }
 
 syncCommunityRelations();
 normalizeJuntasData();
