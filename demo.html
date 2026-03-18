@@ -394,12 +394,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   <div id="screen-dashboard" class="screen active">
     <div class="topbar"><div class="tbt">Buenos días, Miguel 👋</div><div class="tbact"><span style="font-size:12px;color:var(--muted)" id="live-date"></span><button class="btn bp" onclick="openNewIncModal()">+ Nueva incidencia</button></div></div>
     <div class="content">
-      <div class="callout cb">📌 Estado de las 3 comunidades en un vistazo — sin abrir Excel ni hacer llamadas.</div>
+      <div class="callout cb">📌 Estado de las 12 comunidades en un vistazo — sin abrir Excel ni hacer llamadas.</div>
       <div class="sr">
-        <div class="sc"><div class="slb">Comunidades</div><div class="sv" id="db-comms">3</div><div class="ssb">Madrid</div></div>
+        <div class="sc"><div class="slb">Comunidades</div><div class="sv" id="db-comms">12</div><div class="ssb">Madrid</div></div>
         <div class="sc urg"><div class="slb">Incidencias abiertas</div><div class="sv" id="db-incs">5</div><div class="ssb" id="db-urg">2 urgentes hoy</div></div>
-        <div class="sc"><div class="slb">Juntas este mes</div><div class="sv">3</div><div class="ssb">Próxima: 15 mar</div></div>
-        <div class="sc ok"><div class="slb">Docs por revisar</div><div class="sv">7</div><div class="ssb">2 vencen pronto</div></div>
+        <div class="sc"><div class="slb">Juntas este mes</div><div class="sv" id="db-juntas-count">7</div><div class="ssb">Próxima: 15 mar</div></div>
+        <div class="sc ok"><div class="slb">Docs por revisar</div><div class="sv" id="db-docs-count">21</div><div class="ssb" id="db-docs-warn">3 vencen pronto</div></div>
       </div>
       <div class="twocol">
         <div class="card">
@@ -423,10 +423,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
         </div>
       </div>
       <div class="card" style="margin-top:14px">
-        <div class="ch"><div class="ct">🏢 Comunidades</div><button class="clk" onclick="goNav('comunidades')">Ver todas →</button></div>
-        <div class="cr" onclick="openComm('goya')"><div class="cav">G</div><div><div class="cn">C/ Goya 47 — Comunidad Goya</div><div class="csb">32 vecinos · 4 plantas · Madrid centro</div></div><div class="cbdg"><div class="badge br">2 abiertas</div><div class="badge bb">Junta 15 mar</div></div></div>
-        <div class="cr" onclick="openComm('espana')"><div class="cav" style="background:#fff7ed;color:#ea580c">P</div><div><div class="cn">Pza. España 3 — Comunidad Plaza España</div><div class="csb">58 vecinos · 8 plantas · Madrid centro</div></div><div class="cbdg"><div class="badge bo">1 en curso</div></div></div>
-        <div class="cr" onclick="openComm('velazquez')"><div class="cav" style="background:#f0fdf4;color:#16a34a">V</div><div><div class="cn">C/ Velázquez 12 — Comunidad Velázquez</div><div class="csb">24 vecinos · 3 plantas · Salamanca</div></div><div class="cbdg"><div class="badge bo">1 en curso</div></div></div>
+        <div class="ch"><div class="ct">🚨 Alertas del despacho</div></div>
+        <div id="dash-alerts-list"></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="ch"><div class="ct">🏢 Comunidades activas</div><button class="clk" onclick="goNav('comunidades')">Ver todas →</button></div>
+        <div id="dash-comm-list-preview"></div>
       </div>
     </div>
   </div>
@@ -841,7 +843,79 @@ const COMUNIDADES = {
     incIds:['inc3'],
     docIds:['d6','d9'],
     juntas:[{mes:'Mar',dia:'29',name:'Ordinaria',hora:'18:00h · Sala comunitaria',badge:{cls:'bgr',txt:'Sin convoca'}},{mes:'Dic',dia:'10',year:2025,name:'Ordinaria (completada)',hora:'18:00h',badge:{cls:'bg',txt:'Completada'}}],
-  }
+  },
+  serrano: {
+    id:'serrano', initial:'S', name:'Comunidad Serrano — C/ Serrano 84', short:'Serrano 84',
+    sub:'Madrid 28006 · 48 vecinos · 6 plantas', avStyle:'background:#faf5ff;color:#7c3aed',
+    presidente:'Isabel Fernández Mora', cuota:'112 € / vecino', cif:'H-28084612', morosos:'3 vecinos',
+    badges:[{cls:'bo',txt:'2 incidencias'}],
+    incIds:['inc6','inc7'], docIds:['d10','d11'],
+    juntas:[{mes:'Abr',dia:'10',name:'Ordinaria',hora:'19:30h · Sala comunitaria',badge:{cls:'bb',txt:'Convocada'}},{mes:'Oct',dia:'15',year:2025,name:'Ordinaria (completada)',hora:'19:30h',badge:{cls:'bg',txt:'Completada'}}],
+  },
+  alcala: {
+    id:'alcala', initial:'A', name:'Comunidad Alcalá — C/ Alcalá 203', short:'Alcalá 203',
+    sub:'Madrid 28028 · 40 vecinos · 5 plantas', avStyle:'background:#fff7ed;color:#c2410c',
+    presidente:'Jorge Blanco Herrera', cuota:'78 € / vecino', cif:'H-28203401', morosos:'0 vecinos',
+    badges:[{cls:'bo',txt:'1 incidencia'}],
+    incIds:['inc8'], docIds:['d12'],
+    juntas:[{mes:'Mar',dia:'20',name:'Ordinaria',hora:'18:00h · Sala comunitaria',badge:{cls:'bg',txt:'Completada'}}],
+  },
+  castellana: {
+    id:'castellana', initial:'C', name:'Comunidad Castellana — Pso. Castellana 142', short:'Castellana 142',
+    sub:'Madrid 28046 · 72 vecinos · 10 plantas', avStyle:'background:#eff6ff;color:#1d4ed8',
+    presidente:'María José Pardo Ruiz', cuota:'135 € / vecino', cif:'H-28142720', morosos:'7 vecinos',
+    badges:[{cls:'br',txt:'3 incidencias'}],
+    incIds:['inc9','inc10','inc11'], docIds:['d13','d14'],
+    juntas:[{mes:'Abr',dia:'5',name:'Extraordinaria',hora:'17:00h · Videoconferencia',badge:{cls:'by',txt:'Borrador'}},{mes:'Feb',dia:'28',name:'Ordinaria (completada)',hora:'19:00h',badge:{cls:'bg',txt:'Completada'}}],
+  },
+  hortaleza: {
+    id:'hortaleza', initial:'H', name:'Comunidad Hortaleza — C/ Bergara 12', short:'Bergara 12',
+    sub:'Madrid 28033 · 28 vecinos · 3 plantas', avStyle:'background:#f0fdf4;color:#15803d',
+    presidente:'Francisco Molina Vega', cuota:'62 € / vecino', cif:'H-28033128', morosos:'1 vecino',
+    badges:[{cls:'bg',txt:'Sin incidencias'}],
+    incIds:[], docIds:['d15'],
+    juntas:[{mes:'May',dia:'8',name:'Ordinaria',hora:'19:00h · Sala comunitaria',badge:{cls:'bgr',txt:'Sin convoca'}}],
+  },
+  retiro: {
+    id:'retiro', initial:'R', name:'Comunidad Retiro — C/ Ibiza 34', short:'Ibiza 34',
+    sub:'Madrid 28009 · 36 vecinos · 4 plantas', avStyle:'background:#fef2f2;color:#dc2626',
+    presidente:'Concepción Aranda Torres', cuota:'88 € / vecino', cif:'H-28009346', morosos:'4 vecinos',
+    badges:[{cls:'br',txt:'2 incidencias'}],
+    incIds:['inc12','inc13'], docIds:['d16','d17'],
+    juntas:[{mes:'Abr',dia:'18',name:'Ordinaria',hora:'19:00h · Sala comunitaria',badge:{cls:'bb',txt:'Convocada'}}],
+  },
+  chamberi: {
+    id:'chamberi', initial:'Ch', name:'Comunidad Chamberí — C/ Fuencarral 89', short:'Fuencarral 89',
+    sub:'Madrid 28004 · 44 vecinos · 5 plantas', avStyle:'background:#fefce8;color:#854d0e',
+    presidente:'Pedro Iglesias Santos', cuota:'97 € / vecino', cif:'H-28004891', morosos:'2 vecinos',
+    badges:[{cls:'bo',txt:'1 incidencia'}],
+    incIds:['inc14'], docIds:['d18'],
+    juntas:[{mes:'Mar',dia:'28',name:'Ordinaria (completada)',hora:'19:00h',badge:{cls:'bg',txt:'Completada'}}],
+  },
+  lavapies: {
+    id:'lavapies', initial:'L', name:'Comunidad Lavapiés — C/ Embajadores 55', short:'Embajadores 55',
+    sub:'Madrid 28012 · 20 vecinos · 3 plantas', avStyle:'background:#f0fdfa;color:#0f766e',
+    presidente:'Ana Belén Cruz Díaz', cuota:'51 € / vecino', cif:'H-28012551', morosos:'0 vecinos',
+    badges:[{cls:'bg',txt:'Sin incidencias'}],
+    incIds:[], docIds:[],
+    juntas:[{mes:'Jun',dia:'12',name:'Ordinaria',hora:'19:00h · Sala comunitaria',badge:{cls:'bgr',txt:'Sin convoca'}}],
+  },
+  salamanca: {
+    id:'salamanca', initial:'Sa', name:'Comunidad Salamanca — C/ Príncipe de Vergara 18', short:'Príncipe Vergara 18',
+    sub:'Madrid 28001 · 52 vecinos · 7 plantas', avStyle:'background:#fdf4ff;color:#9333ea',
+    presidente:'Guillermo Ortega Leal', cuota:'118 € / vecino', cif:'H-28001527', morosos:'3 vecinos',
+    badges:[{cls:'bo',txt:'1 incidencia'}],
+    incIds:['inc15'], docIds:['d19','d20'],
+    juntas:[{mes:'Abr',dia:'24',name:'Ordinaria',hora:'19:30h · Sala comunitaria',badge:{cls:'bb',txt:'Convocada'}},{mes:'Nov',dia:'14',year:2025,name:'Ordinaria (completada)',hora:'19:30h',badge:{cls:'bg',txt:'Completada'}}],
+  },
+  moratalaz: {
+    id:'moratalaz', initial:'M', name:'Comunidad Moratalaz — C/ Arroyo Fontarrón 4', short:'Fontarrón 4',
+    sub:'Madrid 28030 · 64 vecinos · 8 plantas', avStyle:'background:#f0f9ff;color:#0369a1',
+    presidente:'Luisa Ramos Peña', cuota:'73 € / vecino', cif:'H-28030641', morosos:'6 vecinos',
+    badges:[{cls:'br',txt:'2 incidencias'}],
+    incIds:['inc16','inc17'], docIds:['d21'],
+    juntas:[{mes:'Abr',dia:'3',name:'Ordinaria',hora:'18:30h · Sala comunitaria',badge:{cls:'bb',txt:'Convocada'}},{mes:'Oct',dia:'2',year:2025,name:'Ordinaria (completada)',hora:'18:30h',badge:{cls:'bg',txt:'Completada'}}],
+  },
 };
 
 const INCIDENCIAS = {
@@ -953,6 +1027,208 @@ const INCIDENCIAS = {
       {icon:'💰',name:'Presupuesto Cubiertas Madrid',meta:'PDF · 67 KB',visible:true},
     ]
   }
+  ,inc6:{
+    id:'inc6', commId:'serrano', icon:'💧',
+    title:'Humedad en fachada — plantas 3 y 4',
+    status:'En curso', priority:'Alta', category:'Impermeabilización',
+    proveedor:'Rehabilitaciones Norte S.L.', gestor:'Miguel García',
+    apertura:'02/03/2026', estimada:'25/03/2026', ref:'INC-2026-039',
+    desc:'Manchas de humedad por filtración en fachada exterior, plantas 3 y 4. Rehabilitaciones Norte ha inspeccionado y detecta fallo en junta de ventana. Presupuesto pendiente.',
+    nextAction:'Recibir presupuesto definitivo de Rehabilitaciones Norte — viernes 20 mar',
+    timeline:[
+      {type:'event',icon:'💧',title:'Incidencia abierta',text:'Reportada por Isabel Fernández (Presidenta). Manchas visibles desde la calle.',ts:'Lun 2 mar · 10:00h'},
+      {type:'event',icon:'🔧',title:'Visita técnica',text:'Rehabilitaciones Norte detecta fallo en sellado de ventanas plantas 3-4.',ts:'Jue 5 mar · 11:30h'},
+      {type:'visible',icon:'💬',title:'Actualización presidenta',text:'Fallo localizado. Presupuesto en elaboración. Resolución estimada en 2-3 semanas.',ts:'Vie 6 mar · 16:00h'},
+    ],
+    adjuntos:[
+      {icon:'📸',name:'Fotos fachada — manchas humedad',meta:'JPG · 2.8 MB',visible:true},
+      {icon:'📋',name:'Informe inspección fachada',meta:'PDF · 95 KB',visible:true},
+    ]
+  },
+  inc7:{
+    id:'inc7', commId:'serrano', icon:'🔧',
+    title:'Puerta garaje — motor averiado',
+    status:'Resuelta', priority:'Normal', category:'Cerrajería',
+    proveedor:'Automatismos García', gestor:'Laura Sáez',
+    apertura:'18/02/2026', estimada:'20/02/2026', ref:'INC-2026-011',
+    desc:'Motor de puerta garaje bloqueado. Automatismos García realizó sustitución de motor en 24h. Incidencia resuelta.',
+    nextAction:'—',
+    timeline:[
+      {type:'event',icon:'🔧',title:'Incidencia abierta',text:'Puerta garaje no abre ni cierra. Vecinos sin acceso.',ts:'Mié 18 feb · 08:00h'},
+      {type:'event',icon:'✅',title:'Reparación completada',text:'Automatismos García sustituye motor. Puerta operativa.',ts:'Jue 19 feb · 14:00h'},
+      {type:'visible',icon:'💬',title:'Cierre de incidencia',text:'Motor sustituido. Garantía 2 años. Factura adjunta.',ts:'Jue 19 feb · 16:00h'},
+    ],
+    adjuntos:[
+      {icon:'💰',name:'Factura Automatismos García',meta:'PDF · 42 KB',visible:true},
+    ]
+  },
+  inc8:{
+    id:'inc8', commId:'alcala', icon:'🎨',
+    title:'Pintada en portal — limpieza urgente',
+    status:'Resuelta', priority:'Normal', category:'Limpieza',
+    proveedor:'Limpiezas García S.L.', gestor:'Laura Sáez',
+    apertura:'10/03/2026', estimada:'11/03/2026', ref:'INC-2026-052',
+    desc:'Pintada en puerta principal y buzones. Limpiezas García realizó limpieza especializada en 24h. Resultado satisfactorio.',
+    nextAction:'—',
+    timeline:[
+      {type:'event',icon:'🎨',title:'Incidencia abierta',text:'Pintada en portal y buzones. Reportada por el presidente.',ts:'Mar 10 mar · 07:30h'},
+      {type:'event',icon:'✅',title:'Limpieza completada',text:'Limpiezas García elimina pintada con producto especializado.',ts:'Mié 11 mar · 10:00h'},
+    ],
+    adjuntos:[
+      {icon:'📸',name:'Foto estado antes/después',meta:'JPG · 1.9 MB',visible:true},
+    ]
+  },
+  inc9:{
+    id:'inc9', commId:'castellana', icon:'⚡',
+    title:'Cuadro eléctrico — interruptores obsoletos',
+    status:'Pendiente de comunidad', priority:'Alta', category:'Electricidad',
+    proveedor:'Electricidad Martín S.L.', gestor:'Miguel García',
+    apertura:'05/03/2026', estimada:'', ref:'INC-2026-041',
+    desc:'Cuadro eléctrico principal con interruptores de más de 20 años. Electricidad Martín recomienda sustitución completa. Presupuesto: 3.200€. Pendiente votación en junta extraordinaria.',
+    nextAction:'Presentar presupuesto en junta extraordinaria del 5 de abril',
+    timeline:[
+      {type:'event',icon:'⚡',title:'Revisión anual',text:'Electricidad Martín detecta obsolescencia en cuadro principal durante revisión.',ts:'Jue 5 mar · 10:00h'},
+      {type:'visible',icon:'💬',title:'Informe enviado a presidenta',text:'Sustitución recomendable por seguridad. Presupuesto 3.200€. Pendiente aprobación junta.',ts:'Vie 6 mar · 12:00h'},
+    ],
+    adjuntos:[
+      {icon:'📋',name:'Informe técnico cuadro eléctrico',meta:'PDF · 118 KB',visible:true},
+      {icon:'💰',name:'Presupuesto sustitución cuadro',meta:'PDF · 55 KB',visible:true},
+    ]
+  },
+  inc10:{
+    id:'inc10', commId:'castellana', icon:'🛗',
+    title:'Ascensor — revisión ITV obligatoria',
+    status:'En curso', priority:'Urgente', category:'Ascensor',
+    proveedor:'Thyssenkrupp Elevadores S.L.', gestor:'Miguel García',
+    apertura:'01/03/2026', estimada:'31/03/2026', ref:'INC-2026-033',
+    desc:'ITV del ascensor principal vence el 31 de marzo. Thyssenkrupp ha realizado la inspección previa y detecta necesidad de sustituir cables de tracción antes de la revisión oficial. Coste estimado: 890€.',
+    nextAction:'Confirmar fecha con Thyssenkrupp para sustitución cables — semana del 23 mar',
+    timeline:[
+      {type:'event',icon:'🛗',title:'Aviso vencimiento ITV',text:'ITV ascensor vence 31/03/2026. Apertura preventiva.',ts:'Dom 1 mar · 09:00h'},
+      {type:'event',icon:'🔧',title:'Inspección previa Thyssenkrupp',text:'Cables de tracción con desgaste. Recomiendan sustitución antes de ITV.',ts:'Mar 3 mar · 11:00h'},
+      {type:'visible',icon:'💬',title:'Actualización presidenta',text:'Cables a sustituir antes del 31/03. Coste 890€. Autorización solicitada.',ts:'Mar 3 mar · 17:00h'},
+    ],
+    adjuntos:[
+      {icon:'📋',name:'Informe inspección previa ITV',meta:'PDF · 134 KB',visible:true},
+      {icon:'💰',name:'Presupuesto cables tracción',meta:'PDF · 48 KB',visible:true},
+    ]
+  },
+  inc11:{
+    id:'inc11', commId:'castellana', icon:'💧',
+    title:'Filtración cubierta — ático 10ºA',
+    status:'En curso', priority:'Alta', category:'Impermeabilización',
+    proveedor:'Cubiertas Madrid S.L.', gestor:'Laura Sáez',
+    apertura:'08/03/2026', estimada:'22/03/2026', ref:'INC-2026-049',
+    desc:'Vecino del 10ºA reporta manchas de humedad en techo tras las lluvias. Cubiertas Madrid inspeccionó y detecta membrana impermeabilizante deteriorada en zona de cubierta sobre ático.',
+    nextAction:'Cubiertas Madrid ejecuta reparación la semana del 18 mar',
+    timeline:[
+      {type:'event',icon:'💧',title:'Incidencia abierta',text:'Vecino 10ºA reporta humedades en techo tras lluvias del fin de semana.',ts:'Dom 8 mar · 11:00h'},
+      {type:'event',icon:'🔧',title:'Inspección Cubiertas Madrid',text:'Membrana deteriorada en 4m². Reparación posible sin sustitución completa.',ts:'Lun 9 mar · 10:30h'},
+      {type:'visible',icon:'💬',title:'Actualización vecino y presidenta',text:'Causa identificada. Reparación programada semana del 18. Coste 480€.',ts:'Lun 9 mar · 16:00h'},
+    ],
+    adjuntos:[
+      {icon:'📸',name:'Fotos filtración techo ático',meta:'JPG · 2.2 MB',visible:true},
+      {icon:'💰',name:'Presupuesto reparación cubierta',meta:'PDF · 39 KB',visible:true},
+    ]
+  },
+  inc12:{
+    id:'inc12', commId:'retiro', icon:'🔒',
+    title:'Cerradura portal — forzada',
+    status:'Resuelta', priority:'Urgente', category:'Cerrajería',
+    proveedor:'Cerrajería 24h Rápida', gestor:'Miguel García',
+    apertura:'14/03/2026', estimada:'14/03/2026', ref:'INC-2026-061',
+    desc:'Cerradura del portal principal forzada por intento de robo. Cerrajería 24h intervino de urgencia y sustituyó bombo y cerradura con sistema de seguridad mejorado.',
+    nextAction:'—',
+    timeline:[
+      {type:'event',icon:'🔒',title:'Incidencia urgente',text:'Vecino detecta cerradura forzada. Portal sin seguridad.',ts:'Sáb 14 mar · 08:00h'},
+      {type:'event',icon:'✅',title:'Cerradura sustituida',text:'Cerrajería 24h instala bombo de seguridad alta. Portal operativo.',ts:'Sáb 14 mar · 10:30h'},
+    ],
+    adjuntos:[
+      {icon:'💰',name:'Factura cerrajería urgente',meta:'PDF · 35 KB',visible:true},
+    ]
+  },
+  inc13:{
+    id:'inc13', commId:'retiro', icon:'🏊',
+    title:'Piscina comunitaria — revisión apertura',
+    status:'Pendiente de comunidad', priority:'Normal', category:'Instalaciones',
+    proveedor:'AquaService Madrid', gestor:'Laura Sáez',
+    apertura:'10/03/2026', estimada:'', ref:'INC-2026-053',
+    desc:'Preparación apertura piscina para temporada. AquaService revisa instalaciones, depuradora y tratamiento de agua. Presupuesto mantenimiento temporada: 1.840€. Pendiente aprobación.',
+    nextAction:'Decisión de la comunidad antes del 15 de abril para abrir en junio',
+    timeline:[
+      {type:'event',icon:'🏊',title:'Revisión apertura solicitada',text:'Apertura temporada de piscina. Revisión técnica previa obligatoria.',ts:'Mar 10 mar · 09:00h'},
+      {type:'event',icon:'🔧',title:'Visita AquaService',text:'Instalaciones en buen estado. Depuradora necesita revisión. Presupuesto emitido.',ts:'Vie 13 mar · 11:00h'},
+    ],
+    adjuntos:[
+      {icon:'💰',name:'Presupuesto mantenimiento piscina',meta:'PDF · 62 KB',visible:true},
+    ]
+  },
+  inc14:{
+    id:'inc14', commId:'chamberi', icon:'🌡️',
+    title:'Calefacción central — avería caldera',
+    status:'En curso', priority:'Urgente', category:'Calefacción',
+    proveedor:'Calderas Ibérica S.L.', gestor:'Miguel García',
+    apertura:'12/03/2026', estimada:'16/03/2026', ref:'INC-2026-057',
+    desc:'Caldera central sin servicio desde el miércoles. 44 vecinos sin calefacción ni agua caliente. Calderas Ibérica diagnostica fallo en quemador. Pieza en pedido urgente.',
+    nextAction:'Llegada de pieza prevista para el lunes 16 — instalación mismo día',
+    timeline:[
+      {type:'event',icon:'🌡️',title:'Avería caldera',text:'44 vecinos sin calefacción ni ACS. Aviso urgente al administrador.',ts:'Jue 12 mar · 07:00h'},
+      {type:'event',icon:'👤',title:'Calderas Ibérica enviada',text:'Técnico de guardia disponible en 2 horas.',ts:'Jue 12 mar · 07:30h'},
+      {type:'event',icon:'🔧',title:'Diagnóstico',text:'Quemador principal averiado. Pieza no disponible en almacén. Pedido urgente.',ts:'Jue 12 mar · 10:00h'},
+      {type:'visible',icon:'💬',title:'Comunicación a vecinos',text:'Avería identificada. Pieza en camino. Servicio estimado lunes 16. Disculpen las molestias.',ts:'Jue 12 mar · 12:00h'},
+    ],
+    adjuntos:[
+      {icon:'📋',name:'Parte técnico caldera',meta:'PDF · 88 KB',visible:true},
+    ]
+  },
+  inc15:{
+    id:'inc15', commId:'salamanca', icon:'🏠',
+    title:'Revisión ITE — inspección técnica edificio',
+    status:'Pendiente de comunidad', priority:'Alta', category:'Estructura',
+    proveedor:'Arquitectura & Consultoría S.L.', gestor:'Miguel García',
+    apertura:'28/02/2026', estimada:'', ref:'INC-2026-021',
+    desc:'ITE del edificio vence en junio 2026. Contratada arquitectura para redactar informe. Pendiente de aprobación en junta para iniciar trabajos de subsanación de deficiencias leves detectadas. Presupuesto: 4.600€.',
+    nextAction:'Presentar informe ITE en junta del 24 de abril',
+    timeline:[
+      {type:'event',icon:'🏠',title:'ITE vence junio 2026',text:'Apertura preventiva para gestionar renovación.',ts:'Sáb 28 feb · 10:00h'},
+      {type:'event',icon:'🔧',title:'Inspección arquitecto',text:'Deficiencias leves en fachada y canalones. Sin riesgo inmediato.',ts:'Mar 3 mar · 11:00h'},
+      {type:'visible',icon:'💬',title:'Informe preliminar presidente',text:'ITE favorable con deficiencias leves. Presupuesto subsanación: 4.600€. A votar en junta abril.',ts:'Mié 4 mar · 14:00h'},
+    ],
+    adjuntos:[
+      {icon:'📋',name:'Informe ITE preliminar',meta:'PDF · 286 KB',visible:true},
+      {icon:'💰',name:'Presupuesto subsanación deficiencias',meta:'PDF · 74 KB',visible:true},
+    ]
+  },
+  inc16:{
+    id:'inc16', commId:'moratalaz', icon:'💡',
+    title:'Alumbrado garaje — 6 luminarias fundidas',
+    status:'En curso', priority:'Normal', category:'Electricidad',
+    proveedor:'Electricidad Martín S.L.', gestor:'Laura Sáez',
+    apertura:'11/03/2026', estimada:'18/03/2026', ref:'INC-2026-055',
+    desc:'6 luminarias del garaje soterrado fundidas. Electricidad Martín viene esta semana a hacer sustitución completa con LED de bajo consumo.',
+    nextAction:'Electricidad Martín — sustitución luminarias martes 17 de marzo',
+    timeline:[
+      {type:'event',icon:'💡',title:'Incidencia abierta',text:'Garaje con visibilidad reducida. 6 de 14 luminarias sin funcionar.',ts:'Mié 11 mar · 09:00h'},
+      {type:'event',icon:'👤',title:'Asignada a Electricidad Martín',text:'Visita programada para la semana del 16.',ts:'Mié 11 mar · 10:00h'},
+    ],
+    adjuntos:[
+      {icon:'📸',name:'Foto estado luminarias garaje',meta:'JPG · 1.7 MB',visible:true},
+      {icon:'💰',name:'Presupuesto sustitución LED',meta:'PDF · 41 KB',visible:true},
+    ]
+  },
+  inc17:{
+    id:'inc17', commId:'moratalaz', icon:'🌿',
+    title:'Zona ajardinada — mantenimiento anual',
+    status:'Pendiente de proveedor', priority:'Normal', category:'Jardinería',
+    proveedor:'Jardinería Verde Madrid', gestor:'Laura Sáez',
+    apertura:'01/03/2026', estimada:'30/04/2026', ref:'INC-2026-028',
+    desc:'Inicio de temporada primavera. Jardinería Verde Madrid debe presentar propuesta de mantenimiento anual para zona ajardinada comunitaria (poda, siembra, riego automático).',
+    nextAction:'Recibir propuesta de mantenimiento anual de Jardinería Verde',
+    timeline:[
+      {type:'event',icon:'🌿',title:'Solicitud de propuesta',text:'Inicio temporada. Se solicita propuesta mantenimiento anual.',ts:'Dom 1 mar · 11:00h'},
+    ],
+    adjuntos:[]
+  }
 };
 
 // Helper to build a simple HTML report dataUrl for demo docs
@@ -976,6 +1252,20 @@ const DOCS = [
   {id:'d7',commId:'goya',comm:'C/ Goya 47',icon:'💰',name:'Presupuesto pintura zonas comunes',meta:'PDF · 76 KB · Reformas Madrid',type:'presupuesto',fecha:'28/02/2026',status:{cls:'by',txt:'Pendiente aprobación'},content:'pres_pintura',mime:'text/html',dataUrl:_makeDocHtml('Presupuesto Pintura Zonas Comunes — C/ Goya 47','Pendiente aprobación junta','by','<tr><th>Concepto</th><th style="text-align:right">Importe (IVA incl.)</th></tr><tr><td>Pintura plástica lavable 110 kg</td><td style="text-align:right">760,00 €</td></tr><tr><td>Imprimación antihumedad planta 2</td><td style="text-align:right">150,00 €</td></tr><tr><td>Material preparación</td><td style="text-align:right">80,00 €</td></tr><tr><td>Mano de obra y desplazamiento</td><td style="text-align:right">2.860,00 €</td></tr><tr class="total"><td><strong>TOTAL</strong></td><td style="text-align:right"><strong>3.850,00 €</strong></td></tr>',null)},
   {id:'d8',commId:'espana',comm:'Pza. España 3',icon:'🛡️',name:'Póliza seguro comunidad 2025-2026',meta:'PDF · 2.8 MB · Allianz',type:'poliza',fecha:'01/09/2025',status:{cls:'bg',txt:'Vigente'},content:'poliza_espana',mime:'text/html',dataUrl:_makeDocHtml('Póliza Seguro Comunidad — Pza. España 3','Vigente','bg','<tr><th>Aseguradora</th><th>Nº Póliza</th><th>Prima anual</th><th>Vigencia</th></tr><tr><td>Allianz Seguros S.A.</td><td>ALL-2025-COM-08821</td><td>2.140 €</td><td>01/09/2025 — 31/08/2026</td></tr>','<h2>Coberturas</h2><p>Responsabilidad civil 900.000€ · Incendio y explosión · Daños por agua · Robo y vandalismo zonas comunes</p>')},
   {id:'d9',commId:'velazquez',comm:'C/ Velázquez 12',icon:'🧹',name:'Contrato limpieza 2025-2026',meta:'PDF · 234 KB · Limpiezas García',type:'contrato',fecha:'01/04/2025',statusVb:{cls:'urg',txt:'🔴 Vence 15 abr'},content:'contrato_limpieza',mime:'text/html',dataUrl:_makeDocHtml('Contrato Limpieza — C/ Velázquez 12','🔴 Vence 15 abr','urg','<tr><th>Proveedor</th><th>Cuota</th><th>Frecuencia</th><th>Vigencia</th></tr><tr><td>Limpiezas García S.L.</td><td>180 €/mes</td><td>3 veces/semana</td><td>01/04/2025 — 31/03/2026</td></tr>','<div style="margin-top:10px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px;font-size:12px;color:#dc2626">⚠ Contrato vencido. Gestionar renovación urgente.</div>')},
+,
+  {id:'d10',commId:'serrano',comm:'Serrano 84',icon:'🛡️',name:'Póliza seguro — Serrano 84',meta:'PDF · 2.4 MB · Mapfre',type:'poliza',fecha:'01/06/2025',status:{cls:'bg',txt:'Vigente'},content:'poliza_serrano',mime:'text/html',dataUrl:_makeDocHtml('Póliza Seguro — C/ Serrano 84','Vigente','bg','<tr><th>Aseguradora</th><th>Prima anual</th><th>Vigencia</th></tr><tr><td>Mapfre Seguros S.A.</td><td>2.280 €</td><td>01/06/2025 — 31/05/2026</td></tr>',null)},
+  {id:'d11',commId:'serrano',comm:'Serrano 84',icon:'💧',name:'Presupuesto fachada — humedades',meta:'PDF · 76 KB · Rehabilitaciones Norte',type:'presupuesto',fecha:'10/03/2026',status:{cls:'by',txt:'Pendiente'},content:'pres_fachada',mime:'text/html',dataUrl:_makeDocHtml('Presupuesto Rehabilitación Fachada — C/ Serrano 84','Pendiente aprobación','by','<tr><th>Concepto</th><th style="text-align:right">Importe (IVA incl.)</th></tr><tr><td>Sellado juntas ventanas plantas 3-4</td><td style="text-align:right">1.840,00 €</td></tr><tr><td>Tratamiento antihumedad fachada</td><td style="text-align:right">960,00 €</td></tr><tr><td>Mano de obra y andamio</td><td style="text-align:right">2.200,00 €</td></tr><tr class="total"><td><strong>TOTAL</strong></td><td style="text-align:right"><strong>5.000,00 €</strong></td></tr>',null)},
+  {id:'d12',commId:'alcala',comm:'Alcalá 203',icon:'📄',name:'Acta junta ordinaria — mar 2026',meta:'PDF · 195 KB',type:'acta',fecha:'20/03/2026',status:{cls:'bg',txt:'Firmada'},content:'acta_alcala',mime:'text/html',dataUrl:_makeDocHtml('Acta Junta Ordinaria — C/ Alcalá 203 (mar 2026)','Firmada','bg','<tr><th>Fecha</th><th>Asistentes</th><th>Presidente</th></tr><tr><td>20 mar 2026 · 18:00h</td><td>30/40 (75%)</td><td>D. Jorge Blanco Herrera</td></tr>','<h2>Acuerdos</h2><p>Aprobado presupuesto anual 18.720€. Sin incidencias relevantes.</p>')},
+  {id:'d13',commId:'castellana',comm:'Castellana 142',icon:'⚡',name:'Presupuesto cuadro eléctrico',meta:'PDF · 55 KB · Electricidad Martín',type:'presupuesto',fecha:'06/03/2026',status:{cls:'by',txt:'Pendiente'},content:'pres_cuadro',mime:'text/html',dataUrl:_makeDocHtml('Presupuesto Sustitución Cuadro Eléctrico — Castellana 142','Pendiente aprobación junta','by','<tr><th>Concepto</th><th style="text-align:right">Importe (IVA incl.)</th></tr><tr><td>Cuadro eléctrico modular 72 elementos</td><td style="text-align:right">1.840,00 €</td></tr><tr><td>Interruptores y magnetotérmicos</td><td style="text-align:right">680,00 €</td></tr><tr><td>Mano de obra</td><td style="text-align:right">680,00 €</td></tr><tr class="total"><td><strong>TOTAL</strong></td><td style="text-align:right"><strong>3.200,00 €</strong></td></tr>',null)},
+  {id:'d14',commId:'castellana',comm:'Castellana 142',icon:'🛗',name:'Contrato ascensores (x3) — Thyssenkrupp',meta:'PDF · 1.8 MB · Thyssenkrupp',type:'contrato',fecha:'01/01/2026',status:{cls:'bg',txt:'Vigente'},content:'contrato_asc_cast',mime:'text/html',dataUrl:_makeDocHtml('Contrato Mantenimiento Ascensores — Castellana 142','Vigente','bg','<tr><th>Proveedor</th><th>Ascensores</th><th>Cuota mensual</th></tr><tr><td>Thyssenkrupp Elevadores S.L.</td><td>3 ascensores</td><td>385 €/mes</td></tr>',null)},
+  {id:'d15',commId:'hortaleza',comm:'Bergara 12',icon:'🛡️',name:'Póliza seguro — Bergara 12',meta:'PDF · 1.9 MB · Allianz',type:'poliza',fecha:'01/09/2025',status:{cls:'bg',txt:'Vigente'},content:'poliza_bergara',mime:'text/html',dataUrl:_makeDocHtml('Póliza Seguro — C/ Bergara 12','Vigente','bg','<tr><th>Aseguradora</th><th>Prima anual</th><th>Vigencia</th></tr><tr><td>Allianz Seguros S.A.</td><td>1.420 €</td><td>01/09/2025 — 31/08/2026</td></tr>',null)},
+  {id:'d16',commId:'retiro',comm:'Ibiza 34',icon:'📄',name:'Acta junta ordinaria — ene 2026',meta:'PDF · 188 KB',type:'acta',fecha:'15/01/2026',status:{cls:'bg',txt:'Firmada'},content:'acta_retiro',mime:'text/html',dataUrl:_makeDocHtml('Acta Junta Ordinaria — C/ Ibiza 34','Firmada','bg','<tr><th>Fecha</th><th>Asistentes</th></tr><tr><td>15 ene 2026 · 19:00h</td><td>28/36 (78%)</td></tr>','<h2>Acuerdos</h2><p>Aprobado presupuesto 19.008€. Cuota mantenida 88€/mes.</p>')},
+  {id:'d17',commId:'retiro',comm:'Ibiza 34',icon:'🏊',name:'Presupuesto mantenimiento piscina',meta:'PDF · 62 KB · AquaService',type:'presupuesto',fecha:'13/03/2026',status:{cls:'by',txt:'Pendiente'},content:'pres_piscina',mime:'text/html',dataUrl:_makeDocHtml('Presupuesto Mantenimiento Piscina — C/ Ibiza 34','Pendiente aprobación','by','<tr><th>Concepto</th><th style="text-align:right">Importe</th></tr><tr><td>Puesta en marcha depuradora</td><td style="text-align:right">480,00 €</td></tr><tr><td>Tratamiento agua (5 meses)</td><td style="text-align:right">890,00 €</td></tr><tr><td>Socorrista temporada jun-sep</td><td style="text-align:right">470,00 €</td></tr><tr class="total"><td><strong>TOTAL</strong></td><td style="text-align:right"><strong>1.840,00 €</strong></td></tr>',null)},
+  {id:'d18',commId:'chamberi',comm:'Fuencarral 89',icon:'🌡️',name:'Contrato mantenimiento caldera',meta:'PDF · 445 KB · Calderas Ibérica',type:'contrato',fecha:'01/10/2025',status:{cls:'bg',txt:'Vigente'},content:'contrato_caldera',mime:'text/html',dataUrl:_makeDocHtml('Contrato Mantenimiento Caldera — C/ Fuencarral 89','Vigente','bg','<tr><th>Proveedor</th><th>Cuota anual</th><th>Vigencia</th></tr><tr><td>Calderas Ibérica S.L.</td><td>220 €/año</td><td>01/10/2025 — 30/09/2026</td></tr>','<p style="margin-top:10px">Revisión anual, limpieza caldera, análisis combustión y urgencias 24h.</p>')},
+  {id:'d19',commId:'salamanca',comm:'Príncipe Vergara 18',icon:'🏠',name:'Informe ITE preliminar',meta:'PDF · 286 KB · Arquitectura & Consultoría',type:'otro',fecha:'04/03/2026',status:{cls:'by',txt:'Pendiente'},content:'ite_salamanca',mime:'text/html',dataUrl:_makeDocHtml('Informe ITE Preliminar — Príncipe de Vergara 18','Pendiente aprobación junta','by','<tr><th>Inspector</th><th>Resultado</th></tr><tr><td>Arq. Marcos Vidal Nieto</td><td>FAVORABLE con deficiencias leves</td></tr>','<h2>Deficiencias</h2><p>Fisuras superficiales en cornisa (leves). Sellado canalones deteriorado. Sin riesgo estructural.</p><p><strong>Coste subsanación:</strong> 4.600 € (IVA incl.)</p>')},
+  {id:'d20',commId:'salamanca',comm:'Príncipe Vergara 18',icon:'🛡️',name:'Póliza seguro — Príncipe Vergara 18',meta:'PDF · 2.6 MB · Mapfre',type:'poliza',fecha:'01/07/2025',statusVb:{cls:'',txt:'⚠ Vence jun 26'},content:'poliza_salamanca',mime:'text/html',dataUrl:_makeDocHtml('Póliza Seguro — Príncipe de Vergara 18','⚠ Vence jun 26','by','<tr><th>Aseguradora</th><th>Prima anual</th><th>Vigencia</th></tr><tr><td>Mapfre Seguros S.A.</td><td>2.640 €</td><td>01/07/2025 — 30/06/2026</td></tr>','<div style="margin-top:10px;background:#fefce8;border:1px solid #fde047;border-radius:8px;padding:10px;font-size:12px;color:#854d0e">⚠ Vence junio 2026. Gestionar renovación antes del 15/06.</div>')},
+  {id:'d21',commId:'moratalaz',comm:'Fontarrón 4',icon:'📄',name:'Acta junta ordinaria — oct 2025',meta:'PDF · 212 KB',type:'acta',fecha:'02/10/2025',status:{cls:'bg',txt:'Firmada'},content:'acta_moratalaz',mime:'text/html',dataUrl:_makeDocHtml('Acta Junta Ordinaria — C/ Arroyo Fontarrón 4','Firmada','bg','<tr><th>Fecha</th><th>Asistentes</th></tr><tr><td>02 oct 2025 · 18:30h</td><td>48/64 (75%)</td></tr>','<h2>Acuerdos</h2><p>Aprobado presupuesto 2025-2026 de 28.032€. Renovación contrato limpieza aprobada.</p>')}
+
 ];
 
 const DOC_CONTENT = {
@@ -1807,7 +2097,14 @@ var PROVEEDORES=[
   {id:'p2',nombre:'Fontanería López S.L.',cat:'Fontanería',contacto:'91 345 67 89 · lopez.fontaneria@gmail.com',comm:'Pza. España 3',notas:'Colaborador habitual · Sin contrato fijo',importe:'Por obra',badge:'bo',badgeTxt:'En obra',warn:'🔗 INC-031',color:'#eff6ff',tc:'#2563eb'},
   {id:'p3',nombre:'Electricidad Martín S.L.',cat:'Electricidad',contacto:'91 456 78 90 · martin@electricidadmartin.es',comm:'Velázquez 12',notas:'Contrato mantenimiento eléctrico — vigente feb 2027',importe:'480 €/año',badge:'bg',badgeTxt:'Activo',warn:'🔗 INC-048',color:'#eff6ff',tc:'#2563eb'},
   {id:'p4',nombre:'Limpiezas García S.L.',cat:'Limpieza',contacto:'91 567 89 01 · info@limpiezasgarcia.com',comm:'Velázquez 12',notas:'Contrato limpieza — vence 15 abr 2026',importe:'180 €/mes',badge:'',badgeTxt:'',warn:'⚠ Contrato vence abr',color:'#fff7ed',tc:'#ea580c'},
-  {id:'p5',nombre:'Cubiertas Madrid S.L.',cat:'Tejados',contacto:'91 678 90 12 · info@cubiertasmadrid.com',comm:'Goya 47',notas:'Presupuesto en proceso · Visita sem. 18 mar',importe:'Pendiente',badge:'by',badgeTxt:'Pendiente',warn:'',color:'#f0fdf4',tc:'#16a34a'}
+  {id:'p5',nombre:'Cubiertas Madrid S.L.',cat:'Tejados',contacto:'91 678 90 12 · info@cubiertasmadrid.com',comm:'Goya 47',notas:'Presupuesto en proceso · Visita sem. 18 mar',importe:'Pendiente',badge:'by',badgeTxt:'Pendiente',warn:'',color:'#f0fdf4',tc:'#16a34a'},
+  {id:'p6',nombre:'Rehabilitaciones Norte S.L.',cat:'Fachadas',contacto:'91 789 01 23 · info@rehabnorte.com',comm:'Serrano 84',notas:'Especialistas en rehabilitación de fachadas y humedades',importe:'Por obra',badge:'bo',badgeTxt:'En obra',warn:'🔗 INC-039',color:'#f0f9ff',tc:'#0369a1'},
+  {id:'p7',nombre:'Automatismos García',cat:'Puertas automáticas',contacto:'91 890 12 34 · garcia.automatismos@gmail.com',comm:'Serrano 84',notas:'Colaborador habitual puertas garaje y cancelas',importe:'Por obra',badge:'bg',badgeTxt:'Activo',warn:'',color:'#eff6ff',tc:'#2563eb'},
+  {id:'p8',nombre:'Cerrajería 24h Rápida',cat:'Cerrajería',contacto:'91 901 23 45 · urgencias@cerrjeria24h.com',comm:'Ibiza 34',notas:'Servicio de urgencias 24h · Intervención en menos de 1h',importe:'Por obra',badge:'bg',badgeTxt:'Activo',warn:'',color:'#f0fdf4',tc:'#15803d'},
+  {id:'p9',nombre:'AquaService Madrid',cat:'Piscinas',contacto:'91 012 34 56 · info@aquaservicemadrid.com',comm:'Ibiza 34',notas:'Mantenimiento piscinas comunitarias · Apertura temporada',importe:'1.840 €/temporada',badge:'by',badgeTxt:'Pendiente',warn:'',color:'#eff6ff',tc:'#0369a1'},
+  {id:'p10',nombre:'Calderas Ibérica S.L.',cat:'Calefacción',contacto:'91 123 45 60 · servicio@calderasiberica.es',comm:'Fuencarral 89',notas:'Mantenimiento calderas y calefacción central',importe:'220 €/año',badge:'bo',badgeTxt:'En obra',warn:'🔗 INC-057',color:'#fff7ed',tc:'#c2410c'},
+  {id:'p11',nombre:'Arquitectura & Consultoría S.L.',cat:'ITE / Arquitectura',contacto:'91 234 56 71 · info@arqconsultoria.es',comm:'Príncipe Vergara 18',notas:'ITE y consultoría técnica de edificios',importe:'Por proyecto',badge:'by',badgeTxt:'Pendiente',warn:'🔗 INC-021',color:'#fdf4ff',tc:'#9333ea'},
+  {id:'p12',nombre:'Jardinería Verde Madrid',cat:'Jardinería',contacto:'91 345 67 82 · verde@jardineriamd.com',comm:'Fontarrón 4',notas:'Mantenimiento zonas verdes comunitarias',importe:'Por temporada',badge:'by',badgeTxt:'Pendiente',warn:'',color:'#f0fdf4',tc:'#15803d'}
 ];
 
 function renderProveedores(){
@@ -2584,6 +2881,74 @@ function renderDashIncs(){
   }).join('') || '<div style="padding:16px;font-size:13px;color:var(--muted)">Sin incidencias activas.</div>';
 }
 
+
+function renderDashAlerts(){
+  var el=document.getElementById('dash-alerts-list');
+  if(!el)return;
+  var alerts=[];
+  // Urgentes sin resolver
+  Object.values(INCIDENCIAS).forEach(function(i){
+    if(i.priority==='Urgente'&&i.status!=='Resuelta'&&i.status!=='Cerrada'){
+      var c=COMUNIDADES[i.commId];
+      alerts.push({type:'urg',icon:'🔴',text:'<strong>'+escapeHtml(i.ref)+'</strong> — '+escapeHtml(i.title),sub:escapeHtml((c&&c.short)||i.commId)+' · Urgente · '+escapeHtml(i.status),commId:i.commId,incId:i.id});
+    }
+  });
+  // Pólizas que vencen pronto
+  DOCS.forEach(function(d){
+    if(d.statusVb&&String(d.statusVb.txt||'').match(/Vence|vence/i)){
+      alerts.push({type:'warn',icon:'⚠️',text:'<strong>Póliza por vencer</strong> — '+escapeHtml(d.name),sub:escapeHtml(d.comm)+' · '+escapeHtml(d.statusVb.txt),commId:d.commId});
+    }
+  });
+  // Contratos vencidos
+  DOCS.forEach(function(d){
+    if(d.statusVb&&String(d.statusVb.txt||'').match(/🔴|Vence 15/i)){
+      alerts.push({type:'urg',icon:'🔴',text:'<strong>Contrato vencido</strong> — '+escapeHtml(d.name),sub:escapeHtml(d.comm)+' · Renovación urgente',commId:d.commId});
+    }
+  });
+  // Morosos
+  Object.values(COMUNIDADES).forEach(function(c){
+    var mor=parseInt(String(c.morosos||'0'));
+    if(mor>=4) alerts.push({type:'warn',icon:'💶',text:'<strong>'+mor+' morosos</strong> — '+escapeHtml(c.short),sub:'Cuota: '+escapeHtml(c.cuota)+' · Reclamación recomendada',commId:c.id});
+  });
+  if(!alerts.length){
+    el.innerHTML='<div style="padding:14px 16px;font-size:13px;color:var(--muted)">✅ Sin alertas activas. Todo bajo control.</div>';
+    return;
+  }
+  el.innerHTML=alerts.slice(0,8).map(function(a){
+    var clr=a.type==='urg'?'#fef2f2':'#fefce8';
+    var brd=a.type==='urg'?'#fecaca':'#fde047';
+    var onclick=a.incId?'onclick="openInc(''+a.commId+'',''+a.incId+'')"':a.commId?'onclick="openComm(''+a.commId+'')"':'';
+    return '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-left:3px solid '+brd+';background:'+clr+';margin:0;cursor:pointer;border-bottom:1px solid var(--border)" '+onclick+'>'
+      +'<span style="font-size:16px;margin-top:1px">'+a.icon+'</span>'
+      +'<div><div style="font-size:13px;line-height:1.4">'+a.text+'</div><div style="font-size:11px;color:var(--muted);margin-top:2px">'+escapeHtml(a.sub)+'</div></div>'
+      +'</div>';
+  }).join('');
+}
+
+function renderDashCommPreview(){
+  var el=document.getElementById('dash-comm-list-preview');
+  if(!el)return;
+  var comms=Object.values(COMUNIDADES);
+  // Sort: most incidents first
+  comms.sort(function(a,b){
+    var ao=a.incIds.filter(function(id){return INCIDENCIAS[id]&&INCIDENCIAS[id].status!=='Resuelta'&&INCIDENCIAS[id].status!=='Cerrada';}).length;
+    var bo=b.incIds.filter(function(id){return INCIDENCIAS[id]&&INCIDENCIAS[id].status!=='Resuelta'&&INCIDENCIAS[id].status!=='Cerrada';}).length;
+    return bo-ao;
+  });
+  el.innerHTML=comms.slice(0,8).map(function(c){
+    var openCount=c.incIds.filter(function(id){return INCIDENCIAS[id]&&INCIDENCIAS[id].status!=='Resuelta'&&INCIDENCIAS[id].status!=='Cerrada';}).length;
+    var badgeCls=openCount>1?'br':openCount===1?'bo':'bg';
+    var badgeTxt=openCount>0?(openCount+' incidencia'+(openCount!==1?'s':'')):'Sin incidencias';
+    var avStyle=c.avStyle||'background:#eff6ff;color:#2563eb';
+    return '<div class="cr" onclick="openComm(''+c.id+'')">'
+      +'<div class="cav" style="'+avStyle+'">'+escapeHtml(c.initial||'?')+'</div>'
+      +'<div><div class="cn">'+escapeHtml(c.short)+'</div><div class="csb">'+escapeHtml(c.sub)+'</div></div>'
+      +'<div class="cbdg"><div class="badge '+badgeCls+'">'+badgeTxt+'</div>'+(c.morosos&&parseInt(c.morosos)>0?'<div class="badge by">'+escapeHtml(c.morosos)+'</div>':'')+'</div>'
+      +'</div>';
+  }).join('')
+  + (comms.length>8?'<div style="padding:10px 16px;font-size:12px;color:var(--muted);text-align:center;cursor:pointer" onclick="goNav('comunidades')">Ver todas las comunidades ('+comms.length+') →</div>':'');
+}
+
 function refreshFilterCounts(){
   var allIncs=Object.values(INCIDENCIAS);
   var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';});
@@ -3020,7 +3385,7 @@ normalizeAdjunto = function(att){
     }
   }
   return att;
-};function refreshDashboard(){ syncCommunityRelations(); var allIncs=Object.values(INCIDENCIAS); var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';}); var urgent=open.filter(function(i){return i.priority==='Urgente';}); var dbComms=document.getElementById('db-comms'); var dbIncs=document.getElementById('db-incs'); var dbUrg=document.getElementById('db-urg'); if(dbComms) dbComms.textContent=Object.keys(COMUNIDADES).length; if(dbIncs) dbIncs.textContent=open.length; if(dbUrg) dbUrg.textContent=urgent.length+' urgente'+(urgent.length!==1?'s':''); renderDashIncs(); renderCommList(); refreshFilterCounts(); refreshSidebarBadges(); refreshDocCommFilter(); refreshDocsSummary(); renderUpcomingMeetings(); updateLiveDate(); }
+};function refreshDashboard(){ syncCommunityRelations(); var allIncs=Object.values(INCIDENCIAS); var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';}); var urgent=open.filter(function(i){return i.priority==='Urgente';}); var dbComms=document.getElementById('db-comms'); var dbIncs=document.getElementById('db-incs'); var dbUrg=document.getElementById('db-urg'); if(dbComms) dbComms.textContent=Object.keys(COMUNIDADES).length; if(dbIncs) dbIncs.textContent=open.length; if(dbUrg) dbUrg.textContent=urgent.length+' urgente'+(urgent.length!==1?'s':''); renderDashIncs(); renderCommList(); refreshFilterCounts(); refreshSidebarBadges(); refreshDocCommFilter(); refreshDocsSummary(); renderUpcomingMeetings(); renderDashAlerts(); renderDashCommPreview(); updateLiveDate(); }
 
 syncCommunityRelations();
 normalizeJuntasData();
