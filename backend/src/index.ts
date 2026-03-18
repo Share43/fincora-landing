@@ -9,6 +9,7 @@ import { incidentsRouter } from "./routes/incidents";
 import { documentsRouter } from "./routes/documents";
 import { meetingsRouter } from "./routes/meetings";
 import { statsRouter } from "./routes/stats";
+import { publicRouter } from "./routes/public";
 
 const app = new Hono();
 
@@ -29,6 +30,7 @@ app.get("/health", (c) => c.json({ status: "ok" }));
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
+app.route("/public", publicRouter);
 app.route("/auth", authRouter);
 app.route("/stats", statsRouter);
 app.route("/communities", communitiesRouter);
