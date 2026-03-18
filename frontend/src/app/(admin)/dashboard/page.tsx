@@ -10,6 +10,7 @@ interface Kpis {
   openIncidents: number;
   totalDocuments: number;
   upcomingMeetings: number;
+  totalResidents: number;
 }
 
 interface RecentIncident {
@@ -103,11 +104,12 @@ export default function DashboardPage() {
         )}
 
         {/* KPI cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 18 }}>
-          <StatCard label="Comunidades"        value={kpis?.totalCommunities  ?? "—"} sub="activas" />
-          <StatCard label="Incidencias abiertas" value={kpis?.openIncidents   ?? "—"} sub="pendientes" valueColor={kpis?.openIncidents ? "var(--red)" : undefined} />
-          <StatCard label="Documentos"          value={kpis?.totalDocuments   ?? "—"} sub="subidos" />
-          <StatCard label="Próximas juntas"     value={kpis?.upcomingMeetings ?? "—"} sub="convocadas" />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 18 }}>
+          <StatCard label="Comunidades"          value={kpis?.totalCommunities  ?? "—"} sub="activas" />
+          <StatCard label="Vecinos"              value={kpis?.totalResidents    ?? "—"} sub="en total" />
+          <StatCard label="Incidencias abiertas" value={kpis?.openIncidents     ?? "—"} sub="pendientes" valueColor={kpis?.openIncidents ? "var(--red)" : undefined} />
+          <StatCard label="Documentos"           value={kpis?.totalDocuments    ?? "—"} sub="subidos" />
+          <StatCard label="Próximas juntas"      value={kpis?.upcomingMeetings  ?? "—"} sub="convocadas" />
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>

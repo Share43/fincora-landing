@@ -16,6 +16,7 @@ statsRouter.get("/", async (c) => {
     openIncidents,
     totalDocuments,
     upcomingMeetings,
+    totalResidents,
     recentIncidents,
     communities,
   ] = await Promise.all([
@@ -30,6 +31,8 @@ statsRouter.get("/", async (c) => {
     prisma.meeting.count({
       where: { community: { adminId }, status: "SCHEDULED", date: { gte: now } },
     }),
+
+    prisma.resident.count({ where: { community: { adminId } } }),
 
     prisma.incident.findMany({
       where: { community: { adminId } },
@@ -54,7 +57,7 @@ statsRouter.get("/", async (c) => {
 
   return c.json({
     data: {
-      kpis: { totalCommunities, openIncidents, totalDocuments, upcomingMeetings },
+      kpis: { totalCommunities, openIncidents, totalDocuments, upcomingMeetings, totalResidents },
       recentIncidents,
       communities,
     },
