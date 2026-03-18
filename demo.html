@@ -2046,8 +2046,18 @@ function renderDocs(){
 function filterDocs(){renderDocs();}
 
 function filterDocsType(t,btn){
-  document.querySelectorAll('#screen-documentos .filterbtn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
+  document.querySelectorAll('#screen-documentos .filterbtn').forEach(function(b){
+    b.classList.remove('active');
+    b.style.background='';
+    b.style.color='';
+    b.style.borderColor='';
+  });
+  if(btn){
+    btn.classList.add('active');
+    btn.style.background='var(--accent)';
+    btn.style.color='#fff';
+    btn.style.borderColor='var(--accent)';
+  }
   docTypeFilter=t;
   renderDocs();
 }
@@ -2901,7 +2911,8 @@ function renderDashKpis(){
   var allIncs=Object.values(INCIDENCIAS);
   var open=allIncs.filter(function(i){return i.status!=='Resuelta'&&i.status!=='Cerrada';});
   var urgent=open.filter(function(i){return i.priority==='Urgente';});
-  var totalVecinos=Object.values(COMUNIDADES).reduce(function(s,c){var parts=String(c.sub||'').split('vecinos');var mv=parts.length>1?parts[0].trim().split(' ').pop():'0';return s+(parseInt(mv)||0);},0);
+  var _vmap={goya:32,espana:58,velazquez:24,serrano:48,alcala:40,castellana:72,hortaleza:28,retiro:36,chamberi:44,lavapies:20,salamanca:52,moratalaz:64};
+  var totalVecinos=Object.keys(COMUNIDADES).reduce(function(s,k){return s+(_vmap[k]||0);},0);
   var totalMorosos=Object.values(COMUNIDADES).reduce(function(s,c){return s+(parseInt(c.morosos)||0);},0);
   var morososComms=Object.values(COMUNIDADES).filter(function(c){return parseInt(c.morosos)>0;}).length;
   var contratosVencen=DOCS.filter(function(d){return d.statusVb&&String(d.statusVb.txt||'').match(/Vence|vence|🔴/i);}).length;
